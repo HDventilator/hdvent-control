@@ -1,0 +1,35 @@
+
+State diagram
+-------------
+
+1) Power up
+2) Start beeping
+    Wait for user input (continue button)
+3) Start watchdog ( set to X ms)
+4) Check and verify the step motor and sensors
+    4.1) Read motor driver ID
+    4.2) Check the light barriers levels and check the number of steps between barriers
+    4.3) Go to start position
+5) Find start position and drive to end position
+    5.1) Patient mask must be off (check pressure sensor)
+    5.2) Calculate the number of steps (check the value)
+6) Read and verify (CRC32) from eeprom the last saved vent parameters
+    a) Invalid parameters -> load default and display the values
+    b) Valid parameters -> display values
+7) User set the parameters (potis) and push continue button
+8) If parameters changed, write them to eeprom
+9) Start breathing loop
+    9.1) reset watchdog
+    9.2) inspiration phase
+        9.2.1) check missing steps
+        9.2.2) check pressure
+        9.2.3)
+    9.3) expiration phase
+        9.3.1) go start position
+        9.3.2) check number of steps until start position
+                a) missing steps -> start beeping
+    9.4) pause
+
+    9.5) Breathing parameters changed?
+
+        9.5.1) user must confirm the new parameters
