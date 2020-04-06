@@ -10,7 +10,7 @@
 // Need this line for some reason?!
 AutoDriver Stepperdummy(1, A2, 4);  // Nr, CS, Reset => 0 , D16/A2 (PA4), D4 (PB5) for IHM02A1 board
 AutoDriver Stepper(0, A2, 4);  // Nr, CS, Reset => 0 , D16/A2 (PA4), D4 (PB5) for IHM02A1 board
-AutoDriver *boardIndex ;
+
 
 /* ***********************
  * Constant definitions
@@ -94,6 +94,10 @@ float pathRatio = 1;
 float IERatio = 0.5;
 
 bool startCyclingSwitch = 0;
+
+// Indicates that the motor is at home position,
+// TODO: this variable must be updated with an interrupt generated 
+// by the light barrier
 bool isHome = true;
 
 unsigned long timerStartMovingIn = 0;
@@ -106,7 +110,8 @@ float pressurePEEP=0;
 float oldPressure=0;
 float pressure=0;
 float temperatureInflux=0;
-uint8_t state = STARTUP;
+
+PumpingState currentState;
 
 void setup()
 {
@@ -124,7 +129,6 @@ void setup()
     digitalWrite(4, HIGH);
     SPI.begin();             // start
 
-    boardIndex = &Stepper;
     ConfigureStepperDriver();
 }
 
@@ -137,69 +141,66 @@ void loop(){
     //PrintMotorCurveParameters();
     UpdateMotorCurveParameters(respiratoryRate, pathRatio, IERatio);
     //startCyclingSwitch = digitalRead(MANUAL_CYCLE_SWITCH_PIN);
-    state = runPumpingStateMachine(state);
+    currentState = runPumpingStateMachine();
     //Serial.println(state);
 }
 
-uint8_t runPumpingStateMachine(uint8_t state)
+PumpingState runPumpingStateMachine()
 {
-    uint8_t nextState=state;
+    
+    static PumpingState state = STARTUP;
+
     switch(state)
     {
         case STARTUP:
             if (isHome){
-                nextState = START_IN;
-                break;
+                state = START_IN;
             }
             else {
                 moveStepper(STEPS_EX_HOMING*STEP_DIVIDER, SPEED_EX, ACC_EX, DEC_EX, DIR_EX);
-                nextState = HOMING_EX;
-                break;
+                state = HOMING_EX;
             }
-
+            break;
         case HOMING_EX:
             if (isHome) {
                 // motor is at home position, stop it and start cycle
                 Stepper.hardStop();
-                nextState = START_IN;
-                break;
+                state = START_IN;                
             }
             else if (isBusy){
                 // motor still moving, continue homing
-                nextState = HOMING_EX;
-                break;
+                state = HOMING_EX;                
             }
             else{
                 // motor couldn't find home position in EX direction
                 // try in IN direction
                 moveStepper((STEPS_IN_HOMING+STEPS_EX_HOMING)*STEP_DIVIDER, SPEED_EX, ACC_EX, DEC_EX, DIR_IN);
-                nextState = HOMING_IN;
-                break;
+                state = HOMING_IN;
+                
             }
+            break;
 
         case HOMING_IN:
             if (isHome) {
                 // motor is at home position, stop it and start cycle
                 Stepper.hardStop();
-                nextState = START_IN;
-                break;
+                state = START_IN;
             }
             else if (isBusy){
                 // motor still moving, continue homing
-                nextState = HOMING_IN;
-                break;
+                state = HOMING_IN;
             }
             else{
                 // motor couldn't find home position in EX direction
                 // try in IN direction
                 moveStepper((STEPS_IN_HOMING+STEPS_EX_HOMING)*STEP_DIVIDER, SPEED_EX, ACC_EX, DEC_EX, DIR_IN);
-                nextState = HOMING_IN;
-                break;
+                state = HOMING_IN;
             }
+         break;
 
         case IDLE:
             if (startCyclingSwitch){
-                nextState = START_IN;
+                state = START_IN;
             }
             break;
 
@@ -207,20 +208,20 @@ uint8_t runPumpingStateMachine(uint8_t state)
             UpdateMotorCurveParameters( respiratoryRate, pathRatio, IERatio);
             moveStepper(stepsInterval, speedIn, ACC_IN, DEC_IN, DIR_IN);
             timerStartMovingIn = millis();
-            nextState = MOVING_IN;
+            state = MOVING_IN;
             break;
 
         case MOVING_IN:
             if (millis() - timerStartMovingIn < timeIn*1000) {
-
-                nextState = MOVING_IN;
-                break;
+               //TODO
+               (void)0;
             }
             else if (isBusy()) {
                 // time is up, but motor still busy
-                break;
+                //TODO
+                (void)0;
             }
-            nextState = HOLDING_IN;
+            state = HOLDING_IN;
             timerStartHoldingIn = millis();
             break;
 
@@ -228,10 +229,10 @@ uint8_t runPumpingStateMachine(uint8_t state)
             if ((millis() - timerStartHoldingIn) < TIME_HOLD_PLATEAU*1000) {
                 pressurePlateau = pressure;
                 nextState=HOLDING_IN;
-                break;
+                
             }
             else {
-                nextState = START_EX;
+                state = START_EX;
                 timerStartMovingEx = millis();
             }
             break;
@@ -239,43 +240,48 @@ uint8_t runPumpingStateMachine(uint8_t state)
         case START_EX:
             moveStepper(stepsInterval, SPEED_EX, ACC_EX, DEC_EX, DIR_EX);
             timerStartMovingEx = millis();
-            nextState = MOVING_EX;
+            state = MOVING_EX;
             break;
 
         case MOVING_EX:
             if ((millis() - timerStartMovingEx) < timeEx*1000) {
                 nextState=MOVING_EX;
-                break;
             }
             else if (isBusy()) {
                 nextState=MOVING_EX;
                 // time is up, but motor still busy
-                break;
             }
             else {
                 // moving out is finished
                 // start heating and enter hold phase
-                nextState = HOLDING_EX;
+                state = HOLDING_EX;
                 timerStartHoldingEx = millis();
                 if (temperatureInflux<TEMPERATURE_INFLUX_THRESHOLD){
-                    startInfluxHeating();
-                }
-                break;
+                    //startInfluxHeating();
+                    //TODO
+                    (void)0;
             }
 
+            }
+            break;
         case HOLDING_EX:
             if ((millis() - timerStartMovingEx) < timeEx*1000) {
                 // record PEEP pressure
                 pressurePEEP = pressure;
-                break;
-            } else {
+            } 
+            else {
                 // time is up, stop heating, move in
-                nextState = START_IN;
+                state = START_IN;
                 stopInfluxHeating();
             }
             break;
+            
+       default:
+       break;
     }
-    return(nextState);
+    
+
+    return(state);
 }
 
 void updateDisplay(float respiratoryRate, float pathRatio, float IERatio,
@@ -294,9 +300,9 @@ bool getStatusFlag(int r, int n){
 }
 
 void moveStepper(int steps, int speed, int acc, int dec, int dir) {
-    boardIndex->setMaxSpeed(speed);
-    boardIndex->setAcc(acc);
-    boardIndex->setDec(dec);
+    Stepper.setMaxSpeed(speed);
+    Stepper.setAcc(acc);
+    Stepper.setDec(dec);
     Stepper.move(dir, steps);
 }
 
@@ -352,7 +358,7 @@ bool isBusy()
 {
     byte status=0;
     bool busy=0;
-    status = boardIndex->getStatus();
+    status = Stepper.getStatus();
     busy = !((status>>1)&0x01);
     return(busy);
 }
@@ -383,32 +389,32 @@ void ConfigureStepperDriver()
     Serial.println("Configuring boards...");
 
     // Before we do anything, we need to tell each device which SPI port we're using.
-    boardIndex->SPIPortConnect(&SPI);
+    Stepper.SPIPortConnect(&SPI);
 
     // reset device //
-    boardIndex->resetDev();
+    Stepper.resetDev();
 
     // Set the Overcurrent Threshold to 6A(max). The OC detect circuit is quite sensitive; even if the current is only momentarily
     //  exceeded during acceleration or deceleration, the driver will shutdown. This is a per channel value; it's useful to
     //  consider worst case, which is startup.
-    boardIndex->setOCThreshold(OCD_TH_6000mA);
+    Stepper.setOCThreshold(OCD_TH_6000mA);
 
     // KVAL is a modifier that sets the effective voltage applied to the motor. KVAL/255 * Vsupply = effective motor voltage.
     //  This lets us hammer the motor harder during some phases  than others, and to use a higher voltage to achieve better
     //  torqure performance even if a motor isn't rated for such a high current.
     // This IHM02A1 BOARD has 12V motors and a 12V supply.
-    boardIndex->setRunKVAL(200);  // 220/255 * 12V = 6V
-    boardIndex->setAccKVAL(200);  // 220/255 * 12V = 6V
-    boardIndex->setDecKVAL(200);  // /255 * 12V = 3V
-    boardIndex->setHoldKVAL(150);  // 132/255 * 12V = 1.5V  // low voltage, almost free turn
+    Stepper.setRunKVAL(200);  // 220/255 * 12V = 6V
+    Stepper.setAccKVAL(200);  // 220/255 * 12V = 6V
+    Stepper.setDecKVAL(200);  // /255 * 12V = 3V
+    Stepper.setHoldKVAL(150);  // 132/255 * 12V = 1.5V  // low voltage, almost free turn
 
     // The dSPIN chip supports microstepping for a smoother ride. This function provides an easy front end for changing the microstepping mode.
     // once in full speed, it will step up to half-step
-    boardIndex->configStepMode(STEP_DIVIDER_REGISTER); // Full step
+    Stepper.configStepMode(STEP_DIVIDER_REGISTER); // Full step
 }
 
 int readStatusRegister(){
     int paramValue;
-    paramValue = boardIndex->getStatus();
+    paramValue = Stepper.getStatus();
     return(paramValue);
 }
