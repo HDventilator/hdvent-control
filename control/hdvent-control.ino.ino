@@ -142,7 +142,6 @@ void loop(){
     //Serial.println(state);
 }
 
-
 uint8_t runPumpingStateMachine(uint8_t state)
 {
     uint8_t nextState=state;
@@ -316,8 +315,6 @@ void printUserValues(){
     Serial.print("\tTV= \t");Serial.print(pathRatio);
     Serial.print("\tIE= \t1:");Serial.println(1./IERatio);
 }
-
-
 
 
 //! take user-set parameters and calculate the parameters for the motor curve,
