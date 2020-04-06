@@ -37,14 +37,14 @@ float const DEC_IN = 300; // steps/s/s
 float const ACC_EX = 300; // steps/s/s
 float const SPEED_EX = 100; //steps/s
 float const DEC_EX = 300; // steps/s/s
-bool const IN_DIR = 1;
-bool const EX_DIR = abs(IN_DIR-1);
+bool const DIR_IN = 1;
+bool const DIR_EX = abs(DIR_IN - 1);
 int const STEP_DIVIDER_REGISTER = STEP_FS_128;
 int const STEP_DIVIDER = 128;
 
 // state flags
 
-enum PumpingState {START_IN, MOVING_IN, HOLDING_IN, START_EX, MOVING_EX, HOLDING_EX, IDLE};
+enum PumpingState {START_IN, MOVING_IN, HOLDING_IN, START_EX, MOVING_EX, HOLDING_EX, IDLE, STARTUP, HOMING};
 enum UserSetState {READ_POTIS,};
 
 /* *****************
@@ -59,8 +59,7 @@ void UpdateMotorCurveParameters(float respiratoryRate, float pathRatio, float IE
 void PrintMotorCurveParameters();
 bool isBusy();
 
-void moveStepperIn();
-void moveStepperEx();
+void moveStepper(int steps, int speed, int acc, int dec, int dir);
 uint8_t runPumpingStateMachine( uint8_t state );
 int motorStatusRegister;
 void writeToLCD(float respiratoryRate, float tidalVolume, float ratioInEx, float PEEP, float peak, float plat);
@@ -72,6 +71,8 @@ bool getStatusFlag(int r, int n);
 void updateDisplay(float respiratoryRate, float pathRatio, float IERatio,
                    float peakPressure, float plateauPressure, float peePressure);
 void readPressureSensors();
+void readOpticalSensors();
+void controlInfluxTemp();
 void writeToEEPROM();
 
 /* *****************************
@@ -91,6 +92,7 @@ float pathRatio = 1;
 float IERatio = 0.5;
 
 bool startCyclingSwitch = 0;
+bool isHome = true;
 
 unsigned long timerStartMovingIn = 0;
 unsigned long timerStartMovingEx = 0;
@@ -99,7 +101,8 @@ unsigned long timerStartHoldingEx = 0;
 float peakPressure=0;
 float plateauPressure=0;
 float PEEPressure=0;
-uint8_t state = IDLE;
+float oldPressure=0;
+uint8_t state = STARTUP;
 
 void setup()
 {
@@ -124,18 +127,23 @@ void setup()
 void loop(){
     readPotis();
     readPressureSensors();
+    readOpticalSensors();
     updateDisplay(respiratoryRate, pathRatio, IERatio, peakPressure, plateauPressure, PEEPressure);
     motorStatusRegister = readStatusRegister();
     //PrintMotorCurveParameters();
     UpdateMotorCurveParameters(respiratoryRate, pathRatio, IERatio);
     //startCyclingSwitch = digitalRead(MANUAL_CYCLE_SWITCH_PIN);
     state = runPumpingStateMachine(state);
+    controlInfluxTemp();
     //Serial.println(state);
 }
 
+void controlInfluxTemp(){
+    delay(10);
+}
 void updateDisplay(float respiratoryRate, float pathRatio, float IERatio,
                    float peakPressure, float plateauPressure, float peePressure){
-    delay(50);
+    delay(10);
 }
 
 void readPressureSensors(){
@@ -150,18 +158,11 @@ bool getStatusFlag(int r, int n){
     return(flag);
 }
 
-void moveStepperIn() {
-    boardIndex->setMaxSpeed(speedIn);
-    boardIndex->setAcc(ACC_IN);
-    boardIndex->setDec(DEC_IN);
-    Stepper.move(IN_DIR, stepsInterval);
-}
-
-void moveStepperEx() {
-    boardIndex->setMaxSpeed(SPEED_EX);
-    boardIndex->setAcc(ACC_EX);
-    boardIndex->setDec(DEC_EX);
-    Stepper.move(EX_DIR, stepsInterval);
+void moveStepper(int steps, int speed, int acc, int dec, int dir) {
+    boardIndex->setMaxSpeed(speed);
+    boardIndex->setAcc(acc);
+    boardIndex->setDec(dec);
+    Stepper.move(dir, steps);
 }
 
 void readPotis(){
@@ -188,19 +189,46 @@ void printUserValues(){
 
 uint8_t runPumpingStateMachine(uint8_t state)
 {
+    uint8_t nextState=state;
     switch(state)
     {
+        case STARTUP:
+            if (isHome){
+                nextState = START_IN;
+                break;
+            }
+            else {
+                moveStepper(200*STEP_DIVIDER, SPEED_EX, ACC_EX, DEC_EX, DIR_EX);
+                nextState = HOMING;
+                break;
+            }
+
+        case HOMING:
+            if (isHome) {
+                Stepper.hardStop();
+                nextState = START_IN;
+                break;
+            }
+            else if (isBusy){
+                nextState = HOMING;
+                break;
+            }
+            else{
+                // cannot find home position
+                break;
+            }
+
         case IDLE:
             if (startCyclingSwitch){
-                state = START_IN;
+                nextState = START_IN;
             }
             break;
 
         case START_IN:
             UpdateMotorCurveParameters( respiratoryRate, pathRatio, IERatio);
-            moveStepperIn();
+            moveStepper(stepsInterval, speedIn, ACC_IN, DEC_IN, DIR_IN);
             timerStartMovingIn = millis();
-            state = MOVING_IN;
+            nextState = MOVING_IN;
             break;
 
         case MOVING_IN:
@@ -211,7 +239,7 @@ uint8_t runPumpingStateMachine(uint8_t state)
                 // time is up, but motor still busy
                 break;
             }
-            state = HOLDING_IN;
+            nextState = HOLDING_IN;
             timerStartHoldingIn = millis();
             break;
 
@@ -220,15 +248,15 @@ uint8_t runPumpingStateMachine(uint8_t state)
                 break;
             }
             else {
-                state = START_EX;
+                nextState = START_EX;
                 timerStartMovingEx = millis();
             }
             break;
 
         case START_EX:
-            moveStepperEx();
+            moveStepper(stepsInterval, SPEED_EX, ACC_EX, DEC_EX, DIR_EX);
             timerStartMovingEx = millis();
-            state = MOVING_EX;
+            nextState = MOVING_EX;
             break;
 
         case MOVING_EX:
@@ -240,7 +268,7 @@ uint8_t runPumpingStateMachine(uint8_t state)
                 break;
             }
             else {
-                state = HOLDING_EX;
+                nextState = HOLDING_EX;
                 timerStartHoldingEx = millis();
                 break;
             }
@@ -249,11 +277,11 @@ uint8_t runPumpingStateMachine(uint8_t state)
             if ((millis() - timerStartMovingEx) < timeEx*1000) {
                 break;
             } else {
-                state = START_IN;
+                nextState = START_IN;
             }
             break;
     }
-    return(state);
+    return(nextState);
 }
 
 
