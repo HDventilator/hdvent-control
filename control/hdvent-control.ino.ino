@@ -20,7 +20,7 @@ AutoDriver Stepper(0, A2, 4);  // Nr, CS, Reset => 0 , D16/A2 (PA4), D4 (PB5) fo
 int const POTI_PIN_RR = A0;
 int const POTI_PIN_TV = A1;
 int const POTI_PIN_IE = A3;
-
+int const PIN_HOME_SENSOR = 9;
 int const MANUAL_CYCLE_SWITCH_PIN = 8;
 
 // Clinical settings
@@ -48,7 +48,7 @@ int const STEPS_IN_HOMING = 80; // steps to move in when trying to find home
 // state flags
 
 enum PumpingState {START_IN, MOVING_IN, HOLDING_IN, START_EX, MOVING_EX, HOLDING_EX, IDLE, STARTUP, HOMING_EX, HOMING_IN};
-
+enum SensorState {SENSOR_DISCONNECTED, SENSOR_CONNECTED, SENSOR_FAULTY, SENSOR_OK};
 /* **********************
  * Function declarations
  * **********************
@@ -62,7 +62,7 @@ void PrintMotorCurveParameters();
 bool isBusy();
 
 void moveStepper(int steps, int speed, int acc, int dec, int dir);
-uint8_t runPumpingStateMachine( uint8_t state );
+PumpingState runPumpingStateMachine();
 int motorStatusRegister;
 void writeToLCD(float respiratoryRate, float tidalVolume, float ratioInEx, float PEEP, float peak, float plat);
 void read_potis();
@@ -72,10 +72,11 @@ void printUserValues();
 bool getStatusFlag(int r, int n);
 void updateDisplay(float respiratoryRate, float pathRatio, float IERatio,
                    float pressurePeak, float plateauPressure, float peePressure);
-void readPressureSensor(float &pressure);
-void readOpticalSensors();
+void readPressureSensor(float &pressure, SensorState &state);
 void startInfluxHeating();
 void stopInfluxHeating();
+
+void toggleIsHome();
 
 /* *****************************
  * Global Variables
@@ -96,10 +97,9 @@ float IERatio = 0.5;
 bool startCyclingSwitch = 0;
 
 // Indicates that the motor is at home position,
-// TODO: this variable must be updated with an interrupt generated 
+// This variable is updated with an interrupt generated
 // by the light barrier
 bool isHome = true;
-
 unsigned long timerStartMovingIn = 0;
 unsigned long timerStartMovingEx = 0;
 unsigned long timerStartHoldingIn = 0;
@@ -107,8 +107,9 @@ unsigned long timerStartHoldingEx = 0;
 float peakPressure=0;
 float pressurePlateau=0;
 float pressurePEEP=0;
-float oldPressure=0;
-float pressure=0;
+float maxPressure=0;
+float pressureBag=0;
+SensorState statePressureSensorBag=SENSOR_DISCONNECTED;
 float temperatureInflux=0;
 
 PumpingState currentState;
@@ -127,6 +128,10 @@ void setup()
     digitalWrite(A2, HIGH);   // nCS set High
     digitalWrite(4, LOW);     // toggle nReset
     digitalWrite(4, HIGH);
+
+    pinMode(PIN_HOME_SENSOR, INPUT_PULLUP);
+    attachInterrupt(digitalPinToInterrupt(PIN_HOME_SENSOR), toggleIsHome, RISING);
+
     SPI.begin();             // start
 
     ConfigureStepperDriver();
@@ -134,8 +139,7 @@ void setup()
 
 void loop(){
     readPotis();
-    readPressureSensor(pressure);
-    readOpticalSensors();
+    readPressureSensor(pressureBag, statePressureSensorBag);
     updateDisplay(respiratoryRate, pathRatio, IERatio, peakPressure, pressurePlateau, pressurePEEP);
     motorStatusRegister = readStatusRegister();
     //PrintMotorCurveParameters();
@@ -147,7 +151,7 @@ void loop(){
 
 PumpingState runPumpingStateMachine()
 {
-    
+
     static PumpingState state = STARTUP;
 
     switch(state)
@@ -165,18 +169,18 @@ PumpingState runPumpingStateMachine()
             if (isHome) {
                 // motor is at home position, stop it and start cycle
                 Stepper.hardStop();
-                state = START_IN;                
+                state = START_IN;
             }
             else if (isBusy){
                 // motor still moving, continue homing
-                state = HOMING_EX;                
+                state = HOMING_EX;
             }
             else{
                 // motor couldn't find home position in EX direction
                 // try in IN direction
                 moveStepper((STEPS_IN_HOMING+STEPS_EX_HOMING)*STEP_DIVIDER, SPEED_EX, ACC_EX, DEC_EX, DIR_IN);
                 state = HOMING_IN;
-                
+
             }
             break;
 
@@ -196,12 +200,6 @@ PumpingState runPumpingStateMachine()
                 moveStepper((STEPS_IN_HOMING+STEPS_EX_HOMING)*STEP_DIVIDER, SPEED_EX, ACC_EX, DEC_EX, DIR_IN);
                 state = HOMING_IN;
             }
-         break;
-
-        case IDLE:
-            if (startCyclingSwitch){
-                state = START_IN;
-            }
             break;
 
         case START_IN:
@@ -212,9 +210,14 @@ PumpingState runPumpingStateMachine()
             break;
 
         case MOVING_IN:
+            // save pressure if new maximum
+            if (pressureBag> maxPressure){
+                maxPressure = pressureBag;
+            }
+
             if (millis() - timerStartMovingIn < timeIn*1000) {
-               //TODO
-               (void)0;
+                //TODO
+                (void)0;
             }
             else if (isBusy()) {
                 // time is up, but motor still busy
@@ -226,18 +229,26 @@ PumpingState runPumpingStateMachine()
             break;
 
         case HOLDING_IN:
+            // pressure might rise to peak just after compressing phase
+            if (pressureBag> maxPressure){
+                maxPressure = pressureBag;
+            }
+
             if ((millis() - timerStartHoldingIn) < TIME_HOLD_PLATEAU*1000) {
-                pressurePlateau = pressure;
                 state=HOLDING_IN;
-                
+
             }
             else {
+                peakPressure = maxPressure;
                 state = START_EX;
                 timerStartMovingEx = millis();
             }
             break;
 
         case START_EX:
+            // take pressure just before moving out as plateau pressure
+            pressurePlateau = pressureBag;
+            // move out
             moveStepper(stepsInterval, SPEED_EX, ACC_EX, DEC_EX, DIR_EX);
             timerStartMovingEx = millis();
             state = MOVING_EX;
@@ -260,28 +271,32 @@ PumpingState runPumpingStateMachine()
                     //startInfluxHeating();
                     //TODO
                     (void)0;
-            }
+                }
 
             }
             break;
         case HOLDING_EX:
             if ((millis() - timerStartMovingEx) < timeEx*1000) {
                 // record PEEP pressure
-                pressurePEEP = pressure;
-            } 
+                pressurePEEP = pressureBag;
+            }
             else {
                 // time is up, stop heating, move in
                 state = START_IN;
                 stopInfluxHeating();
             }
             break;
-            
-       default:
-       break;
+
+        default:
+            break;
     }
-    
+
 
     return(state);
+}
+
+void toggleIsHome(){
+    isHome = true;
 }
 
 void updateDisplay(float respiratoryRate, float pathRatio, float IERatio,
@@ -289,8 +304,10 @@ void updateDisplay(float respiratoryRate, float pathRatio, float IERatio,
     delay(10);
 }
 
-void readPressureSensor(float &pressure){
+void readPressureSensor(float &pressure, SensorState &state){
+    // TODO read pressure sensor function
     pressure = 0;
+    state = SENSOR_DISCONNECTED;
     delay(10);
 }
 
@@ -338,14 +355,10 @@ void UpdateMotorCurveParameters(float respiratoryRate, float pathRatio, float IE
     timeEx = t_total / (IERatio + 1);
     timeIn = t_total - timeEx ;
     int steps = stepsFullRange * pathRatio;
-    //Serial.print("timeIn: "); Serial.println(timeIn);
-    //Serial.print("timeEx: "); Serial.println(timeEx);
 
     float discriminant = sq(timeIn) - 2 * (1. / ACC_IN + 1. / DEC_IN) * steps;
-    //Serial.print("discriminant: "); Serial.println(discriminant);
     if (discriminant > 0) {
         speedIn = (-timeIn + sqrtf(discriminant)) / -(1. / ACC_IN + 1. / DEC_IN);
-        //time_hold_ex =  timeEx - ((1. / ACC_EX + 1. / DEC_EX)*sq(SPEED_EX)/2 + steps)/SPEED_EX;
         stepsInterval = steps * STEP_DIVIDER;
     }
     stepsInterval = steps * STEP_DIVIDER;
