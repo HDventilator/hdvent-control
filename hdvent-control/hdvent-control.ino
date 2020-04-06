@@ -414,7 +414,7 @@ void ConfigureStepperDriver()
 
     // KVAL is a modifier that sets the effective voltage applied to the motor. KVAL/255 * Vsupply = effective motor voltage.
     //  This lets us hammer the motor harder during some phases  than others, and to use a higher voltage to achieve better
-    //  torqure performance even if a motor isn't rated for such a high current.
+    //  torque performance even if a motor isn't rated for such a high current.
     // This IHM02A1 BOARD has 12V motors and a 12V supply.
     Stepper.setRunKVAL(200);  // 220/255 * 12V = 6V
     Stepper.setAccKVAL(200);  // 220/255 * 12V = 6V
