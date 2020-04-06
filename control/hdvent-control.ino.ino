@@ -26,8 +26,8 @@ int const MANUAL_CYCLE_SWITCH_PIN = 8;
 // Clinical settings
 int const PRESSURE_MAX = 0; // mm H20
 int const PEEP_PRESSURE = 0; // mm H2O
-// hold time after inspiratory phase
-float const TIME_HOLD_PLATEAU = 0.200; // seconds
+float const TIME_HOLD_PLATEAU = 0.200; // seconds, hold time after inspiratory phase
+float const TEMPERATURE_INFLUX_THRESHOLD = 20;// °C, start heating when influx temperature falls below this value
 
 // Motor settings
 // motor curve for volume control operation
@@ -42,14 +42,17 @@ bool const DIR_EX = abs(DIR_IN - 1);
 int const STEP_DIVIDER_REGISTER = STEP_FS_128;
 int const STEP_DIVIDER = 128;
 
+int const STEPS_EX_HOMING = 80; // steps to move out when trying to find home
+int const STEPS_IN_HOMING = 80; // steps to move out when trying to find home
+
 // state flags
 
-enum PumpingState {START_IN, MOVING_IN, HOLDING_IN, START_EX, MOVING_EX, HOLDING_EX, IDLE, STARTUP, HOMING};
+enum PumpingState {START_IN, MOVING_IN, HOLDING_IN, START_EX, MOVING_EX, HOLDING_EX, IDLE, STARTUP, HOMING_EX, HOMING_IN};
 enum UserSetState {READ_POTIS,};
 
-/* *****************
+/* **********************
  * Function declarations
- * ********************
+ * **********************
  */
 
 byte spi_test();
@@ -72,8 +75,9 @@ void updateDisplay(float respiratoryRate, float pathRatio, float IERatio,
                    float peakPressure, float plateauPressure, float peePressure);
 void readPressureSensors();
 void readOpticalSensors();
-void controlInfluxTemp();
 void writeToEEPROM();
+void startInfluxHeating();
+void stopInfluxHeating();
 
 /* *****************************
  * Global Variables
@@ -102,6 +106,7 @@ float peakPressure=0;
 float plateauPressure=0;
 float PEEPressure=0;
 float oldPressure=0;
+float temperatureInflux=0;
 uint8_t state = STARTUP;
 
 void setup()
@@ -134,56 +139,7 @@ void loop(){
     UpdateMotorCurveParameters(respiratoryRate, pathRatio, IERatio);
     //startCyclingSwitch = digitalRead(MANUAL_CYCLE_SWITCH_PIN);
     state = runPumpingStateMachine(state);
-    controlInfluxTemp();
     //Serial.println(state);
-}
-
-void controlInfluxTemp(){
-    delay(10);
-}
-void updateDisplay(float respiratoryRate, float pathRatio, float IERatio,
-                   float peakPressure, float plateauPressure, float peePressure){
-    delay(10);
-}
-
-void readPressureSensors(){
-    peakPressure=0;
-    plateauPressure=0;
-    PEEPressure=0;
-    delay(10);
-}
-
-bool getStatusFlag(int r, int n){
-    int flag = ((r >> (n-1)) & 0x01);
-    return(flag);
-}
-
-void moveStepper(int steps, int speed, int acc, int dec, int dir) {
-    boardIndex->setMaxSpeed(speed);
-    boardIndex->setAcc(acc);
-    boardIndex->setDec(dec);
-    Stepper.move(dir, steps);
-}
-
-void readPotis(){
-    respiratoryRate = ((float) analogRead(POTI_PIN_RR))/1023*35 + 5;
-    IERatio = ((float) analogRead(POTI_PIN_IE))/1023*0.9 + 0.2; //
-    pathRatio = ((float) analogRead(POTI_PIN_TV))/1023;
-}
-
-void PrintMotorCurveParameters(){
-    Serial.print("RR= ");Serial.println(respiratoryRate);
-    Serial.print("TV= ");Serial.println(pathRatio);
-    Serial.print("IE= ");Serial.println(IERatio);
-    Serial.print("speedIn: "); Serial.print(speedIn);
-    Serial.print("timeEx: "); Serial.print(timeEx);
-    Serial.print("steps "); Serial.println(stepsInterval);
-    Serial.print("\t stepsInterval: "); Serial.println(stepsInterval);
-}
-void printUserValues(){
-    Serial.print("RR= \t");Serial.print(respiratoryRate);
-    Serial.print("\tTV= \t");Serial.print(pathRatio);
-    Serial.print("\tIE= \t1:");Serial.println(1./IERatio);
 }
 
 
@@ -198,23 +154,48 @@ uint8_t runPumpingStateMachine(uint8_t state)
                 break;
             }
             else {
-                moveStepper(200*STEP_DIVIDER, SPEED_EX, ACC_EX, DEC_EX, DIR_EX);
-                nextState = HOMING;
+                moveStepper(STEPS_EX_HOMING*STEP_DIVIDER, SPEED_EX, ACC_EX, DEC_EX, DIR_EX);
+                nextState = HOMING_EX;
                 break;
             }
 
-        case HOMING:
+        case HOMING_EX:
             if (isHome) {
+                // motor is at home position, stop it and start cycle
                 Stepper.hardStop();
                 nextState = START_IN;
                 break;
             }
             else if (isBusy){
-                nextState = HOMING;
+                // motor still moving, continue homing
+                nextState = HOMING_EX;
                 break;
             }
             else{
-                // cannot find home position
+                // motor couldn't find home position in EX direction
+                // try in IN direction
+                moveStepper((STEPS_IN_HOMING+STEPS_EX_HOMING)*STEP_DIVIDER, SPEED_EX, ACC_EX, DEC_EX, DIR_IN);
+                nextState = HOMING_IN;
+                break;
+            }
+
+        case HOMING_IN:
+            if (isHome) {
+                // motor is at home position, stop it and start cycle
+                Stepper.hardStop();
+                nextState = START_IN;
+                break;
+            }
+            else if (isBusy){
+                // motor still moving, continue homing
+                nextState = HOMING_IN;
+                break;
+            }
+            else{
+                // motor couldn't find home position in EX direction
+                // try in IN direction
+                moveStepper((STEPS_IN_HOMING+STEPS_EX_HOMING)*STEP_DIVIDER, SPEED_EX, ACC_EX, DEC_EX, DIR_IN);
+                nextState = HOMING_IN;
                 break;
             }
 
@@ -268,8 +249,13 @@ uint8_t runPumpingStateMachine(uint8_t state)
                 break;
             }
             else {
+                // moving out is finished
+                // start heating and enter hold phase
                 nextState = HOLDING_EX;
                 timerStartHoldingEx = millis();
+                if (temperatureInflux<TEMPERATURE_INFLUX_THRESHOLD){
+                    startInfluxHeating();
+                }
                 break;
             }
 
@@ -277,12 +263,61 @@ uint8_t runPumpingStateMachine(uint8_t state)
             if ((millis() - timerStartMovingEx) < timeEx*1000) {
                 break;
             } else {
+                // time is up, stop heating, move in
                 nextState = START_IN;
+                stopInfluxHeating();
             }
             break;
     }
     return(nextState);
 }
+
+void updateDisplay(float respiratoryRate, float pathRatio, float IERatio,
+                   float peakPressure, float plateauPressure, float peePressure){
+    delay(10);
+}
+
+void readPressureSensors(){
+    peakPressure=0;
+    plateauPressure=0;
+    PEEPressure=0;
+    delay(10);
+}
+
+bool getStatusFlag(int r, int n){
+    int flag = ((r >> (n-1)) & 0x01);
+    return(flag);
+}
+
+void moveStepper(int steps, int speed, int acc, int dec, int dir) {
+    boardIndex->setMaxSpeed(speed);
+    boardIndex->setAcc(acc);
+    boardIndex->setDec(dec);
+    Stepper.move(dir, steps);
+}
+
+void readPotis(){
+    respiratoryRate = ((float) analogRead(POTI_PIN_RR))/1023*35 + 5;
+    IERatio = ((float) analogRead(POTI_PIN_IE))/1023*0.9 + 0.2; //
+    pathRatio = ((float) analogRead(POTI_PIN_TV))/1023;
+}
+
+void PrintMotorCurveParameters(){
+    Serial.print("RR= ");Serial.println(respiratoryRate);
+    Serial.print("TV= ");Serial.println(pathRatio);
+    Serial.print("IE= ");Serial.println(IERatio);
+    Serial.print("speedIn: "); Serial.print(speedIn);
+    Serial.print("timeEx: "); Serial.print(timeEx);
+    Serial.print("steps "); Serial.println(stepsInterval);
+    Serial.print("\t stepsInterval: "); Serial.println(stepsInterval);
+}
+void printUserValues(){
+    Serial.print("RR= \t");Serial.print(respiratoryRate);
+    Serial.print("\tTV= \t");Serial.print(pathRatio);
+    Serial.print("\tIE= \t1:");Serial.println(1./IERatio);
+}
+
+
 
 
 //! take user-set parameters and calculate the parameters for the motor curve,
