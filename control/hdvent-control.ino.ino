@@ -43,12 +43,11 @@ int const STEP_DIVIDER_REGISTER = STEP_FS_128;
 int const STEP_DIVIDER = 128;
 
 int const STEPS_EX_HOMING = 80; // steps to move out when trying to find home
-int const STEPS_IN_HOMING = 80; // steps to move out when trying to find home
+int const STEPS_IN_HOMING = 80; // steps to move in when trying to find home
 
 // state flags
 
 enum PumpingState {START_IN, MOVING_IN, HOLDING_IN, START_EX, MOVING_EX, HOLDING_EX, IDLE, STARTUP, HOMING_EX, HOMING_IN};
-enum UserSetState {READ_POTIS,};
 
 /* **********************
  * Function declarations
@@ -72,10 +71,9 @@ void readPotis();
 void printUserValues();
 bool getStatusFlag(int r, int n);
 void updateDisplay(float respiratoryRate, float pathRatio, float IERatio,
-                   float peakPressure, float plateauPressure, float peePressure);
-void readPressureSensors();
+                   float pressurePeak, float plateauPressure, float peePressure);
+void readPressureSensor(float &pressure);
 void readOpticalSensors();
-void writeToEEPROM();
 void startInfluxHeating();
 void stopInfluxHeating();
 
@@ -103,9 +101,10 @@ unsigned long timerStartMovingEx = 0;
 unsigned long timerStartHoldingIn = 0;
 unsigned long timerStartHoldingEx = 0;
 float peakPressure=0;
-float plateauPressure=0;
-float PEEPressure=0;
+float pressurePlateau=0;
+float pressurePEEP=0;
 float oldPressure=0;
+float pressure=0;
 float temperatureInflux=0;
 uint8_t state = STARTUP;
 
@@ -131,9 +130,9 @@ void setup()
 
 void loop(){
     readPotis();
-    readPressureSensors();
+    readPressureSensor(pressure);
     readOpticalSensors();
-    updateDisplay(respiratoryRate, pathRatio, IERatio, peakPressure, plateauPressure, PEEPressure);
+    updateDisplay(respiratoryRate, pathRatio, IERatio, peakPressure, pressurePlateau, pressurePEEP);
     motorStatusRegister = readStatusRegister();
     //PrintMotorCurveParameters();
     UpdateMotorCurveParameters(respiratoryRate, pathRatio, IERatio);
@@ -213,6 +212,8 @@ uint8_t runPumpingStateMachine(uint8_t state)
 
         case MOVING_IN:
             if (millis() - timerStartMovingIn < timeIn*1000) {
+
+                nextState = MOVING_IN;
                 break;
             }
             else if (isBusy()) {
@@ -225,6 +226,8 @@ uint8_t runPumpingStateMachine(uint8_t state)
 
         case HOLDING_IN:
             if ((millis() - timerStartHoldingIn) < TIME_HOLD_PLATEAU*1000) {
+                pressurePlateau = pressure;
+                nextState=HOLDING_IN;
                 break;
             }
             else {
@@ -241,9 +244,11 @@ uint8_t runPumpingStateMachine(uint8_t state)
 
         case MOVING_EX:
             if ((millis() - timerStartMovingEx) < timeEx*1000) {
+                nextState=MOVING_EX;
                 break;
             }
             else if (isBusy()) {
+                nextState=MOVING_EX;
                 // time is up, but motor still busy
                 break;
             }
@@ -260,6 +265,8 @@ uint8_t runPumpingStateMachine(uint8_t state)
 
         case HOLDING_EX:
             if ((millis() - timerStartMovingEx) < timeEx*1000) {
+                // record PEEP pressure
+                pressurePEEP = pressure;
                 break;
             } else {
                 // time is up, stop heating, move in
@@ -272,14 +279,12 @@ uint8_t runPumpingStateMachine(uint8_t state)
 }
 
 void updateDisplay(float respiratoryRate, float pathRatio, float IERatio,
-                   float peakPressure, float plateauPressure, float peePressure){
+                   float pressurePeak, float pressurePlateau, float pressurePEEP){
     delay(10);
 }
 
-void readPressureSensors(){
-    peakPressure=0;
-    plateauPressure=0;
-    PEEPressure=0;
+void readPressureSensor(float &pressure){
+    pressure = 0;
     delay(10);
 }
 
