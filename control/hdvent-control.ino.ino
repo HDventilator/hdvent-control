@@ -228,7 +228,7 @@ PumpingState runPumpingStateMachine()
         case HOLDING_IN:
             if ((millis() - timerStartHoldingIn) < TIME_HOLD_PLATEAU*1000) {
                 pressurePlateau = pressure;
-                nextState=HOLDING_IN;
+                state=HOLDING_IN;
                 
             }
             else {
@@ -245,10 +245,10 @@ PumpingState runPumpingStateMachine()
 
         case MOVING_EX:
             if ((millis() - timerStartMovingEx) < timeEx*1000) {
-                nextState=MOVING_EX;
+                state=MOVING_EX;
             }
             else if (isBusy()) {
-                nextState=MOVING_EX;
+                state=MOVING_EX;
                 // time is up, but motor still busy
             }
             else {
