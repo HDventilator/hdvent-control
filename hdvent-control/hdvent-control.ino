@@ -149,27 +149,15 @@ void setup()
 }
 
 void loop(){
-    //Stepper.move(1,200*STEP_DIVIDER);
-
-    //while (isBusy()){delay(10);}
-
-    //readPotis();
-    //readPressureSensor(pressureBag, statePressureSensorBag);
-    //updateDisplay(respiratoryRate, pathRatio, IERatio, peakPressure, pressurePlateau, pressurePEEP);
-    //motorStatusRegister = readStatusRegister();
+    readPotis();
+    readPressureSensor(pressureBag, statePressureSensorBag);
+    updateDisplay(respiratoryRate, pathRatio, IERatio, peakPressure, pressurePlateau, pressurePEEP);
+    motorStatusRegister = readStatusRegister();
     //PrintMotorCurveParameters();
     startCyclingSwitch = false;//digitalRead(MANUAL_CYCLE_SWITCH_PIN);
-    // only for testing without optical sensor implemented
-    if (startCyclingSwitch) {
-        UpdateMotorCurveParameters(respiratoryRate, pathRatio, IERatio);
-        Serial.println(currentState);
-        currentState = runPumpingStateMachine(currentState);
-
-    }
-    else {
-        manualControl();
-        currentState = STARTUP;
-    }
+    UpdateMotorCurveParameters(respiratoryRate, pathRatio, IERatio);
+    Serial.println(currentState);
+    currentState = runPumpingStateMachine(currentState);
 }
 
 void manualControl(){
@@ -214,8 +202,9 @@ void manualControl(){
     }
 }
 
-PumpingState runPumpingStateMachine(PumpingState state)
+PumpingState runPumpingStateMachine()
 {
+    static PumpingState state=STARTUP;
     switch(state)
     {
         case STARTUP:
