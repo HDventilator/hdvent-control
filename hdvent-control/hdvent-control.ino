@@ -76,7 +76,9 @@ void readPressureSensor(float &pressure, SensorState &state);
 void startInfluxHeating();
 void stopInfluxHeating();
 
+bool isHome();
 void toggleIsHome();
+
 
 /* *****************************
  * Global Variables
@@ -96,10 +98,6 @@ float IERatio = 0.5;
 
 bool startCyclingSwitch = 0;
 
-// Indicates that the motor is at home position,
-// This variable is updated with an interrupt generated
-// by the light barrier
-bool isHome = true;
 unsigned long timerStartMovingIn = 0;
 unsigned long timerStartMovingEx = 0;
 unsigned long timerStartHoldingIn = 0;
@@ -157,7 +155,7 @@ PumpingState runPumpingStateMachine()
     switch(state)
     {
         case STARTUP:
-            if (isHome){
+            if (isHome()){
                 state = START_IN;
             }
             else {
@@ -166,9 +164,9 @@ PumpingState runPumpingStateMachine()
             }
             break;
         case HOMING_EX:
-            if (isHome) {
+            if (isHome()) {
                 // motor is at home position, stop it and start cycle
-                Stepper.hardStop();
+                
                 state = START_IN;
             }
             else if (isBusy){
@@ -185,7 +183,7 @@ PumpingState runPumpingStateMachine()
             break;
 
         case HOMING_IN:
-            if (isHome) {
+            if (isHome()) {
                 // motor is at home position, stop it and start cycle
                 Stepper.hardStop();
                 state = START_IN;
@@ -295,8 +293,23 @@ PumpingState runPumpingStateMachine()
     return(state);
 }
 
+//! \brief return true if the motor is at home position. 
+//! Read the value of the IO pin connected to the home light barrier sensor
+//!
+//! \return true if motor is at home position
+bool isHome()
+{
+   uint8_t val;
+   val = digitalRead(PIN_HOME_SENSOR);
+   
+   return val;
+}
+
+//! \brief interrupt handling routine, stop the motor by rising edge on the 
+//! light barrier
+//!
 void toggleIsHome(){
-    isHome = true;
+    Stepper.hardStop();
 }
 
 void updateDisplay(float respiratoryRate, float pathRatio, float IERatio,
