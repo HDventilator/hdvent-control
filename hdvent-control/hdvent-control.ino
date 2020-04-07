@@ -2,14 +2,9 @@
 // Created by david on 04.04.20.
 //
 #include <Arduino.h> // main arduino library
-#include <SparkFunAutoDriver.h> // stepper driver library
 #include <SPI.h> // arduino spi library
-#include <EEPROM.h> // eeprom library
 #include <avr/wdt.h> // watchdog library
-
-// Need this line for some reason?!
-AutoDriver Stepperdummy(1, A2, 4);  // Nr, CS, Reset => 0 , D16/A2 (PA4), D4 (PB5) for IHM02A1 board
-AutoDriver Stepper(0, A2, 4);  // Nr, CS, Reset => 0 , D16/A2 (PA4), D4 (PB5) for IHM02A1 board
+#include <powerSTEP01ArduinoLibrary.h>
 
 
 /* ***********************
@@ -22,6 +17,14 @@ int const POTI_PIN_TV = A1;
 int const POTI_PIN_IE = A3;
 int const PIN_HOME_SENSOR = 9;
 int const MANUAL_CYCLE_SWITCH_PIN = 8;
+
+// Pin definitions for the X-NUCLEO-IHM03A1 connected to an Uno-compatible board
+int const nCS_PIN = 10;
+int const STCK_PIN = 9;
+int const nSTBY_nRESET_PIN = 8;
+int const nBUSY_PIN = 4;
+
+powerSTEP Stepper(0, nCS_PIN, nSTBY_nRESET_PIN);;  // Nr, CS, Reset => 0 , D16/A2 (PA4), D4 (PB5) for IHM02A1 board
 
 // Clinical settings
 int const PRESSURE_MAX = 0; // mm H20
@@ -39,15 +42,15 @@ float const SPEED_EX = 100; //steps/s
 float const DEC_EX = 300; // steps/s/s
 bool const DIR_IN = 1;
 bool const DIR_EX = abs(DIR_IN - 1);
-int const STEP_DIVIDER_REGISTER = STEP_FS_128;
-int const STEP_DIVIDER = 128;
+int const STEP_DIVIDER_REGISTER = STEP_FS_64;
+int const STEP_DIVIDER = 64;
 
 int const STEPS_EX_HOMING = 80; // steps to move out when trying to find home
 int const STEPS_IN_HOMING = 80; // steps to move in when trying to find home
 
 // state flags
 
-enum PumpingState {START_IN, MOVING_IN, HOLDING_IN, START_EX, MOVING_EX, HOLDING_EX, IDLE, STARTUP, HOMING_EX, HOMING_IN};
+enum PumpingState {START_IN, MOVING_IN, HOLDING_IN, START_EX, MOVING_EX, HOLDING_EX, STARTUP, HOMING_EX, HOMING_IN};
 enum SensorState {SENSOR_DISCONNECTED, SENSOR_CONNECTED, SENSOR_FAULTY, SENSOR_OK};
 /* **********************
  * Function declarations
@@ -62,7 +65,7 @@ void PrintMotorCurveParameters();
 bool isBusy();
 
 void moveStepper(int steps, int speed, int acc, int dec, int dir);
-PumpingState runPumpingStateMachine();
+PumpingState runPumpingStateMachine(PumpingState state);
 int motorStatusRegister;
 void writeToLCD(float respiratoryRate, float tidalVolume, float ratioInEx, float PEEP, float peak, float plat);
 void read_potis();
@@ -75,10 +78,10 @@ void updateDisplay(float respiratoryRate, float pathRatio, float IERatio,
 void readPressureSensor(float &pressure, SensorState &state);
 void startInfluxHeating();
 void stopInfluxHeating();
+void manualControl();
 
 bool isHome();
 void toggleIsHome();
-
 
 /* *****************************
  * Global Variables
@@ -110,27 +113,35 @@ float pressureBag=0;
 SensorState statePressureSensorBag=SENSOR_DISCONNECTED;
 float temperatureInflux=0;
 
-PumpingState currentState;
+PumpingState currentState=STARTUP;
+//manual control
+int stepCounter;
 
 void setup()
 {
     Serial.begin(115200);
 
-    pinMode(13, INPUT);     // D3 = SPI SCK, wired-routed to D13(SCK), (D3 setup as input - tri-state)
-    pinMode(4, OUTPUT);    // D4 = nReset
-    pinMode(MOSI, OUTPUT); // SPI IN
-    pinMode(MISO, INPUT);  // SPI EX
-    pinMode(13, OUTPUT);   // SCK
-    pinMode(A2, OUTPUT);   // CS signal
-    pinMode(MANUAL_CYCLE_SWITCH_PIN, INPUT_PULLUP);
-    digitalWrite(A2, HIGH);   // nCS set High
-    digitalWrite(4, LOW);     // toggle nReset
-    digitalWrite(4, HIGH);
+    // Prepare pins
+    pinMode(nSTBY_nRESET_PIN, OUTPUT);
+    pinMode(nCS_PIN, OUTPUT);
+
+    // SPI pins
+    pinMode(MOSI, OUTPUT);
+    pinMode(MISO, OUTPUT);
+    pinMode(SCK, OUTPUT);
+
+    // Reset powerSTEP and set CS
+    digitalWrite(nSTBY_nRESET_PIN, HIGH);
+    digitalWrite(nSTBY_nRESET_PIN, LOW);
+    digitalWrite(nSTBY_nRESET_PIN, HIGH);
+    digitalWrite(nCS_PIN, HIGH);
+
+    // Start SPI
+    SPI.begin();
+    SPI.setDataMode(SPI_MODE3);
 
     pinMode(PIN_HOME_SENSOR, INPUT_PULLUP);
     attachInterrupt(digitalPinToInterrupt(PIN_HOME_SENSOR), toggleIsHome, RISING);
-
-    SPI.begin();             // start
 
     ConfigureStepperDriver();
 }
@@ -141,17 +152,57 @@ void loop(){
     updateDisplay(respiratoryRate, pathRatio, IERatio, peakPressure, pressurePlateau, pressurePEEP);
     motorStatusRegister = readStatusRegister();
     //PrintMotorCurveParameters();
+    startCyclingSwitch = false;//digitalRead(MANUAL_CYCLE_SWITCH_PIN);
     UpdateMotorCurveParameters(respiratoryRate, pathRatio, IERatio);
-    //startCyclingSwitch = digitalRead(MANUAL_CYCLE_SWITCH_PIN);
-    currentState = runPumpingStateMachine();
-    //Serial.println(state);
+    Serial.println(currentState);
+    currentState = runPumpingStateMachine(currentState);
+}
+
+void manualControl(){
+    char rxChar = 0;
+    if (Serial.available()) {
+        rxChar = Serial.read();
+        switch (rxChar) {
+            case 'F':  // ten steps forward
+                //Stepper.move(1, 200 * STEP_DIVIDER);
+                moveStepper(10*STEP_DIVIDER, 100, 400, 400, DIR_IN);
+                stepCounter = stepCounter + 10;
+                break;
+            case 'B':  // ten steps back
+                moveStepper(10 * STEP_DIVIDER, 100, 400, 400, DIR_EX);
+                stepCounter = stepCounter - 10;
+                break;
+            case 'f':  // single step forward
+                moveStepper(1 * STEP_DIVIDER, 100, 400, 400, DIR_IN);
+                stepCounter = stepCounter + 1;
+                break;
+            case 'b':  // single step back
+                moveStepper(1 * STEP_DIVIDER, 100, 400, 400, DIR_EX);
+                stepCounter = stepCounter - 1;
+                break;
+            case 's':  // save end position and go home
+                if (stepCounter>0){
+                    stepsFullRange = stepCounter;
+                    moveStepper(stepsFullRange * STEP_DIVIDER, 100, 400, 400, DIR_EX);
+                }
+                break;
+            case '0': // save home position
+                stepCounter = 0;
+                break;
+            case 'x':
+                Stepper.hardStop();
+                break;
+
+            default:
+                Serial.println(".");
+                break;
+        }
+    }
 }
 
 PumpingState runPumpingStateMachine()
 {
-
-    static PumpingState state = STARTUP;
-
+    static PumpingState state=STARTUP;
     switch(state)
     {
         case STARTUP:
@@ -166,7 +217,7 @@ PumpingState runPumpingStateMachine()
             break;
         case HOMING_EX:
             if (isHome()) {
-                // motor is at home position, start cycle                
+                // motor is at home position, start cycle
                 state = START_IN;
             }
             else if (isBusy()){
@@ -273,6 +324,7 @@ PumpingState runPumpingStateMachine()
 
             }
             break;
+
         case HOLDING_EX:
             if ((millis() - timerStartMovingEx) < timeEx*1000) {
                 // record PEEP pressure
@@ -288,12 +340,10 @@ PumpingState runPumpingStateMachine()
         default:
             break;
     }
-
-
     return(state);
 }
 
-//! \brief return true if the motor is at home position. 
+//! \brief return true if the motor is at home position.
 //! Read the value of the IO pin connected to the home light barrier sensor
 //!
 //! \return true if motor is at home position
@@ -301,17 +351,22 @@ bool isHome()
 {
    uint8_t val;
    val = digitalRead(PIN_HOME_SENSOR);
-   
+
    return val;
 }
 
-//! \brief interrupt handling routine, stop the motor by rising edge on the 
+//! \brief interrupt handling routine, stop the motor by rising edge on the
 //! light barrier
 //!
 void toggleIsHome(){
     Stepper.hardStop();
 }
-
+void stopInfluxHeating(){
+    // TODO
+}
+void startInfluxHeating(){
+    // TODO
+}
 void updateDisplay(float respiratoryRate, float pathRatio, float IERatio,
                    float pressurePeak, float pressurePlateau, float pressurePEEP){
     delay(10);
@@ -329,12 +384,12 @@ bool getStatusFlag(int r, int n){
     return(flag);
 }
 
-//! \brief move the step motor using the given parameters. 
+//! \brief move the step motor using the given parameters.
 //!
 //! The motor driver will accelerate with a constant acceleration
 //! until the maximal speed is achieved. For deceleration the inverse
 //! process is used.
-//!  
+//!
 //! \param steps : number of steps to move
 //! \param speed : maximal speed in steps/s
 //! \param acc : acceleration in steps/s^2
@@ -424,8 +479,7 @@ byte spi_test()
 //  For ease of reading, we're just going to configure all the boards to the same settings.
 void ConfigureStepperDriver()
 {
-    int paramValue;
-    Serial.println("Configuring boards...");
+    Serial.println("Initialize stepper...");
 
     // Before we do anything, we need to tell each device which SPI port we're using.
     Stepper.SPIPortConnect(&SPI);
@@ -433,23 +487,63 @@ void ConfigureStepperDriver()
     // reset device //
     Stepper.resetDev();
 
-    // Set the Overcurrent Threshold to 6A(max). The OC detect circuit is quite sensitive; even if the current is only momentarily
-    //  exceeded during acceleration or deceleration, the driver will shutdown. This is a per channel value; it's useful to
-    //  consider worst case, which is startup.
-    Stepper.setOCThreshold(OCD_TH_6000mA);
+    Stepper.configSyncPin(BUSY_PIN, 0); // use SYNC/nBUSY pin as nBUSY,
+    // thus syncSteps (2nd paramater) does nothing
 
-    // KVAL is a modifier that sets the effective voltage applied to the motor. KVAL/255 * Vsupply = effective motor voltage.
-    //  This lets us hammer the motor harder during some phases  than others, and to use a higher voltage to achieve better
-    //  torque performance even if a motor isn't rated for such a high current.
-    // This IHM02A1 BOARD has 12V motors and a 12V supply.
-    Stepper.setRunKVAL(200);  // 220/255 * 12V = 6V
-    Stepper.setAccKVAL(200);  // 220/255 * 12V = 6V
-    Stepper.setDecKVAL(200);  // /255 * 12V = 3V
-    Stepper.setHoldKVAL(150);  // 132/255 * 12V = 1.5V  // low voltage, almost free turn
+    Stepper.configStepMode(STEP_FS_128); // 1/128 microstepping, full steps = STEP_FS,
+    // options: 1, 1/2, 1/4, 1/8, 1/16, 1/32, 1/64, 1/128
 
-    // The dSPIN chip supports microstepping for a smoother ride. This function provides an easy front end for changing the microstepping mode.
-    // once in full speed, it will step up to half-step
-    Stepper.configStepMode(STEP_DIVIDER_REGISTER); // Full step
+    Stepper.setMaxSpeed(100); // max speed in units of full steps/s
+    Stepper.setFullSpeed(1000); // full steps/s threshold for disabling microstepping
+    Stepper.setAcc(200); // full steps/s^2 acceleration
+    Stepper.setDec(200); // full steps/s^2 deceleration
+
+    Stepper.setSlewRate(SR_520V_us); // faster may give more torque (but also EM noise),
+    // options are: 114, 220, 400, 520, 790, 980(V/us)
+
+    Stepper.setOCThreshold(8); // over-current threshold for the 2.8A NEMA23 motor
+    // used in testing. If your motor stops working for
+    // no apparent reason, it's probably this. Start low
+    // and increase until it doesn't trip, then maybe
+    // add one to avoid misfires. Can prevent catastrophic
+    // failures caused by shorts
+    Stepper.setOCShutdown(OC_SD_ENABLE); // shutdown motor bridge on over-current event
+    // to protect against permanent damage
+
+    Stepper.setPWMFreq(PWM_DIV_1, PWM_MUL_0_75); // 16MHz*0.75/(512*1) = 23.4375kHz
+    // power is supplied to stepper phases as a sin wave,
+    // frequency is set by two PWM modulators,
+    // Fpwm = Fosc*m/(512*N), N and m are set by DIV and MUL,
+    // options: DIV: 1, 2, 3, 4, 5, 6, 7,
+    // MUL: 0.625, 0.75, 0.875, 1, 1.25, 1.5, 1.75, 2
+
+    Stepper.setVoltageComp(VS_COMP_DISABLE); // no compensation for variation in Vs as
+    // ADC voltage divider is not populated
+
+    Stepper.setSwitchMode(SW_USER); // switch doesn't trigger stop, status can be read.
+    // SW_HARD_STOP: TP1 causes hard stop on connection
+    // to GND, you get stuck on switch after homing
+
+    Stepper.setOscMode(INT_16MHZ); // 16MHz internal oscillator as clock source
+
+    // KVAL registers set the power to the motor by adjusting the PWM duty cycle,
+    // use a value between 0-255 where 0 = no power, 255 = full power.
+    // Start low and monitor the motor temperature until you find a safe balance
+    // between power and temperature. Only use what you need
+    Stepper.setRunKVAL(64);
+    Stepper.setAccKVAL(64);
+    Stepper.setDecKVAL(64);
+    Stepper.setHoldKVAL(32);
+
+    Stepper.setParam(ALARM_EN, 0x8F); // disable ADC UVLO (divider not populated),
+    // disable stall detection (not configured),
+    // disable switch (not using as hard stop)
+
+    Stepper.getStatus(); // clears error flags
+
+    Serial.println(F("Initialisation complete"));
+
+
 }
 
 int readStatusRegister(){
