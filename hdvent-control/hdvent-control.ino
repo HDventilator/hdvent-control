@@ -6,6 +6,7 @@
 #include <SPI.h> // arduino spi library
 #include <EEPROM.h> // eeprom library
 #include <avr/wdt.h> // watchdog library
+#include <Keypad.h>
 
 // Need this line for some reason?!
 AutoDriver Stepperdummy(1, A2, 4);  // Nr, CS, Reset => 0 , D16/A2 (PA4), D4 (PB5) for IHM02A1 board
@@ -47,7 +48,7 @@ int const STEPS_IN_HOMING = 80; // steps to move in when trying to find home
 
 // state flags
 
-enum PumpingState {START_IN, MOVING_IN, HOLDING_IN, START_EX, MOVING_EX, HOLDING_EX, IDLE, STARTUP, HOMING_EX, HOMING_IN};
+enum PumpingState {START_IN, MOVING_IN, HOLDING_IN, START_EX, MOVING_EX, HOLDING_EX, STARTUP, HOMING_EX, HOMING_IN};
 enum SensorState {SENSOR_DISCONNECTED, SENSOR_CONNECTED, SENSOR_FAULTY, SENSOR_OK};
 /* **********************
  * Function declarations
@@ -62,7 +63,7 @@ void PrintMotorCurveParameters();
 bool isBusy();
 
 void moveStepper(int steps, int speed, int acc, int dec, int dir);
-PumpingState runPumpingStateMachine();
+PumpingState runPumpingStateMachine(PumpingState state);
 int motorStatusRegister;
 void writeToLCD(float respiratoryRate, float tidalVolume, float ratioInEx, float PEEP, float peak, float plat);
 void read_potis();
@@ -75,7 +76,7 @@ void updateDisplay(float respiratoryRate, float pathRatio, float IERatio,
 void readPressureSensor(float &pressure, SensorState &state);
 void startInfluxHeating();
 void stopInfluxHeating();
-
+void manualControl();
 void toggleIsHome();
 
 /* *****************************
@@ -97,7 +98,7 @@ float IERatio = 0.5;
 bool startCyclingSwitch = 0;
 
 // Indicates that the motor is at home position,
-// This variable is updated with an interrupt generated
+// TODO: this variable must be updated with an interrupt generated
 // by the light barrier
 bool isHome = true;
 unsigned long timerStartMovingIn = 0;
@@ -112,7 +113,10 @@ float pressureBag=0;
 SensorState statePressureSensorBag=SENSOR_DISCONNECTED;
 float temperatureInflux=0;
 
-PumpingState currentState;
+PumpingState currentState=STARTUP;
+//manual control
+int stepCounter;
+Keypad *keypadPointer;
 
 void setup()
 {
@@ -135,6 +139,17 @@ void setup()
     SPI.begin();             // start
 
     ConfigureStepperDriver();
+    const byte rows = 4; //four rows
+    const byte cols = 4; //three columns
+    char keys[rows][cols] = {
+            {'1','2','3','A'},
+            {'4','5','6','B'},
+            {'7','8','9','C'},
+            {'*','0','#','D'}
+    };
+    byte rowPins[rows] = {5, 4, 3, 2}; //connect to the row pinouts of the keypad
+    byte colPins[cols] = {8, 7, 6}; //connect to the column pinouts of the keypad
+    Keypad keypad = Keypad( makeKeymap(keys), rowPins, colPins, rows, cols );
 }
 
 void loop(){
@@ -144,16 +159,57 @@ void loop(){
     motorStatusRegister = readStatusRegister();
     //PrintMotorCurveParameters();
     UpdateMotorCurveParameters(respiratoryRate, pathRatio, IERatio);
-    //startCyclingSwitch = digitalRead(MANUAL_CYCLE_SWITCH_PIN);
-    currentState = runPumpingStateMachine();
-    //Serial.println(state);
+    startCyclingSwitch = digitalRead(MANUAL_CYCLE_SWITCH_PIN);
+    // only for testing without optical sensor implemented
+    if (startCyclingSwitch) {
+        currentState = runPumpingStateMachine(currentState);
+    }
+    else {
+        manualControl();
+        currentState = STARTUP;
+    }
 }
 
-PumpingState runPumpingStateMachine()
+void manualControl(){
+    char keyChar = keypadPointer ->getKey();
+    switch(keyChar)
+    {
+        case 'A':  // ten steps forward
+            Stepper.move(DIR_IN,10*STEP_DIVIDER);
+            stepCounter = stepCounter + 10;
+            break;
+        case '1':  // ten steps back
+            Stepper.move(DIR_EX,10*STEP_DIVIDER);
+            stepCounter = stepCounter - 10;
+            break;
+        case '3':  // single step forward
+            Stepper.move(DIR_IN,1*STEP_DIVIDER);
+            stepCounter = stepCounter + 1;
+            break;
+        case '2':  // single step back
+            Stepper.move(DIR_EX,1*STEP_DIVIDER);
+            stepCounter = stepCounter - 1;
+            break;
+        case '5':  // save end position
+            stepsFullRange = stepCounter;
+            Stepper.move(DIR_EX, stepsFullRange*STEP_DIVIDER);
+            break;
+        case '4': // save home position
+            stepCounter=0;
+            break;
+        case '*':
+            Stepper.hardStop();
+            break;
+        case '#':
+            Stepper.resetDev();
+            break;
+        default:
+            Serial.println(".");
+    }
+}
+
+PumpingState runPumpingStateMachine(PumpingState state)
 {
-
-    static PumpingState state = STARTUP;
-
     switch(state)
     {
         case STARTUP:
@@ -290,8 +346,6 @@ PumpingState runPumpingStateMachine()
         default:
             break;
     }
-
-
     return(state);
 }
 
@@ -414,7 +468,7 @@ void ConfigureStepperDriver()
 
     // KVAL is a modifier that sets the effective voltage applied to the motor. KVAL/255 * Vsupply = effective motor voltage.
     //  This lets us hammer the motor harder during some phases  than others, and to use a higher voltage to achieve better
-    //  torque performance even if a motor isn't rated for such a high current.
+    //  torqure performance even if a motor isn't rated for such a high current.
     // This IHM02A1 BOARD has 12V motors and a 12V supply.
     Stepper.setRunKVAL(200);  // 220/255 * 12V = 6V
     Stepper.setAccKVAL(200);  // 220/255 * 12V = 6V
