@@ -159,26 +159,26 @@ PumpingState runPumpingStateMachine()
                 state = START_IN;
             }
             else {
+                // try to find home in expiration direction
                 moveStepper(STEPS_EX_HOMING*STEP_DIVIDER, SPEED_EX, ACC_EX, DEC_EX, DIR_EX);
                 state = HOMING_EX;
             }
             break;
         case HOMING_EX:
             if (isHome()) {
-                // motor is at home position, stop it and start cycle
-                
+                // motor is at home position, start cycle                
                 state = START_IN;
             }
-            else if (isBusy){
+            else if (isBusy()){
                 // motor still moving, continue homing
                 state = HOMING_EX;
             }
+            // TODO: Something goes wrong...... stop and go to error!!!
             else{
                 // motor couldn't find home position in EX direction
                 // try in IN direction
                 moveStepper((STEPS_IN_HOMING+STEPS_EX_HOMING)*STEP_DIVIDER, SPEED_EX, ACC_EX, DEC_EX, DIR_IN);
                 state = HOMING_IN;
-
             }
             break;
 
@@ -188,7 +188,7 @@ PumpingState runPumpingStateMachine()
                 Stepper.hardStop();
                 state = START_IN;
             }
-            else if (isBusy){
+            else if (isBusy()){
                 // motor still moving, continue homing
                 state = HOMING_IN;
             }
@@ -329,6 +329,17 @@ bool getStatusFlag(int r, int n){
     return(flag);
 }
 
+//! \brief move the step motor using the given parameters. 
+//!
+//! The motor driver will accelerate with a constant acceleration
+//! until the maximal speed is achieved. For deceleration the inverse
+//! process is used.
+//!  
+//! \param steps : number of steps to move
+//! \param speed : maximal speed in steps/s
+//! \param acc : acceleration in steps/s^2
+//! \param acc : deceleration in steps/s^2
+//! \param dir : indicate the rotate direction
 void moveStepper(int steps, int speed, int acc, int dec, int dir) {
     Stepper.setMaxSpeed(speed);
     Stepper.setAcc(acc);
@@ -378,8 +389,10 @@ void UpdateMotorCurveParameters(float respiratoryRate, float pathRatio, float IE
 }
 
 
-//! Read the
-//! \return
+//! Read the motor driver status. If the motor is moving
+//! the isBusy function return true.
+//!
+//! \return true if the motor is moving
 bool isBusy()
 {
     byte status=0;
