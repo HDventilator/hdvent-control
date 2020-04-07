@@ -40,8 +40,8 @@ float const SPEED_EX = 100; //steps/s
 float const DEC_EX = 300; // steps/s/s
 bool const DIR_IN = 1;
 bool const DIR_EX = abs(DIR_IN - 1);
-int const STEP_DIVIDER_REGISTER = STEP_FS_128;
-int const STEP_DIVIDER = 128;
+int const STEP_DIVIDER_REGISTER = STEP_FS_64;
+int const STEP_DIVIDER = 64;
 
 int const STEPS_EX_HOMING = 80; // steps to move out when trying to find home
 int const STEPS_IN_HOMING = 80; // steps to move in when trying to find home
@@ -116,7 +116,18 @@ float temperatureInflux=0;
 PumpingState currentState=STARTUP;
 //manual control
 int stepCounter;
-Keypad *keypadPointer;
+
+const byte rows = 4; //four rows
+const byte cols = 4; //three columns
+char keys[rows][cols] = {
+        {'1','2','3','A'},
+        {'4','5','6','B'},
+        {'7','8','9','C'},
+        {'*','0','#','D'}
+};
+byte rowPins[rows] = {0, 1, 2, 3}; //connect to the row pinouts of the keypad
+byte colPins[cols] = {4, 5, 6, 7}; //connect to the column pinouts of the keypad
+Keypad keypad = Keypad( makeKeymap(keys), rowPins, colPins, rows, cols );
 
 void setup()
 {
@@ -139,72 +150,74 @@ void setup()
     SPI.begin();             // start
 
     ConfigureStepperDriver();
-    const byte rows = 4; //four rows
-    const byte cols = 4; //three columns
-    char keys[rows][cols] = {
-            {'1','2','3','A'},
-            {'4','5','6','B'},
-            {'7','8','9','C'},
-            {'*','0','#','D'}
-    };
-    byte rowPins[rows] = {5, 4, 3, 2}; //connect to the row pinouts of the keypad
-    byte colPins[cols] = {8, 7, 6}; //connect to the column pinouts of the keypad
-    Keypad keypad = Keypad( makeKeymap(keys), rowPins, colPins, rows, cols );
+    Serial.println("restarting...");
+
 }
 
 void loop(){
+    //Stepper.move(1,200*STEP_DIVIDER);
+
+    //while (isBusy()){delay(10);}
+
     readPotis();
-    readPressureSensor(pressureBag, statePressureSensorBag);
-    updateDisplay(respiratoryRate, pathRatio, IERatio, peakPressure, pressurePlateau, pressurePEEP);
-    motorStatusRegister = readStatusRegister();
+    //readPressureSensor(pressureBag, statePressureSensorBag);
+    //updateDisplay(respiratoryRate, pathRatio, IERatio, peakPressure, pressurePlateau, pressurePEEP);
+    //motorStatusRegister = readStatusRegister();
     //PrintMotorCurveParameters();
-    UpdateMotorCurveParameters(respiratoryRate, pathRatio, IERatio);
     startCyclingSwitch = digitalRead(MANUAL_CYCLE_SWITCH_PIN);
     // only for testing without optical sensor implemented
     if (startCyclingSwitch) {
+        UpdateMotorCurveParameters(respiratoryRate, pathRatio, IERatio);
+        Serial.println(currentState);
         currentState = runPumpingStateMachine(currentState);
+
     }
     else {
         manualControl();
         currentState = STARTUP;
     }
+
 }
 
 void manualControl(){
-    char keyChar = keypadPointer ->getKey();
-    switch(keyChar)
-    {
-        case 'A':  // ten steps forward
-            Stepper.move(DIR_IN,10*STEP_DIVIDER);
-            stepCounter = stepCounter + 10;
-            break;
-        case '1':  // ten steps back
-            Stepper.move(DIR_EX,10*STEP_DIVIDER);
-            stepCounter = stepCounter - 10;
-            break;
-        case '3':  // single step forward
-            Stepper.move(DIR_IN,1*STEP_DIVIDER);
-            stepCounter = stepCounter + 1;
-            break;
-        case '2':  // single step back
-            Stepper.move(DIR_EX,1*STEP_DIVIDER);
-            stepCounter = stepCounter - 1;
-            break;
-        case '5':  // save end position
-            stepsFullRange = stepCounter;
-            Stepper.move(DIR_EX, stepsFullRange*STEP_DIVIDER);
-            break;
-        case '4': // save home position
-            stepCounter=0;
-            break;
-        case '*':
-            Stepper.hardStop();
-            break;
-        case '#':
-            Stepper.resetDev();
-            break;
-        default:
-            Serial.println(".");
+    char rxChar = 0;
+    if (Serial.available()) {
+        rxChar = Serial.read();
+        switch (rxChar) {
+            case 'F':  // ten steps forward
+                //Stepper.move(1, 200 * STEP_DIVIDER);
+                moveStepper(10*STEP_DIVIDER, 100, 400, 400, DIR_IN);
+                stepCounter = stepCounter + 10;
+                break;
+            case 'B':  // ten steps back
+                moveStepper(10 * STEP_DIVIDER, 100, 400, 400, DIR_EX);
+                stepCounter = stepCounter - 10;
+                break;
+            case 'f':  // single step forward
+                moveStepper(1 * STEP_DIVIDER, 100, 400, 400, DIR_IN);
+                stepCounter = stepCounter + 1;
+                break;
+            case 'b':  // single step back
+                moveStepper(1 * STEP_DIVIDER, 100, 400, 400, DIR_EX);
+                stepCounter = stepCounter - 1;
+                break;
+            case 's':  // save end position and go home
+                if (stepCounter>0){
+                    stepsFullRange = stepCounter;
+                    moveStepper(stepsFullRange * STEP_DIVIDER, 100, 400, 400, DIR_EX);
+                }
+                break;
+            case '0': // save home position
+                stepCounter = 0;
+                break;
+            case 'x':
+                Stepper.hardStop();
+                break;
+
+            default:
+                Serial.println(".");
+                break;
+        }
     }
 }
 
@@ -352,7 +365,12 @@ PumpingState runPumpingStateMachine(PumpingState state)
 void toggleIsHome(){
     isHome = true;
 }
-
+void stopInfluxHeating(){
+    // TODO
+}
+void startInfluxHeating(){
+    // TODO
+}
 void updateDisplay(float respiratoryRate, float pathRatio, float IERatio,
                    float pressurePeak, float pressurePlateau, float pressurePEEP){
     delay(10);
@@ -371,9 +389,11 @@ bool getStatusFlag(int r, int n){
 }
 
 void moveStepper(int steps, int speed, int acc, int dec, int dir) {
+    while(isBusy()){;}
     Stepper.setMaxSpeed(speed);
     Stepper.setAcc(acc);
     Stepper.setDec(dec);
+    while(isBusy()){;}
     Stepper.move(dir, steps);
 }
 
@@ -452,7 +472,6 @@ byte spi_test()
 //  For ease of reading, we're just going to configure all the boards to the same settings.
 void ConfigureStepperDriver()
 {
-    int paramValue;
     Serial.println("Configuring boards...");
 
     // Before we do anything, we need to tell each device which SPI port we're using.
@@ -464,21 +483,30 @@ void ConfigureStepperDriver()
     // Set the Overcurrent Threshold to 6A(max). The OC detect circuit is quite sensitive; even if the current is only momentarily
     //  exceeded during acceleration or deceleration, the driver will shutdown. This is a per channel value; it's useful to
     //  consider worst case, which is startup.
-    Stepper.setOCThreshold(OCD_TH_6000mA);
+    Stepper.setOCThreshold(OCD_TH_5250mA);
 
     // KVAL is a modifier that sets the effective voltage applied to the motor. KVAL/255 * Vsupply = effective motor voltage.
     //  This lets us hammer the motor harder during some phases  than others, and to use a higher voltage to achieve better
     //  torqure performance even if a motor isn't rated for such a high current.
     // This IHM02A1 BOARD has 12V motors and a 12V supply.
-    Stepper.setRunKVAL(200);  // 220/255 * 12V = 6V
-    Stepper.setAccKVAL(200);  // 220/255 * 12V = 6V
-    Stepper.setDecKVAL(200);  // /255 * 12V = 3V
-    Stepper.setHoldKVAL(150);  // 132/255 * 12V = 1.5V  // low voltage, almost free turn
+    Stepper.setRunKVAL(220);  // 220/255 * 12V = 6V
+    Stepper.setAccKVAL(220);  // 220/255 * 12V = 6V
+    Stepper.setDecKVAL(220);  // /255 * 12V = 3V
+    Stepper.setHoldKVAL(220);  // 132/255 * 12V = 1.5V  // low voltage, almost free turn
 
     // The dSPIN chip supports microstepping for a smoother ride. This function provides an easy front end for changing the microstepping mode.
     // once in full speed, it will step up to half-step
     Stepper.configStepMode(STEP_DIVIDER_REGISTER); // Full step
+
+    // When a move command is issued, max speed is the speed the Motor tops out at while completing the move, in steps/s
+    Stepper.setMaxSpeed(100);
+    Stepper.setMinSpeed(0);
+
+    // Acceleration and deceleration in steps/s/s. Increasing this value makes the motor reach its full speed more quickly, at the cost of possibly causing it to slip and miss steps.
+    Stepper.setAcc(100);
+    Stepper.setDec(100);
 }
+
 
 int readStatusRegister(){
     int paramValue;
