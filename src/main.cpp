@@ -200,9 +200,8 @@ void manualControl(){
     }
 }
 
-PumpingState runPumpingStateMachine()
+PumpingState runPumpingStateMachine(PumpingState state)
 {
-    static PumpingState state=STARTUP;
     switch(state)
     {
         case STARTUP:
