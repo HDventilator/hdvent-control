@@ -7,6 +7,7 @@
 
 #include <Arduino.h>
 
+
 /* Sensor details (40 bytes) */
 /** struct sensor_s is used to describe basic information about a specific
  * sensor. */

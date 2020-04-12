@@ -49,9 +49,9 @@ int const STEPS_EX_HOMING = 80; // steps to move out when trying to find home
 int const STEPS_IN_HOMING = 80; // steps to move in when trying to find home
 
 // state flags
-
-enum PumpingState {START_IN, MOVING_IN, HOLDING_IN, START_EX, MOVING_EX, HOLDING_EX, STARTUP, HOMING_EX, HOMING_IN};
 enum SensorState {SENSOR_DISCONNECTED, SENSOR_CONNECTED, SENSOR_FAULTY, SENSOR_OK};
+enum PumpingState {START_IN, MOVING_IN, HOLDING_IN, START_EX, MOVING_EX, HOLDING_EX, STARTUP, HOMING_EX, HOMING_IN, IDLE};
+enum ControlMode {VOLUME_CONTROLLED, PRESSURE_CONTROLLED, BIPAP};
 /* **********************
  * Function declarations
  * **********************
@@ -232,24 +232,6 @@ PumpingState runPumpingStateMachine(PumpingState state)
             }
             break;
 
-        case HOMING_IN:
-            if (isHome()) {
-                // motor is at home position, stop it and start cycle
-                Stepper.hardStop();
-                state = START_IN;
-            }
-            else if (isBusy()){
-                // motor still moving, continue homing
-                state = HOMING_IN;
-            }
-            else{
-                // motor couldn't find home position in EX direction
-                // try in IN direction
-                moveStepper((STEPS_IN_HOMING+STEPS_EX_HOMING)*STEP_DIVIDER, SPEED_EX, ACC_EX, DEC_EX, DIR_IN);
-                state = HOMING_IN;
-            }
-            break;
-
         case START_IN:
             UpdateMotorCurveParameters( respiratoryRate, pathRatio, IERatio);
             moveStepper(stepsInterval, speedIn, ACC_IN, DEC_IN, DIR_IN);
@@ -335,6 +317,10 @@ PumpingState runPumpingStateMachine(PumpingState state)
                 stopInfluxHeating();
             }
             break;
+
+        case IDLE:
+            break;
+
 
         default:
             break;
