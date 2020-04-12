@@ -224,7 +224,7 @@ PumpingState runPumpingStateMachine()
                 // motor still moving, continue homing
                 state = HOMING_EX;
             }
-            // TODO: Something goes wrong...... stop and go to error!!!
+                // TODO: Something goes wrong...... stop and go to error!!!
             else{
                 // motor couldn't find home position in EX direction
                 // try in IN direction
@@ -349,10 +349,10 @@ PumpingState runPumpingStateMachine()
 //! \return true if motor is at home position
 bool isHome()
 {
-   uint8_t val;
-   val = digitalRead(PIN_HOME_SENSOR);
+    uint8_t val;
+    val = digitalRead(PIN_HOME_SENSOR);
 
-   return val;
+    return val;
 }
 
 //! \brief interrupt handling routine, stop the motor by rising edge on the
