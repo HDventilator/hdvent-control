@@ -45,9 +45,8 @@ int const STEPS_EX_HOMING = 80; // steps to move out when trying to find home
 int const STEPS_IN_HOMING = 80; // steps to move in when trying to find home
 
 // state flags
-enum SensorState {SENSOR_DISCONNECTED, SENSOR_CONNECTED, SENSOR_FAULTY, SENSOR_OK};
 enum PumpingState {START_IN, MOVING_IN, HOLDING_IN, START_EX, MOVING_EX, HOLDING_EX, STARTUP, HOMING_EX, HOMING_IN, IDLE};
-enum ControlMode {VOLUME_CONTROLLED, PRESSURE_CONTROLLED, BIPAP, VOLUME_OPEN_LOOP};
+enum ControlMode {VOLUME_CONTROLLED, PRESSURE_CONTROLLED, BIPAP, VOLUME_OPEN_LOOP, MANUAL};
 /* **********************
  * Function declarations
  * **********************
@@ -61,7 +60,7 @@ void PrintMotorCurveParameters();
 bool isBusy();
 
 void moveStepper(int steps, int speed, int acc, int dec, int dir);
-PumpingState runPumpingStateMachine(PumpingState state);
+PumpingState openLoopVolumeControl(PumpingState state);
 int motorStatusRegister;
 void writeToLCD(float respiratoryRate, float tidalVolume, float ratioInEx, float PEEP, float peak, float plat);
 void read_potis();
@@ -71,7 +70,7 @@ void printUserValues();
 bool getStatusFlag(int r, int n);
 void updateDisplay(float respiratoryRate, float pathRatio, float IERatio,
                    float pressurePeak, float plateauPressure, float peePressure);
-void readPressureSensor(float &pressure, SensorState &state);
+
 void startInfluxHeating();
 void stopInfluxHeating();
 void manualControl();
@@ -84,6 +83,9 @@ void toggleIsHome();
  * Global Variables
  * *****************************
  */
+Honeywell_SSC pressureSensor = Honeywell_SSC(0x48,0,0,4000,-1,1);
+Honeywell_SSC flowSensor = Honeywell_SSC(0x48,0,0,4000,-1,1);
+
 float timeEx=1;
 float timeIn=1;
 float speedIn = 50; // steps/s
@@ -107,10 +109,9 @@ float pressurePlateau=0;
 float pressurePEEP=0;
 float maxPressure=0;
 float pressureBag=0;
-SensorState statePressureSensorBag=SENSOR_DISCONNECTED;
 float temperatureInflux=0;
-
-PumpingState currentState=STARTUP;
+ControlMode mode = VOLUME_OPEN_LOOP;
+PumpingState currentState = STARTUP;
 //manual control
 int stepCounter;
 
@@ -144,9 +145,18 @@ void setup()
 }
 
 void loop(){
-    Honeywell_SSC pressureSensor = Honeywell_SSC(0x48,0,0,4000,-1,1);
+
     pressureSensor.readSensor();
     Serial.println(pressureSensor.getData().temperature);
+    switch (mode) {
+        case MANUAL:
+            manualControl();
+            break;
+        case VOLUME_OPEN_LOOP:
+            currentState = openLoopVolumeControl(currentState);
+        default:
+            break;
+    };
     /*
     readPotis();
     readPressureSensor(pressureBag, statePressureSensorBag);
@@ -156,7 +166,7 @@ void loop(){
     UpdateMotorCurveParameters(respiratoryRate, pathRatio, IERatio);
     Serial.println(currentState);
 
-    currentState = runPumpingStateMachine(currentState);
+    currentState = openLoopVolumeControl(currentState);
      */
 }
 
@@ -202,7 +212,7 @@ void manualControl(){
     }
 }
 
-PumpingState runPumpingStateMachine(PumpingState state)
+PumpingState openLoopVolumeControl(PumpingState state)
 {
     switch(state)
     {
@@ -398,12 +408,7 @@ void updateDisplay(float respiratoryRate, float pathRatio, float IERatio,
     delay(10);
 }
 
-void readPressureSensor(float &pressure, SensorState &state){
-    // TODO read pressure sensor function
-    pressure = 0;
-    state = SENSOR_DISCONNECTED;
-    delay(10);
-}
+
 
 bool getStatusFlag(int r, int n){
     int flag = ((r >> (n-1)) & 0x01);
