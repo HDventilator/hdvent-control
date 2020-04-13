@@ -47,7 +47,7 @@ int const STEPS_IN_HOMING = 80; // steps to move in when trying to find home
 // state flags
 enum SensorState {SENSOR_DISCONNECTED, SENSOR_CONNECTED, SENSOR_FAULTY, SENSOR_OK};
 enum PumpingState {START_IN, MOVING_IN, HOLDING_IN, START_EX, MOVING_EX, HOLDING_EX, STARTUP, HOMING_EX, HOMING_IN, IDLE};
-enum ControlMode {VOLUME_CONTROLLED, PRESSURE_CONTROLLED, BIPAP};
+enum ControlMode {VOLUME_CONTROLLED, PRESSURE_CONTROLLED, BIPAP, VOLUME_OPEN_LOOP};
 /* **********************
  * Function declarations
  * **********************
