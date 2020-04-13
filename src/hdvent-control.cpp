@@ -34,6 +34,15 @@ float const TEMPERATURE_INFLUX_THRESHOLD = 20;// °C, start heating when influx 
 
 // Motor settings
 // motor curve for volume control operation
+uint8_t const RUN_KVAL_IN = 200;
+uint8_t const ACC_KVAL_IN = 200;
+uint8_t const DEC_KVAL_IN = 200;
+uint8_t const HOLD_KVAL_IN = 200;
+uint8_t const RUN_KVAL_EX = 200;
+uint8_t const ACC_KVAL_EX = 200;
+uint8_t const DEC_KVAL_EX = 200;
+uint8_t const HOLD_KVAL_EX = 200;
+
 
 float const ACC_IN = 300; // steps/s/s
 float const DEC_IN = 300; // steps/s/s
@@ -214,6 +223,7 @@ PumpingState runPumpingStateMachine(PumpingState state)
                 state = HOMING_EX;
             }
             break;
+
         case HOMING_EX:
             if (isHome()) {
                 // motor is at home position, start cycle
@@ -285,7 +295,15 @@ PumpingState runPumpingStateMachine(PumpingState state)
             break;
 
         case MOVING_EX:
-            if ((millis() - timerStartMovingEx) < timeEx*1000) {
+            if (isHome()){
+                Stepper.hardStop();
+                if (temperatureInflux<TEMPERATURE_INFLUX_THRESHOLD){
+                    //startInfluxHeating();
+                    //TODO
+                    (void)0;
+                state = HOLDING_EX;
+            }
+            else if ((millis() - timerStartMovingEx) < timeEx*1000) {
                 state=MOVING_EX;
             }
             else if (isBusy()) {
@@ -293,14 +311,9 @@ PumpingState runPumpingStateMachine(PumpingState state)
                 // time is up, but motor still busy
             }
             else {
-                // moving out is finished
-                // start heating and enter hold phase
-                state = HOLDING_EX;
-                timerStartHoldingEx = millis();
-                if (temperatureInflux<TEMPERATURE_INFLUX_THRESHOLD){
-                    //startInfluxHeating();
-                    //TODO
-                    (void)0;
+                // moving out is finished but position not reached
+                Stepper.move(DIR_EX, 10);
+                state = MOVING_EX;
                 }
 
             }
@@ -381,6 +394,18 @@ bool getStatusFlag(int r, int n){
 //! \param acc : deceleration in steps/s^2
 //! \param dir : indicate the rotate direction
 void moveStepper(int steps, int speed, int acc, int dec, int dir) {
+    if (dir==DIR_EX){
+        Stepper.setRunKVAL(RUN_KVAL_EX);
+        Stepper.setAccKVAL(ACC_KVAL_EX);
+        Stepper.setDecKVAL(DEC_KVAL_EX);
+        Stepper.setHoldKVAL(HOLD_KVAL_EX);
+    }
+    else {
+        Stepper.setRunKVAL(RUN_KVAL_IN);
+        Stepper.setAccKVAL(ACC_KVAL_IN);
+        Stepper.setDecKVAL(DEC_KVAL_IN);
+        Stepper.setHoldKVAL(HOLD_KVAL_IN);
+    }
     Stepper.setMaxSpeed(speed);
     Stepper.setAcc(acc);
     Stepper.setDec(dec);
