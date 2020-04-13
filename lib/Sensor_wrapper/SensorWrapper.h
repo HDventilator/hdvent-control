@@ -40,7 +40,7 @@ public:
         _sensorID = sensorId;
     }
 
-    void setState(int state) {
+    void setState(SensorState state) {
         _state = state;
     }
 
@@ -51,7 +51,7 @@ private:
                         constant rate */
     int _i2cAddress;
     int _sensorID;
-    int _state;
+    SensorState _state;
 };
 
 #endif _SENSORWRAPPER_H

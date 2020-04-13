@@ -74,7 +74,9 @@ void updateDisplay(float respiratoryRate, float pathRatio, float IERatio,
 void startInfluxHeating();
 void stopInfluxHeating();
 void manualControl();
-int tripleVoteHome(bool optical, bool angle, bool stepper, bool &isHome);
+
+bool tripleVoteHome(bool optical, bool angle, bool stepper, bool &isHome);
+int votePosition(int stepper, int angle);
 
 bool isHome();
 void toggleIsHome();
@@ -115,7 +117,9 @@ PumpingState currentState = STARTUP;
 //manual control
 int stepCounter=0;
 int stepperPosition=0;
-float anglePosition=0;
+float anglePosition=0; // TODO map angle position on motor steps
+Sensor::SensorState stepperPositionState = Sensor::OK;
+Sensor::SensorState anglePositionState = Sensor::OK;
 
 void setup()
 {
@@ -344,9 +348,12 @@ PumpingState openLoopVolumeControl(PumpingState state)
     return(state);
 }
 
+int votePosition(int stepper, int angle){
+    // TODO handle deviating position readings
+    void(0);
+}
 
-
-int tripleVoteHome(bool optical, bool angle, bool stepper, bool &isHome){
+bool tripleVoteHome(bool optical, bool angle, bool stepper, bool &isHome){
     // optical=notHome more reliable than optical=isHome
     uint8_t state = ((optical<<2)+(angle<<1)+stepper);
     switch (state) {
