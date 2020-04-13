@@ -11,25 +11,38 @@
 class Honeywell_SSC: public Sensor
 {
 public:
+    typedef struct{
+        float pressure;
+        float temperature;
+    } sensor_values_t;
+
     Honeywell_SSC(int i2cAddress, int sensorID,
                   float pressureMin, float pressureMax, float outputMin, float outputMax);
     bool  begin();
-    bool  readSensor(sensors_event_t*, int timestamp = 0);
-    void  getSensor(sensor_t*);
+    bool  readSensor (int timestamp = 0);
+    int getState() const;
+    int getI2CAddress() const;
 
+    const sensor_values_t &getDataMin() const;
+    const sensor_values_t &getDataMax() const;
+    const sensor_values_t &getData() const;
 
 private:
-    int getI2CAddress() const;
-    int getStatus();
+    sensor_values_t  _data;
+    sensor_values_t _dataMin;
+    sensor_values_t _dataMax;
+
+    float transferFunction(uint16_t data);
+
     int _i2cAddress;
+    int _sensorID;
+    int _state;
+
+    float _outputMin;
+    float _outputMax;
     float _pressureMin;
     float  _pressureMax;
-    float  _outputMin;
-    float  _outputMax;
-    int _sensorID;
-    int _status;
-    float transferFunction(uint16_t);
-    float getData();
+
 };
 
 #endif

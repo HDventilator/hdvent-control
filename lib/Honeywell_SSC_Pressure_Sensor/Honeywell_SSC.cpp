@@ -23,9 +23,6 @@ bool Honeywell_SSC::begin()
     Wire.begin();
 }
 
-int Honeywell_SSC::getStatus(){
-    return _status;
-}
 
 int Honeywell_SSC::getI2CAddress() const {
     return _i2cAddress;
@@ -37,26 +34,8 @@ float Honeywell_SSC::transferFunction(uint16_t data) {
     return (pressure);
 }
 
-void Honeywell_SSC::getSensor(sensor_t *sensor)
+bool Honeywell_SSC::readSensor( int timestamp)
 {
-
-    /* Clear the sensor_t object */
-    memset(sensor, 0, sizeof(sensor_t));
-
-    /* Insert the sensor name in the fixed length char array */
-    strncpy (sensor->name, "BMP085", sizeof(sensor->name) - 1);
-    sensor->name[sizeof(sensor->name)- 1] = 0;
-    sensor->version     = 1;
-    sensor->sensor_id   = _sensorID;
-    sensor->min_delay   = 0;
-    sensor->max_value   = _pressureMax;
-    sensor->min_value   = _pressureMin;
-    sensor->resolution  = 0;
-}
-
-bool Honeywell_SSC::readSensor(sensors_event_t *event, int timestamp)
-{
-
     int i2c_address = _i2cAddress;
     Wire.requestFrom(i2c_address, 4);
     while(Wire.available() == 0);
@@ -73,12 +52,25 @@ bool Honeywell_SSC::readSensor(sensors_event_t *event, int timestamp)
     float pressure = transferFunction(bridge_data);
     auto temperature = (float) temperature_data* 0.0977 - 50.0;
 
-    /* Clear the event */
-    memset(event, 0, sizeof(sensors_event_t));
-    event->version = sizeof(sensors_event_t);
-
-    event->sensor_id = _sensorID;
-    (event->pt).temperature = temperature;
-    (event->pt).pressure = pressure;
+    _data.temperature = temperature;
+    _data.pressure = pressure;
     return true;
 }
+
+int Honeywell_SSC::getState() const {
+    return _state;
+}
+
+const Honeywell_SSC::sensor_values_t &Honeywell_SSC::getDataMin() const {
+    return _dataMin;
+}
+
+const Honeywell_SSC::sensor_values_t &Honeywell_SSC::getData() const {
+    return _data;
+}
+
+const Honeywell_SSC::sensor_values_t &Honeywell_SSC::getDataMax() const {
+    return _dataMax;
+}
+
+

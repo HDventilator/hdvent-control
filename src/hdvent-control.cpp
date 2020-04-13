@@ -5,6 +5,7 @@
 #include <SPI.h> // arduino spi library
 #include <avr/wdt.h> // watchdog library
 #include <powerSTEP01ArduinoLibrary.h>
+#include <Honeywell_SSC.h>
 
 
 /* ***********************
@@ -157,15 +158,20 @@ void setup()
 }
 
 void loop(){
+    Honeywell_SSC pressureSensor = Honeywell_SSC(0x48,0,0,4000,-1,1);
+    pressureSensor.readSensor();
+    Serial.println(pressureSensor.getData().temperature);
+    /*
     readPotis();
     readPressureSensor(pressureBag, statePressureSensorBag);
     updateDisplay(respiratoryRate, pathRatio, IERatio, peakPressure, pressurePlateau, pressurePEEP);
     motorStatusRegister = readStatusRegister();
-    //PrintMotorCurveParameters();
-    startCyclingSwitch = false;//digitalRead(MANUAL_CYCLE_SWITCH_PIN);
+
     UpdateMotorCurveParameters(respiratoryRate, pathRatio, IERatio);
     Serial.println(currentState);
+
     currentState = runPumpingStateMachine(currentState);
+     */
 }
 
 
@@ -359,7 +365,7 @@ int tripleVotePosition( bool optical, bool angle, bool stepper, bool &isHome){
             break;
         case 0B010:
             // TODO optical: not home, angle: home, stepper: not home
-            // probable causes: angle sensor broken, angle sensor wrong calibration
+            // probable causes: angle sensor broken/disconnected, angle sensor wrong calibration
             // actions: set isHome=false
             break;
         case 0B100:
@@ -379,7 +385,7 @@ int tripleVotePosition( bool optical, bool angle, bool stepper, bool &isHome){
             break;
         case 0B101:
             // TODO optical: home, angle: not home, stepper: home
-            // probable causes: difficult as optical isHome not reliable
+            // probable causes: angle sensor broken/disconnected, angle sensor wrong calibration
             // actions: set isHome=true, null angle
             break;
         case 0B111:
