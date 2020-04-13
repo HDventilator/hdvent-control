@@ -34,10 +34,6 @@ private:
 
     float transferFunction(uint16_t data);
 
-    int _i2cAddress;
-    int _sensorID;
-    int _state;
-
     float _outputMin;
     float _outputMax;
     float _pressureMin;

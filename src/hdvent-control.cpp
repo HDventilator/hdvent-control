@@ -6,30 +6,17 @@
 #include <avr/wdt.h> // watchdog library
 #include <powerSTEP01ArduinoLibrary.h>
 #include <Honeywell_SSC.h>
-
+#include "Pin_Definitions_Mega.h"
 
 /* ***********************
  * Constant definitions
  * ***********************
  */
-// Pin definitions
-int const POTI_PIN_RR = A0;
-int const POTI_PIN_TV = A1;
-int const POTI_PIN_IE = A3;
-int const PIN_HOME_SENSOR = 9;
-int const MANUAL_CYCLE_SWITCH_PIN = 8;
-
-// Pin definitions for the X-NUCLEO-IHM03A1 connected to an Uno-compatible board
-int const nCS_PIN = 10;
-int const STCK_PIN = 9;
-int const nSTBY_nRESET_PIN = 8;
-int const nBUSY_PIN = 4;
 
 powerSTEP Stepper(0, nCS_PIN, nSTBY_nRESET_PIN);;  // Nr, CS, Reset => 0 , D16/A2 (PA4), D4 (PB5) for IHM02A1 board
 
 // Clinical settings
 int const PRESSURE_MAX = 0; // mm H20
-int const PEEP_PRESSURE = 0; // mm H2O
 float const TIME_HOLD_PLATEAU = 0.200; // seconds, hold time after inspiratory phase
 float const TEMPERATURE_INFLUX_THRESHOLD = 20;// °C, start heating when influx temperature falls below this value
 
@@ -43,7 +30,6 @@ uint8_t const RUN_KVAL_EX = 200;
 uint8_t const ACC_KVAL_EX = 200;
 uint8_t const DEC_KVAL_EX = 200;
 uint8_t const HOLD_KVAL_EX = 200;
-
 
 float const ACC_IN = 300; // steps/s/s
 float const DEC_IN = 300; // steps/s/s
@@ -151,8 +137,8 @@ void setup()
     SPI.begin();
     SPI.setDataMode(SPI_MODE3);
 
-    pinMode(PIN_HOME_SENSOR, INPUT_PULLUP);
-    attachInterrupt(digitalPinToInterrupt(PIN_HOME_SENSOR), toggleIsHome, RISING);
+    pinMode(PIN_OPTICAL_SWITCH_HOME, INPUT_PULLUP);
+    attachInterrupt(digitalPinToInterrupt(PIN_OPTICAL_SWITCH_HOME), toggleIsHome, RISING);
 
     ConfigureStepperDriver();
 }
@@ -173,8 +159,6 @@ void loop(){
     currentState = runPumpingStateMachine(currentState);
      */
 }
-
-
 
 void manualControl(){
     char rxChar = 0;
@@ -457,9 +441,9 @@ void moveStepper(int steps, int speed, int acc, int dec, int dir) {
 }
 
 void readPotis(){
-    respiratoryRate = ((float) analogRead(POTI_PIN_RR))/1023*35 + 5;
-    IERatio = ((float) analogRead(POTI_PIN_IE))/1023*0.9 + 0.2; //
-    pathRatio = ((float) analogRead(POTI_PIN_TV))/1023;
+    respiratoryRate = ((float) analogRead(PIN_POTI_RR)) / 1023 * 35 + 5;
+    IERatio = ((float) analogRead(PIN_POTI_IE)) / 1023 * 0.9 + 0.2; //
+    pathRatio = ((float) analogRead(PIN_POTI_TV)) / 1023;
 }
 
 void PrintMotorCurveParameters(){

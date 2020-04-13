@@ -9,23 +9,19 @@
 
 Honeywell_SSC::Honeywell_SSC(int i2cAddress, int sensorID, float pressureMin, float pressureMax, float outputMin,
                              float outputMax) {
-    _i2cAddress = i2cAddress;
+
     _outputMin = outputMin;
     _outputMax = outputMax;
     _pressureMax = pressureMax;
     _pressureMin = pressureMin;
-    _sensorID = sensorID;
+    setSensorId(sensorID);
+    setI2CAddress(i2cAddress);
 }
 
 bool Honeywell_SSC::begin()
 {
     // Enable I2C
     Wire.begin();
-}
-
-
-int Honeywell_SSC::getI2CAddress() const {
-    return _i2cAddress;
 }
 
 float Honeywell_SSC::transferFunction(uint16_t data) {
@@ -36,7 +32,7 @@ float Honeywell_SSC::transferFunction(uint16_t data) {
 
 bool Honeywell_SSC::readSensor( int timestamp)
 {
-    int i2c_address = _i2cAddress;
+    int i2c_address = getI2CAddress();
     Wire.requestFrom(i2c_address, 4);
     while(Wire.available() == 0);
 
@@ -55,10 +51,6 @@ bool Honeywell_SSC::readSensor( int timestamp)
     _data.temperature = temperature;
     _data.pressure = pressure;
     return true;
-}
-
-int Honeywell_SSC::getState() const {
-    return _state;
 }
 
 const Honeywell_SSC::sensor_values_t &Honeywell_SSC::getDataMin() const {
