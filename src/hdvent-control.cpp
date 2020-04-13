@@ -74,7 +74,7 @@ void updateDisplay(float respiratoryRate, float pathRatio, float IERatio,
 void startInfluxHeating();
 void stopInfluxHeating();
 void manualControl();
-int tripleVotePosition( bool optical, bool angle, bool stepper, bool &isHome);
+int tripleVoteHome(bool optical, bool angle, bool stepper, bool &isHome);
 
 bool isHome();
 void toggleIsHome();
@@ -108,12 +108,14 @@ float peakPressure=0;
 float pressurePlateau=0;
 float pressurePEEP=0;
 float maxPressure=0;
-float pressureBag=0;
+float pressure=0;
 float temperatureInflux=0;
 ControlMode mode = VOLUME_OPEN_LOOP;
 PumpingState currentState = STARTUP;
 //manual control
-int stepCounter;
+int stepCounter=0;
+int stepperPosition=0;
+float anglePosition=0;
 
 void setup()
 {
@@ -147,27 +149,25 @@ void setup()
 void loop(){
 
     pressureSensor.readSensor();
-    Serial.println(pressureSensor.getData().temperature);
+    flowSensor.readSensor();
+    readPotis();
+    stepperPosition = Stepper.getPos();
+    anglePosition = analogRead(PIN_RPS_OUT);
+
     switch (mode) {
         case MANUAL:
             manualControl();
             break;
         case VOLUME_OPEN_LOOP:
+            UpdateMotorCurveParameters(respiratoryRate, pathRatio, IERatio);
             currentState = openLoopVolumeControl(currentState);
+            break;
         default:
             break;
     };
-    /*
-    readPotis();
-    readPressureSensor(pressureBag, statePressureSensorBag);
+
+
     updateDisplay(respiratoryRate, pathRatio, IERatio, peakPressure, pressurePlateau, pressurePEEP);
-    motorStatusRegister = readStatusRegister();
-
-    UpdateMotorCurveParameters(respiratoryRate, pathRatio, IERatio);
-    Serial.println(currentState);
-
-    currentState = openLoopVolumeControl(currentState);
-     */
 }
 
 void manualControl(){
@@ -254,8 +254,8 @@ PumpingState openLoopVolumeControl(PumpingState state)
 
         case MOVING_IN:
             // save pressure if new maximum
-            if (pressureBag> maxPressure){
-                maxPressure = pressureBag;
+            if (pressure > maxPressure){
+                maxPressure = pressure;
             }
 
             if (millis() - timerStartMovingIn < timeIn*1000) {
@@ -273,8 +273,8 @@ PumpingState openLoopVolumeControl(PumpingState state)
 
         case HOLDING_IN:
             // pressure might rise to peak just after compressing phase
-            if (pressureBag> maxPressure){
-                maxPressure = pressureBag;
+            if (pressure > maxPressure){
+                maxPressure = pressure;
             }
 
             if ((millis() - timerStartHoldingIn) < TIME_HOLD_PLATEAU*1000) {
@@ -290,7 +290,7 @@ PumpingState openLoopVolumeControl(PumpingState state)
 
         case START_EX:
             // take pressure just before moving out as plateau pressure
-            pressurePlateau = pressureBag;
+            pressurePlateau = pressure;
             // move out
             moveStepper(stepsInterval, SPEED_EX, ACC_EX, DEC_EX, DIR_EX);
             timerStartMovingEx = millis();
@@ -325,7 +325,7 @@ PumpingState openLoopVolumeControl(PumpingState state)
         case HOLDING_EX:
             if ((millis() - timerStartMovingEx) < timeEx*1000) {
                 // record PEEP pressure
-                pressurePEEP = pressureBag;
+                pressurePEEP = pressure;
             }
             else {
                 // time is up, stop heating, move in
@@ -345,7 +345,8 @@ PumpingState openLoopVolumeControl(PumpingState state)
 }
 
 
-int tripleVotePosition( bool optical, bool angle, bool stepper, bool &isHome){
+
+int tripleVoteHome(bool optical, bool angle, bool stepper, bool &isHome){
     // optical=notHome more reliable than optical=isHome
     uint8_t state = ((optical<<2)+(angle<<1)+stepper);
     switch (state) {
@@ -376,6 +377,8 @@ int tripleVotePosition( bool optical, bool angle, bool stepper, bool &isHome){
             // TODO optical: home, angle: home, stepper: not home
             // probable causes: step loss moving out
             // actions: set isHome=true, null Stepper
+            Stepper.hardStop();
+            Stepper.resetPos();
             break;
         case 0B101:
             // TODO optical: home, angle: not home, stepper: home
@@ -388,7 +391,7 @@ int tripleVotePosition( bool optical, bool angle, bool stepper, bool &isHome){
         default:
             break;
     }
-    return (0);
+    return (optical&&angle)||(angle&&stepper)||(stepper&optical);
 }
 
 //! \brief interrupt handling routine, stop the motor by rising edge on the
