@@ -88,6 +88,7 @@ void readPressureSensor(float &pressure, SensorState &state);
 void startInfluxHeating();
 void stopInfluxHeating();
 void manualControl();
+int tripleVotePosition( bool optical, bool angle, bool stepper, bool &isHome);
 
 bool isHome();
 void toggleIsHome();
@@ -167,6 +168,8 @@ void loop(){
     currentState = runPumpingStateMachine(currentState);
 }
 
+
+
 void manualControl(){
     char rxChar = 0;
     if (Serial.available()) {
@@ -214,7 +217,7 @@ PumpingState runPumpingStateMachine(PumpingState state)
     switch(state)
     {
         case STARTUP:
-            if (isHome()){
+            if (isHome){
                 state = START_IN;
             }
             else {
@@ -225,7 +228,7 @@ PumpingState runPumpingStateMachine(PumpingState state)
             break;
 
         case HOMING_EX:
-            if (isHome()) {
+            if (isHome) {
                 // motor is at home position, start cycle
                 state = START_IN;
             }
@@ -295,7 +298,7 @@ PumpingState runPumpingStateMachine(PumpingState state)
             break;
 
         case MOVING_EX:
-            if (isHome()){
+            if (isHome){
                 Stepper.hardStop();
                 if (temperatureInflux<TEMPERATURE_INFLUX_THRESHOLD){
                     //startInfluxHeating();
@@ -341,16 +344,51 @@ PumpingState runPumpingStateMachine(PumpingState state)
     return(state);
 }
 
-//! \brief return true if the motor is at home position.
-//! Read the value of the IO pin connected to the home light barrier sensor
-//!
-//! \return true if motor is at home position
-bool isHome()
-{
-    uint8_t val;
-    val = digitalRead(PIN_HOME_SENSOR);
 
-    return val;
+int tripleVotePosition( bool optical, bool angle, bool stepper, bool &isHome){
+    // optical=notHome more reliable than optical=isHome
+    uint8_t state = ((optical<<2)+(angle<<1)+stepper);
+    switch (state) {
+        case 0B000:
+            // not Home
+            break;
+        case 0B001:
+            // TODO optical: not home, angle: not home, stepper: home
+            // probable causes: step loss moving in
+            // actions: set isHome=false,
+            break;
+        case 0B010:
+            // TODO optical: not home, angle: home, stepper: not home
+            // probable causes: angle sensor broken, angle sensor wrong calibration
+            // actions: set isHome=false
+            break;
+        case 0B100:
+            // TODO optical: home, angle: not home, stepper: not home
+            // probable causes: optical sensor faulty, e.g. LED broken
+            // actions: set isHome=false
+            break;
+        case 0B011:
+            // TODO optical: not home, angle: home, stepper: home
+            // probable causes: optical sensor faulty, e.g. LED broken
+            // actions: set isHome=true
+            break;
+        case 0B110:
+            // TODO optical: home, angle: home, stepper: not home
+            // probable causes: step loss moving out
+            // actions: set isHome=true, null Stepper
+            break;
+        case 0B101:
+            // TODO optical: home, angle: not home, stepper: home
+            // probable causes: difficult as optical isHome not reliable
+            // actions: set isHome=true, null angle
+            break;
+        case 0B111:
+            // TODO optical: home, angle: home, stepper: home
+            // actions: set isHome=true
+        default:
+            break;
+    }
+    return (0);
 }
 
 //! \brief interrupt handling routine, stop the motor by rising edge on the
