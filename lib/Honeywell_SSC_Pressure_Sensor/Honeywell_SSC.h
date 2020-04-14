@@ -20,8 +20,6 @@ public:
                   float pressureMin, float pressureMax, float outputMin, float outputMax);
     bool  begin();
     bool  readSensor (int timestamp = 0);
-    int getState() const;
-    int getI2CAddress() const;
 
     const sensor_values_t &getDataMin() const;
     const sensor_values_t &getDataMax() const;

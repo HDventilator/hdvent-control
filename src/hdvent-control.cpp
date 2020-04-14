@@ -6,7 +6,7 @@
 #include <avr/wdt.h> // watchdog library
 #include <powerSTEP01ArduinoLibrary.h>
 #include <Honeywell_SSC.h>
-#include "Pin_Definitions_Mega.h"
+#include "Pin_Definitions_Uno.h"
 
 /* ***********************
  * Constant definitions
@@ -65,7 +65,6 @@ int motorStatusRegister;
 void writeToLCD(float respiratoryRate, float tidalVolume, float ratioInEx, float PEEP, float peak, float plat);
 void read_potis();
 int readStatusRegister();
-void readPotis();
 void printUserValues();
 bool getStatusFlag(int r, int n);
 void updateDisplay(float respiratoryRate, float pathRatio, float IERatio,
@@ -74,19 +73,20 @@ void updateDisplay(float respiratoryRate, float pathRatio, float IERatio,
 void startInfluxHeating();
 void stopInfluxHeating();
 void manualControl();
-
+void enableEncoder();
 bool tripleVoteHome(bool optical, bool angle, bool stepper, bool &isHome);
 int votePosition(int stepper, int angle);
 
 bool isHome();
 void toggleIsHome();
+void toggleEnableEncoder();
 
 /* *****************************
  * Global Variables
  * *****************************
  */
-Honeywell_SSC pressureSensor = Honeywell_SSC(0x48,0,0,4000,-1,1);
-Honeywell_SSC flowSensor = Honeywell_SSC(0x48,0,0,4000,-1,1);
+Honeywell_SSC pressureSensor = Honeywell_SSC(0x48,0,-150,150,0.1*2047,0.9*2047);
+//Honeywell_SSC flowSensor = Honeywell_SSC(0x48,0,0,4000,-1,1);
 
 float timeEx=1;
 float timeIn=1;
@@ -146,14 +146,16 @@ void setup()
 
     pinMode(PIN_OPTICAL_SWITCH_HOME, INPUT_PULLUP);
     attachInterrupt(digitalPinToInterrupt(PIN_OPTICAL_SWITCH_HOME), toggleIsHome, RISING);
-
+    attachInterrupt(digitalPinToInterrupt(PIN_ENCO_BTN), toggleEnableEncoder, RISING);
     ConfigureStepperDriver();
 }
 
 void loop(){
 
     pressureSensor.readSensor();
-    flowSensor.readSensor();
+    Serial.println(pressureSensor.getData().pressure);
+    //flowSensor.readSensor();
+    /*
     readPotis();
     stepperPosition = Stepper.getPos();
     anglePosition = analogRead(PIN_RPS_OUT);
@@ -169,9 +171,13 @@ void loop(){
         default:
             break;
     };
-
-
     updateDisplay(respiratoryRate, pathRatio, IERatio, peakPressure, pressurePlateau, pressurePEEP);
+     */
+}
+
+void toggleEnableEncoder(){
+    void(0);
+    //TODO toggle global var, when encoder button is pressed
 }
 
 void manualControl(){
@@ -455,10 +461,12 @@ void moveStepper(int steps, int speed, int acc, int dec, int dir) {
     Stepper.move(dir, steps);
 }
 
-void readPotis(){
+void readPotis(){/*
     respiratoryRate = ((float) analogRead(PIN_POTI_RR)) / 1023 * 35 + 5;
     IERatio = ((float) analogRead(PIN_POTI_IE)) / 1023 * 0.9 + 0.2; //
     pathRatio = ((float) analogRead(PIN_POTI_TV)) / 1023;
+    */
+void(0); //TODO
 }
 
 void PrintMotorCurveParameters(){
