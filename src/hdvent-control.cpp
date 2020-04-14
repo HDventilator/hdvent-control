@@ -7,7 +7,7 @@
 #include <powerSTEP01ArduinoLibrary.h>
 #include <Honeywell_SSC.h>
 #include "Pin_Definitions_Uno.h"
-
+#include <Wire.h>
 /* ***********************
  * Constant definitions
  * ***********************
@@ -85,7 +85,7 @@ void toggleEnableEncoder();
  * Global Variables
  * *****************************
  */
-Honeywell_SSC pressureSensor = Honeywell_SSC(0x48,0,-150,150,0.1*2047,0.9*2047);
+Honeywell_SSC pressureSensor = Honeywell_SSC(0x48,0,-150,150,0.1*16383,0.9*16383);
 //Honeywell_SSC flowSensor = Honeywell_SSC(0x48,0,0,4000,-1,1);
 
 float timeEx=1;
@@ -148,15 +148,11 @@ void setup()
     attachInterrupt(digitalPinToInterrupt(PIN_OPTICAL_SWITCH_HOME), toggleIsHome, RISING);
     attachInterrupt(digitalPinToInterrupt(PIN_ENCO_BTN), toggleEnableEncoder, RISING);
     ConfigureStepperDriver();
+    pressureSensor.begin();
 }
 
 void loop(){
 
-    pressureSensor.readSensor();
-    Serial.println(pressureSensor.getData().pressure);
-    //flowSensor.readSensor();
-    /*
-    readPotis();
     stepperPosition = Stepper.getPos();
     anglePosition = analogRead(PIN_RPS_OUT);
 
@@ -172,7 +168,7 @@ void loop(){
             break;
     };
     updateDisplay(respiratoryRate, pathRatio, IERatio, peakPressure, pressurePlateau, pressurePEEP);
-     */
+
 }
 
 void toggleEnableEncoder(){
