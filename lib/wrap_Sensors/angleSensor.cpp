@@ -24,7 +24,6 @@ bool Angle_Sensor::readSensor(int timestamp){
     return (true);
 }
 
-
 bool Angle_Sensor::checkHome(int16_t stepValue){
     return abs(_home - stepValue) < _homeTolerance;
 }

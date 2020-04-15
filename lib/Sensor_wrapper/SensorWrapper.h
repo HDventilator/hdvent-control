@@ -11,14 +11,10 @@ class Sensor {
 public:
     // Constructor(s)
     Sensor() {}
-    virtual ~Sensor() {}
+    virtual ~Sensor(){}
     virtual bool readSensor(int timestamp) = 0;
-   // virtual void getSensor() = 0;
-
-    //void printSensorDetails(void);
     enum SensorState {OK, TIME_OUT, FAULTY};
-
-    virtual bool begin();
+    virtual bool begin(){};
 
     int getState() const {
         return _state;
@@ -54,4 +50,4 @@ private:
     SensorState _state;
 };
 
-#endif _SENSORWRAPPER_H
+#endif //_SENSORWRAPPER_H

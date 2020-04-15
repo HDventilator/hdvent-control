@@ -22,6 +22,7 @@ bool Honeywell_SSC::begin()
 {
     // Enable I2C
     Wire.begin();
+    return true;
 }
 
 float Honeywell_SSC::transferFunction(uint16_t data) {

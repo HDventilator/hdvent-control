@@ -8,6 +8,7 @@
 #include <Honeywell_SSC.h>
 #include "Pin_Definitions_Uno.h"
 #include <Wire.h>
+#include <angleSensor.h>
 
 /* ***********************
  * Constant definitions
@@ -45,9 +46,12 @@ int const STEP_DIVIDER = 64;
 int const STEPS_EX_HOMING = 80; // steps to move out when trying to find home
 int const STEPS_IN_HOMING = 80; // steps to move in when trying to find home
 
+int const STEPS_FS_FULL_TURN = 200; // how many full steps for one full turn of the motor
+
 // state flags
 enum PumpingState {START_IN, MOVING_IN, HOLDING_IN, START_EX, MOVING_EX, HOLDING_EX, STARTUP, HOMING_EX, HOMING_IN, IDLE};
-enum ControlMode {VOLUME_CONTROLLED, PRESSURE_CONTROLLED, BIPAP, VOLUME_OPEN_LOOP, MANUAL};
+enum ControlMode {VOLUME_CONTROLLED, PRESSURE_CONTROLLED, BIPAP, VOLUME_OPEN_LOOP, MANUAL, CALIBRATION};
+enum DisplayState {HOME, };
 /* **********************
  * Function declarations
  * **********************
@@ -77,7 +81,7 @@ void manualControl();
 void enableEncoder();
 bool tripleVoteHome(bool optical, bool angle, bool stepper, bool &isHome);
 int votePosition(int stepper, int angle);
-
+float motorPositionToVolume(uint16_t position);
 bool isHome();
 void toggleIsHome();
 void toggleEnableEncoder();
@@ -86,8 +90,14 @@ void toggleEnableEncoder();
  * Global Variables
  * *****************************
  */
+
+/*
+ * Sensors
+ */
 Honeywell_SSC pressureSensor = Honeywell_SSC(0x48,0,-150,150,0.1*16383,0.9*16383);
-//Honeywell_SSC flowSensor = Honeywell_SSC(0x48,0,0,4000,-1,1);
+Honeywell_SSC flowSensor = Honeywell_SSC(0x68,0,0,4000,-1,1);
+Angle_Sensor angleSensor = Angle_Sensor(PIN_RPS_OUT, STEPS_FS_FULL_TURN*STEP_DIVIDER, 360, 0, 1024, 10);
+
 
 float timeEx=1;
 float timeIn=1;
@@ -348,10 +358,22 @@ PumpingState openLoopVolumeControl(PumpingState state)
     return(state);
 }
 
-int votePosition(int stepper, int angle, int stepper_state, int angle_state){
+int votePosition(int stepper, int angle, Sensor::SensorState stepperState, Sensor::SensorState angleState, int tolerance=1*STEP_DIVIDER){
     // TODO handle deviating position readings
+    if ((stepper-angle) < tolerance){
+        return stepper;
+    }
+    else if (angleState==Sensor::OK){
+        return angle;
+    }
+    else {
+        return stepper;
+    }
+}
 
-    void(0);
+float motorPositionToVolume(uint16_t position){
+    // TODO LUT or linear scaling to convert Stepper position to volume
+    return position;
 }
 
 bool tripleVoteHome(bool optical, bool angle, bool stepper, bool &isHome){
