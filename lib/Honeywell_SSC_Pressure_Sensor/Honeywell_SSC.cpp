@@ -6,7 +6,7 @@
 #include <Arduino.h>
 #include <Wire.h>
 #include "SensorWrapper.h"
-
+#include "angleSensor.h"
 Honeywell_SSC::Honeywell_SSC(int i2cAddress, int sensorID, float pressureMin, float pressureMax, float outputMin,
                              float outputMax) {
 

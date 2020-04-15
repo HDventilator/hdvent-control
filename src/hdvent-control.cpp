@@ -8,6 +8,7 @@
 #include <Honeywell_SSC.h>
 #include "Pin_Definitions_Uno.h"
 #include <Wire.h>
+
 /* ***********************
  * Constant definitions
  * ***********************
@@ -152,7 +153,6 @@ void setup()
 }
 
 void loop(){
-
     stepperPosition = Stepper.getPos();
     anglePosition = analogRead(PIN_RPS_OUT);
 
@@ -242,7 +242,7 @@ PumpingState openLoopVolumeControl(PumpingState state)
                 // motor still moving, continue homing
                 state = HOMING_EX;
             }
-                // TODO: Something goes wrong...... stop and go to error!!!
+            // TODO: Something goes wrong...... stop and go to error!!!
             else{
                 // motor couldn't find home position in EX direction
                 // try in IN direction
@@ -263,7 +263,6 @@ PumpingState openLoopVolumeControl(PumpingState state)
             if (pressure > maxPressure){
                 maxPressure = pressure;
             }
-
             if (millis() - timerStartMovingIn < timeIn*1000) {
                 //TODO
                 (void)0;
@@ -324,7 +323,6 @@ PumpingState openLoopVolumeControl(PumpingState state)
                 Stepper.move(DIR_EX, 10);
                 state = MOVING_EX;
                 }
-
             }
             break;
 
@@ -350,8 +348,9 @@ PumpingState openLoopVolumeControl(PumpingState state)
     return(state);
 }
 
-int votePosition(int stepper, int angle){
+int votePosition(int stepper, int angle, int stepper_state, int angle_state){
     // TODO handle deviating position readings
+
     void(0);
 }
 
