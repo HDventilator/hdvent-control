@@ -9,7 +9,7 @@
 #include "Pin_Definitions_Uno.h"
 #include <Wire.h>
 #include <angleSensor.h>
-
+#include "User_Parameter.h"
 /* ***********************
  * Constant definitions
  * ***********************
@@ -97,6 +97,7 @@ void toggleEnableEncoder();
 Honeywell_SSC pressureSensor = Honeywell_SSC(0x48,0,-150,150,0.1*16383,0.9*16383);
 Honeywell_SSC flowSensor = Honeywell_SSC(0x68,0,0,4000,-1,1);
 Angle_Sensor angleSensor = Angle_Sensor(PIN_RPS_OUT, STEPS_FS_FULL_TURN*STEP_DIVIDER, 360, 0, 1024, 10);
+
 
 
 float timeEx=1;
@@ -430,12 +431,15 @@ bool tripleVoteHome(bool optical, bool angle, bool stepper, bool &isHome){
 void toggleIsHome(){
     Stepper.hardStop();
 }
+
 void stopInfluxHeating(){
     // TODO
 }
+
 void startInfluxHeating(){
     // TODO
 }
+
 void updateDisplay(float respiratoryRate, float pathRatio, float IERatio,
                    float pressurePeak, float pressurePlateau, float pressurePEEP){
     delay(10);
