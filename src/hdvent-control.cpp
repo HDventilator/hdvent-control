@@ -108,10 +108,11 @@ unsigned int stepsFullRange = 300;
 unsigned int stepsInterval = 300;
 
 // user-set parameters
-float respiratoryRate = 15;
-float pathRatio = 1;
-float IERatio = 0.5;
+User_Parameter respiratoryRate = User_Parameter(15, 5, 35); //  breaths per minute
+User_Parameter tidalVolume = User_Parameter(250, 0, 600); // milliliters
+User_Parameter EIRatio = User_Parameter(2, 0.6, 4); // I:E = 1:EIratio
 
+float pathRatio=1;
 bool startCyclingSwitch = 0;
 
 unsigned long timerStartMovingIn = 0;
@@ -172,13 +173,12 @@ void loop(){
             manualControl();
             break;
         case VOLUME_OPEN_LOOP:
-            UpdateMotorCurveParameters(respiratoryRate, pathRatio, IERatio);
             currentState = openLoopVolumeControl(currentState);
             break;
         default:
             break;
     };
-    updateDisplay(respiratoryRate, pathRatio, IERatio, peakPressure, pressurePlateau, pressurePEEP);
+    updateDisplay(respiratoryRate.getValue(), pathRatio, EIRatio.getValue(), peakPressure, pressurePlateau, pressurePEEP);
 
 }
 
@@ -263,7 +263,7 @@ PumpingState openLoopVolumeControl(PumpingState state)
             break;
 
         case START_IN:
-            UpdateMotorCurveParameters( respiratoryRate, pathRatio, IERatio);
+            UpdateMotorCurveParameters(respiratoryRate.getValue(), pathRatio, 1/EIRatio.getValue());
             moveStepper(stepsInterval, speedIn, ACC_IN, DEC_IN, DIR_IN);
             timerStartMovingIn = millis();
             state = MOVING_IN;
@@ -481,30 +481,6 @@ void moveStepper(int steps, int speed, int acc, int dec, int dir) {
     Stepper.setDec(dec);
     Stepper.move(dir, steps);
 }
-
-void readPotis(){/*
-    respiratoryRate = ((float) analogRead(PIN_POTI_RR)) / 1023 * 35 + 5;
-    IERatio = ((float) analogRead(PIN_POTI_IE)) / 1023 * 0.9 + 0.2; //
-    pathRatio = ((float) analogRead(PIN_POTI_TV)) / 1023;
-    */
-void(0); //TODO
-}
-
-void PrintMotorCurveParameters(){
-    Serial.print("RR= ");Serial.println(respiratoryRate);
-    Serial.print("TV= ");Serial.println(pathRatio);
-    Serial.print("IE= ");Serial.println(IERatio);
-    Serial.print("speedIn: "); Serial.print(speedIn);
-    Serial.print("timeEx: "); Serial.print(timeEx);
-    Serial.print("steps "); Serial.println(stepsInterval);
-    Serial.print("\t stepsInterval: "); Serial.println(stepsInterval);
-}
-void printUserValues(){
-    Serial.print("RR= \t");Serial.print(respiratoryRate);
-    Serial.print("\tTV= \t");Serial.print(pathRatio);
-    Serial.print("\tIE= \t1:");Serial.println(1./IERatio);
-}
-
 
 //! take user-set parameters and calculate the parameters for the motor curve,
 //!
