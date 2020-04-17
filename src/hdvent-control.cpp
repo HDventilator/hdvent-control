@@ -98,8 +98,6 @@ Honeywell_SSC pressureSensor = Honeywell_SSC(0x48,0,-150,150,0.1*16383,0.9*16383
 Honeywell_SSC flowSensor = Honeywell_SSC(0x68,0,0,4000,-1,1);
 Angle_Sensor angleSensor = Angle_Sensor(PIN_RPS_OUT, STEPS_FS_FULL_TURN*STEP_DIVIDER, 360, 0, 1024, 10);
 
-
-
 float timeEx=1;
 float timeIn=1;
 float speedIn = 50; // steps/s
@@ -111,6 +109,7 @@ unsigned int stepsInterval = 300;
 User_Parameter respiratoryRate = User_Parameter(15, 5, 35); //  breaths per minute
 User_Parameter tidalVolume = User_Parameter(250, 0, 600); // milliliters
 User_Parameter EIRatio = User_Parameter(2, 0.6, 4); // I:E = 1:EIratio
+User_Parameter inspiratoryPressure = User_Parameter(20, 5, 50); //  millibar 
 
 float pathRatio=1;
 bool startCyclingSwitch = 0;
@@ -164,6 +163,7 @@ void setup()
     pressureSensor.begin();
 }
 
+
 void loop(){
     stepperPosition = Stepper.getPos();
     anglePosition = analogRead(PIN_RPS_OUT);
@@ -179,7 +179,6 @@ void loop(){
             break;
     };
     updateDisplay(respiratoryRate.getValue(), pathRatio, EIRatio.getValue(), peakPressure, pressurePlateau, pressurePEEP);
-
 }
 
 void toggleEnableEncoder(){
