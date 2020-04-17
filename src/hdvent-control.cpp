@@ -10,6 +10,7 @@
 #include <Wire.h>
 #include <angleSensor.h>
 #include "User_Parameter.h"
+#include "Diagnostic_Parameter.h"
 /* ***********************
  * Constant definitions
  * ***********************
