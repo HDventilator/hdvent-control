@@ -12,7 +12,8 @@
 #include "User_Parameter.h"
 #include "Diagnostic_Parameter.h"
 #include "Ventilation_Modes.h"
-
+#include "Stopwatch.h"
+#include "Trigger.h"
 /* ***********************
  * Constant definitions
  * ***********************
@@ -52,7 +53,7 @@ int const STEPS_IN_HOMING = 80; // steps to move in when trying to find home
 int const STEPS_FS_FULL_TURN = 200; // how many full steps for one full turn of the motor
 
 // state flags
-enum PumpingState {START_IN, MOVING_IN, HOLDING_IN, START_EX, MOVING_EX, HOLDING_EX, STARTUP, HOMING_EX, HOMING_IN, IDLE};
+enum VentilationState {MOVING_IN, HOLDING_IN, MOVING_EX, HOLDING_EX, STARTUP, HOMING_EX, HOMING_IN, IDLE};
 enum ControlMode {VOLUME_CONTROLLED, PRESSURE_CONTROLLED, BIPAP, VOLUME_OPEN_LOOP, MANUAL, CALIBRATION};
 enum DisplayState {HOME, };
 /* **********************
@@ -68,7 +69,7 @@ void PrintMotorCurveParameters();
 bool isBusy();
 
 void moveStepper(int steps, int speed, int acc, int dec, int dir);
-PumpingState openLoopVolumeControl(PumpingState state);
+VentilationState ventilationStateMachine(VentilationState state);
 int motorStatusRegister;
 void writeToLCD(float respiratoryRate, float tidalVolume, float ratioInEx, float PEEP, float peak, float plat);
 void read_potis();
@@ -110,8 +111,17 @@ unsigned int stepsInterval = 300;
 
 // user-set parameters
 User_Parameter allUserParams[(int) userSetParameters_t::LAST_PARAM_LABEL];
-Diagnostic_Parameter diagnosticParameters[(int) diagnosticParameters_t::LAST_PARAM_LABEL];
+/*Diagnostic_Parameter diagnosticParameters[(int) diagnosticParameters_t::LAST_PARAM_LABEL];*/
 
+struct {
+    Diagnostic_Parameter peep;
+    Diagnostic_Parameter tidalVolume;
+    Diagnostic_Parameter flow;
+    Diagnostic_Parameter airwayPressure;
+    Diagnostic_Parameter respiratoryRate;
+    Diagnostic_Parameter plateauPressure;
+    Diagnostic_Parameter minuteVolume;
+} diagnosticParameters;
 
 
 float pathRatio=1;
@@ -127,14 +137,19 @@ float pressurePEEP=0;
 float maxPressure=0;
 float pressure=0;
 float temperatureInflux=0;
-ControlMode mode = VOLUME_OPEN_LOOP;
-PumpingState currentState = STARTUP;
+VentilationMode mode=VC_CMV ;
+VentilationState State = STARTUP;
 //manual control
 int stepCounter=0;
 int stepperPosition=0;
 float anglePosition=0; // TODO map angle position on motor steps
 Sensor::SensorState stepperPositionState = Sensor::OK;
 Sensor::SensorState anglePositionState = Sensor::OK;
+
+Stopwatch stopwatch_HOLDING_IN;
+Stopwatch stopwatch_INSPIRATION;
+
+
 
 void setup()
 {
@@ -177,8 +192,39 @@ void setup()
 
 
 void loop(){
-    diagnosticParameters[]
+    diagnosticParameters.airwayPressure.setValue(pressureSensor.getData().pressure);
+    diagnosticParameters.flow.setValue(flowSensor.getData().pressure);
+    bool startInspiration;
+    bool endInspiration;
+}
 
+VentilationState ventilationStateMachine( VentilationState state){
+    switch (state){
+        case HOLDING_EX:
+            if (startInspiration) {
+                stopwatch_INSPIRATION.start();
+                state = MOVING_IN;
+            }
+            else {
+                state = HOLDING_EX;
+            }
+            break;
+        case MOVING_IN:
+            if (endInspiration) {
+                stopwatch_HOLDING_IN.start();
+            state = HOLDING_IN;
+            }
+            else {
+                state = MOVING_IN;
+            }
+            break;
+        case HOLDING_IN:
+            state = MOVING_EX;
+            break;
+        case MOVING_EX:
+            state = HOLDING_EX;
+            break;
+    }
 }
 
 void toggleEnableEncoder(){
@@ -186,177 +232,6 @@ void toggleEnableEncoder(){
     //TODO toggle global var, when encoder button is pressed
 }
 
-void manualControl(){
-    char rxChar = 0;
-    if (Serial.available()) {
-        rxChar = Serial.read();
-        switch (rxChar) {
-            case 'F':  // ten steps forward
-                //Stepper.move(1, 200 * STEP_DIVIDER);
-                moveStepper(10*STEP_DIVIDER, 100, 400, 400, DIR_IN);
-                stepCounter = stepCounter + 10;
-                break;
-            case 'B':  // ten steps back
-                moveStepper(10 * STEP_DIVIDER, 100, 400, 400, DIR_EX);
-                stepCounter = stepCounter - 10;
-                break;
-            case 'f':  // single step forward
-                moveStepper(1 * STEP_DIVIDER, 100, 400, 400, DIR_IN);
-                stepCounter = stepCounter + 1;
-                break;
-            case 'b':  // single step back
-                moveStepper(1 * STEP_DIVIDER, 100, 400, 400, DIR_EX);
-                stepCounter = stepCounter - 1;
-                break;
-            case 's':  // save end position and go home
-                if (stepCounter>0){
-                    stepsFullRange = stepCounter;
-                    moveStepper(stepsFullRange * STEP_DIVIDER, 100, 400, 400, DIR_EX);
-                }
-                break;
-            case '0': // save home position
-                stepCounter = 0;
-                break;
-            case 'x':
-                Stepper.hardStop();
-                break;
-
-            default:
-                Serial.println(".");
-                break;
-        }
-    }
-}
-
-PumpingState openLoopVolumeControl(PumpingState state)
-{
-    switch(state)
-    {
-        case STARTUP:
-            if (isHome){
-                state = START_IN;
-            }
-            else {
-                // try to find home in expiration direction
-                moveStepper(STEPS_EX_HOMING*STEP_DIVIDER, SPEED_EX, ACC_EX, DEC_EX, DIR_EX);
-                state = HOMING_EX;
-            }
-            break;
-
-        case HOMING_EX:
-            if (isHome) {
-                // motor is at home position, start cycle
-                state = START_IN;
-            }
-            else if (isBusy()){
-                // motor still moving, continue homing
-                state = HOMING_EX;
-            }
-            // TODO: Something goes wrong...... stop and go to error!!!
-            else{
-                // motor couldn't find home position in EX direction
-                // try in IN direction
-                moveStepper((STEPS_IN_HOMING+STEPS_EX_HOMING)*STEP_DIVIDER, SPEED_EX, ACC_EX, DEC_EX, DIR_IN);
-                state = HOMING_IN;
-            }
-            break;
-
-        case START_IN:
-            UpdateMotorCurveParameters(respiratoryRateSet.getValue(), pathRatio, 1 / EIRatioSet.getValue());
-            moveStepper(stepsInterval, speedIn, ACC_IN, DEC_IN, DIR_IN);
-            timerStartMovingIn = millis();
-            state = MOVING_IN;
-            break;
-
-        case MOVING_IN:
-            // save pressure if new maximum
-            if (pressure > maxPressure){
-                maxPressure = pressure;
-            }
-            if (millis() - timerStartMovingIn < timeIn*1000) {
-                //TODO
-                (void)0;
-            }
-            else if (isBusy()) {
-                // time is up, but motor still busy
-                //TODO
-                (void)0;
-            }
-            state = HOLDING_IN;
-            timerStartHoldingIn = millis();
-            break;
-
-        case HOLDING_IN:
-            // pressure might rise to peak just after compressing phase
-            if (pressure > maxPressure){
-                maxPressure = pressure;
-            }
-
-            if ((millis() - timerStartHoldingIn) < TIME_HOLD_PLATEAU*1000) {
-                state=HOLDING_IN;
-
-            }
-            else {
-                peakPressure = maxPressure;
-                state = START_EX;
-                timerStartMovingEx = millis();
-            }
-            break;
-
-        case START_EX:
-            // take pressure just before moving out as plateau pressure
-            pressurePlateau = pressure;
-            // move out
-            moveStepper(stepsInterval, SPEED_EX, ACC_EX, DEC_EX, DIR_EX);
-            timerStartMovingEx = millis();
-            state = MOVING_EX;
-            break;
-
-        case MOVING_EX:
-            if (isHome){
-                Stepper.hardStop();
-                if (temperatureInflux<TEMPERATURE_INFLUX_THRESHOLD){
-                    //startInfluxHeating();
-                    //TODO
-                    (void)0;
-                state = HOLDING_EX;
-            }
-            else if ((millis() - timerStartMovingEx) < timeEx*1000) {
-                state=MOVING_EX;
-            }
-            else if (isBusy()) {
-                state=MOVING_EX;
-                // time is up, but motor still busy
-            }
-            else {
-                // moving out is finished but position not reached
-                Stepper.move(DIR_EX, 10);
-                state = MOVING_EX;
-                }
-            }
-            break;
-
-        case HOLDING_EX:
-            if ((millis() - timerStartMovingEx) < timeEx*1000) {
-                // record PEEP pressure
-                pressurePEEP = pressure;
-            }
-            else {
-                // time is up, stop heating, move in
-                state = START_IN;
-                stopInfluxHeating();
-            }
-            break;
-
-        case IDLE:
-            break;
-
-
-        default:
-            break;
-    }
-    return(state);
-}
 
 int votePosition(int stepper, int angle, Sensor::SensorState stepperState, Sensor::SensorState angleState, int tolerance=1*STEP_DIVIDER){
     // TODO handle deviating position readings

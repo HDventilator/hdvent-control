@@ -8,6 +8,7 @@
 #include <Arduino.h>
 
 class Sensor {
+    // TODO averaging
 public:
     // Constructor(s)
     Sensor() {}

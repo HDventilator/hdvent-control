@@ -49,3 +49,7 @@ Diagnostic_Parameter::Alarm Diagnostic_Parameter::checkAlarm(){
     }
 }
 
+void Diagnostic_Parameter::setValue(float value) {
+    _value = value;
+}
+

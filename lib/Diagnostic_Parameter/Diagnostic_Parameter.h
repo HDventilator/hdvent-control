@@ -18,6 +18,8 @@ public:
 
     float getValue() const;
 
+    void setValue(float value);
+
     void setMaxAlarm(float maxAlarm);
 
     void setMinAlarm(float minAlarm);

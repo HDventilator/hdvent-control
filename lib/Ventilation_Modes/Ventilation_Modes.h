@@ -38,13 +38,7 @@ enum struct triggerType_t{
 };
 
 
-class Trigger{
-public:
-    bool getTrigger();
-};
-
 struct VentilationMode {
-    //diagnosticParameters_t diagnosticParameters[(int)diagnosticParameters_t::LAST_PARAM_LABEL];
     userSetParameters_t userSetParameters[(int)userSetParameters_t::LAST_PARAM_LABEL];
     triggerType_t inspirationTriggers[(int)triggerType_t::LAST_PARAM_LABEL];
     triggerType_t expirationTriggers[(int)triggerType_t::LAST_PARAM_LABEL];
