@@ -3,11 +3,17 @@
 //
 
 #include "Diagnostic_Parameter.h"
-Diagnostic_Parameter::Diagnostic_Parameter(float initialValue, float maxAlarm, float minAlarm){
-    _maxAlarm = maxAlarm;
+Diagnostic_Parameter::Diagnostic_Parameter(float initialValue, float minAlarm, float maxAlarm){
     _minAlarm = minAlarm;
+    _minAlarmSet = true;
+    _maxAlarm = maxAlarm;
+    _maxAlarmSet = true;
     _value = initialValue;
 }
+
+Diagnostic_Parameter:: Diagnostic_Parameter(){
+    _value=0;
+};
 
 float Diagnostic_Parameter::getMaxAlarm() const {
     return _maxAlarm;
@@ -19,10 +25,12 @@ float Diagnostic_Parameter::getMinAlarm() const {
 
 void Diagnostic_Parameter::setMaxAlarm(float maxAlarm) {
     _maxAlarm = maxAlarm;
+    _maxAlarmSet = true;
 }
 
 void Diagnostic_Parameter::setMinAlarm(float minAlarm) {
     _minAlarm = minAlarm;
+    _minAlarmSet = true;
 }
 
 float Diagnostic_Parameter::getValue() const {
@@ -40,3 +48,4 @@ Diagnostic_Parameter::Alarm Diagnostic_Parameter::checkAlarm(){
         return OK;
     }
 }
+

@@ -11,6 +11,8 @@
 #include <angleSensor.h>
 #include "User_Parameter.h"
 #include "Diagnostic_Parameter.h"
+#include "Ventilation_Modes.h"
+
 /* ***********************
  * Constant definitions
  * ***********************
@@ -107,10 +109,10 @@ unsigned int stepsFullRange = 300;
 unsigned int stepsInterval = 300;
 
 // user-set parameters
-User_Parameter respiratoryRate = User_Parameter(15, 5, 35); //  breaths per minute
-User_Parameter tidalVolume = User_Parameter(250, 0, 600); // milliliters
-User_Parameter EIRatio = User_Parameter(2, 0.6, 4); // I:E = 1:EIratio
-User_Parameter inspiratoryPressure = User_Parameter(20, 5, 50); //  millibar 
+User_Parameter allUserParams[(int) userSetParameters_t::LAST_PARAM_LABEL];
+Diagnostic_Parameter diagnosticParameters[(int) diagnosticParameters_t::LAST_PARAM_LABEL];
+
+
 
 float pathRatio=1;
 bool startCyclingSwitch = 0;
@@ -162,24 +164,21 @@ void setup()
     attachInterrupt(digitalPinToInterrupt(PIN_ENCO_BTN), toggleEnableEncoder, RISING);
     ConfigureStepperDriver();
     pressureSensor.begin();
+
+    allUserParams[(int) userSetParameters_t::RESPIRATORY_RATE] = User_Parameter(15, 5, 35); //  breaths per minute
+    allUserParams[(int) userSetParameters_t::TIDAL_VOLUME] = User_Parameter(250, 0, 650); // milliliters
+    allUserParams[(int) userSetParameters_t::T_IN] = User_Parameter(2, 0.6, 4); // Inspiration time
+    allUserParams[(int) userSetParameters_t::INSPIRATORY_PRESSURE] = User_Parameter(20, 5, 50); //  millibar
+    allUserParams[(int) userSetParameters_t::FLOW] = User_Parameter(20, 5, 50); //  milliliters per second
+    allUserParams[(int) userSetParameters_t::D_PRESSURE_SUPP] = User_Parameter(20, 5, 50); //  millibar
+    allUserParams[(int) userSetParameters_t::INSPIRATORY_PRESSURE] = User_Parameter(20, 5, 50); //  millibar
+
 }
 
 
 void loop(){
-    stepperPosition = Stepper.getPos();
-    anglePosition = analogRead(PIN_RPS_OUT);
+    diagnosticParameters[]
 
-    switch (mode) {
-        case MANUAL:
-            manualControl();
-            break;
-        case VOLUME_OPEN_LOOP:
-            currentState = openLoopVolumeControl(currentState);
-            break;
-        default:
-            break;
-    };
-    updateDisplay(respiratoryRate.getValue(), pathRatio, EIRatio.getValue(), peakPressure, pressurePlateau, pressurePEEP);
 }
 
 void toggleEnableEncoder(){
@@ -263,7 +262,7 @@ PumpingState openLoopVolumeControl(PumpingState state)
             break;
 
         case START_IN:
-            UpdateMotorCurveParameters(respiratoryRate.getValue(), pathRatio, 1/EIRatio.getValue());
+            UpdateMotorCurveParameters(respiratoryRateSet.getValue(), pathRatio, 1 / EIRatioSet.getValue());
             moveStepper(stepsInterval, speedIn, ACC_IN, DEC_IN, DIR_IN);
             timerStartMovingIn = millis();
             state = MOVING_IN;

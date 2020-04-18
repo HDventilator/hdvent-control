@@ -9,7 +9,8 @@
 class Diagnostic_Parameter {
 public:
     enum Alarm {TOO_LOW, OK, TOO_HIGH};
-    Diagnostic_Parameter(float initialValue, float maxAlarm, float minAlarm=0);
+    Diagnostic_Parameter(float initialValue, float minAlarm, float maxAlarm);
+    Diagnostic_Parameter();
 
     float getMaxAlarm() const;
 
@@ -25,9 +26,10 @@ public:
 
 private:
     float _value;
+    bool _maxAlarmSet;
+    bool _minAlarmSet;
     float _maxAlarm;
     float _minAlarm;
 };
-
 
 #endif //HDVENT_CONTROL_DIAGNOSTIC_PARAMETER_H
