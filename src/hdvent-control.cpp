@@ -53,7 +53,7 @@ int const STEPS_IN_HOMING = 80; // steps to move in when trying to find home
 int const STEPS_FS_FULL_TURN = 200; // how many full steps for one full turn of the motor
 
 // state flags
-enum VentilationState {MOVING_IN, HOLDING_IN, MOVING_EX, HOLDING_EX, STARTUP, HOMING_EX, HOMING_IN, IDLE};
+enum VentilationState {START_IN, MOVING_IN, HOLDING_IN, START_EX, MOVING_EX, HOLDING_EX, STARTUP, END_IN, END_EX, HOMING_EX, HOMING_IN, IDLE};
 enum ControlMode {VOLUME_CONTROLLED, PRESSURE_CONTROLLED, BIPAP, VOLUME_OPEN_LOOP, MANUAL, CALIBRATION};
 enum DisplayState {HOME, };
 /* **********************
@@ -113,43 +113,36 @@ unsigned int stepsInterval = 300;
 User_Parameter allUserParams[(int) userSetParameters_t::LAST_PARAM_LABEL];
 /*Diagnostic_Parameter diagnosticParameters[(int) diagnosticParameters_t::LAST_PARAM_LABEL];*/
 
-struct {
+struct diagnosticParameters_t {
     Diagnostic_Parameter peep;
     Diagnostic_Parameter tidalVolume;
     Diagnostic_Parameter flow;
     Diagnostic_Parameter airwayPressure;
     Diagnostic_Parameter respiratoryRate;
     Diagnostic_Parameter plateauPressure;
+    Diagnostic_Parameter meanPressure;
     Diagnostic_Parameter minuteVolume;
 } diagnosticParameters;
+
+struct stopwatches_t{
+    Stopwatch holdingIn;
+    Stopwatch inspiration;
+    Stopwatch expiration;
+} stopwatch;
 
 
 float pathRatio=1;
 bool startCyclingSwitch = 0;
 
-unsigned long timerStartMovingIn = 0;
-unsigned long timerStartMovingEx = 0;
-unsigned long timerStartHoldingIn = 0;
-unsigned long timerStartHoldingEx = 0;
-float peakPressure=0;
-float pressurePlateau=0;
-float pressurePEEP=0;
-float maxPressure=0;
-float pressure=0;
-float temperatureInflux=0;
 VentilationMode mode=VC_CMV ;
 VentilationState State = STARTUP;
+
 //manual control
 int stepCounter=0;
 int stepperPosition=0;
 float anglePosition=0; // TODO map angle position on motor steps
 Sensor::SensorState stepperPositionState = Sensor::OK;
 Sensor::SensorState anglePositionState = Sensor::OK;
-
-Stopwatch stopwatch_HOLDING_IN;
-Stopwatch stopwatch_INSPIRATION;
-
-
 
 void setup()
 {
@@ -202,30 +195,51 @@ VentilationState ventilationStateMachine( VentilationState state){
     switch (state){
         case HOLDING_EX:
             if (startInspiration) {
-                stopwatch_INSPIRATION.start();
                 state = MOVING_IN;
             }
             else {
                 state = HOLDING_EX;
             }
             break;
+
+        case START_IN:
+            stopwatch.inspiration.start();
+            break;
+
         case MOVING_IN:
             if (endInspiration) {
-                stopwatch_HOLDING_IN.start();
-            state = HOLDING_IN;
+            state = END_IN;
             }
             else {
                 state = MOVING_IN;
             }
             break;
+
+        case END_IN:
+            stopwatch.holdingIn.start();
+            state=HOLDING_IN;
+
         case HOLDING_IN:
             state = MOVING_EX;
             break;
-        case MOVING_EX:
-            state = HOLDING_EX;
+
+        case START_EX:
+            stopwatch.expiration.start();
+            state=MOVING_EX;
             break;
+
+        case MOVING_EX:
+            // record PEEP pressure shortly after start of expiration phase
+            if (stopwatch.expiration.getElapsedTime() > 50){
+                diagnosticParameters.peep.setValue(pressureSensor.getData().pressure);
+            }
+            state = END_EX;
+            break;
+        case END_EX:
+            state = HOLDING_EX;
     }
 }
+void
 
 void toggleEnableEncoder(){
     void(0);

@@ -5,20 +5,7 @@
 #ifndef HDVENT_CONTROL_VENTILATION_MODES_H
 #define HDVENT_CONTROL_VENTILATION_MODES_H
 
-
-enum struct diagnosticParameters_t {
-    TIDAL_VOLUME,
-    FLOW_RATE,
-    INSPIRATORY_PRESSURE,
-    RESPIRATORY_RATE,
-    PLATEAU_PRESSURE,
-    MINUTE_VOLUME,
-    PEEP,
-    LAST_PARAM_LABEL = 8
-};
-
 enum struct userSetParameters_t {
-    BLANK,
     INSPIRATORY_PRESSURE,
     TIDAL_VOLUME,
     RESPIRATORY_RATE,
@@ -28,21 +15,28 @@ enum struct userSetParameters_t {
     D_PRESSURE_SUPP,
     LAST_PARAM_LABEL=9
 };
+typedef bool (*trigger_func_t)();
 
-enum struct triggerType_t{
-    BLANK,
-    INSPIRATION_ATTEMPT,
-    TIME_AFTER_PREVIOUS_INSPIRATION,
-    TIME_AFTER_CURRENT_INSPIRATION,
-    LAST_PARAM_LABEL=2,
+struct{
+trigger_func_t pressureDrop;
+trigger_func_t flowIncrease;
+trigger_func_t respiratoryRate;
+trigger_func_t inspirationTime;
+} trigger;
+
+enum struct triggerLabel{
+        PRESSURE_DROP, FLOW_INCREASE, RESPIRATORY_RATE, INSPIRATION_TIME, LAST_LABEL};
+
+trigger_func_t triggerFunctions[]={
+        trigger.pressureDrop,  trigger.flowIncrease,  trigger.respiratoryRate, trigger.inspirationTime,
 };
-
 
 struct VentilationMode {
     userSetParameters_t userSetParameters[(int)userSetParameters_t::LAST_PARAM_LABEL];
-    triggerType_t inspirationTriggers[(int)triggerType_t::LAST_PARAM_LABEL];
-    triggerType_t expirationTriggers[(int)triggerType_t::LAST_PARAM_LABEL];
+    triggerLabel inspirationTriggers[(int)triggerLabel::LAST_LABEL];
+    triggerLabel expirationTriggers[(int)triggerLabel::LAST_LABEL];
 };
+
 
 const VentilationMode VC_CMV{
         {userSetParameters_t::RESPIRATORY_RATE,
@@ -50,9 +44,8 @@ const VentilationMode VC_CMV{
                 userSetParameters_t::T_IN,
                 userSetParameters_t::FLOW
         },
-        {triggerType_t::TIME_AFTER_PREVIOUS_INSPIRATION},
-        {triggerType_t::TIME_AFTER_CURRENT_INSPIRATION},
+        {triggerLabel::RESPIRATORY_RATE},
+        {triggerLabel::INSPIRATION_TIME},
 };
-
 
 #endif //HDVENT_CONTROL_VENTILATION_MODES_H
