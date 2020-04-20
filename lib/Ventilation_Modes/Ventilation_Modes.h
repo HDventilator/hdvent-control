@@ -13,12 +13,15 @@ enum struct UP {
     T_IN,
     FLOW,
     SLOPE,
+    FLOW_TRIGGER_THRESHOLD,
+    PRESSURE_TRIGGER_THRESHOLD,
     D_PRESSURE_SUPP,
     LAST_PARAM_LABEL=10
 };
 typedef bool (*trigger_func_t)();
 
 struct Triggers{
+    static bool inspirationAttempt();
     static bool pressureDrop();
     static bool flowIncrease();
     static bool respiratoryRate();

@@ -44,8 +44,8 @@ float const SPEED_EX = 100; //steps/s
 float const DEC_EX = 300; // steps/s/s
 bool const DIR_IN = 1;
 bool const DIR_EX = abs(DIR_IN - 1);
-int const STEP_DIVIDER_REGISTER = STEP_FS_64;
-int const STEP_DIVIDER = 64;
+int const STEP_DIVIDER_REGISTER = STEP_FS_128;
+int const STEP_DIVIDER = 128;
 
 int const STEPS_EX_HOMING = 80; // steps to move out when trying to find home
 int const STEPS_IN_HOMING = 80; // steps to move in when trying to find home
@@ -121,12 +121,15 @@ struct diagnosticParameters_t {
     Diagnostic_Parameter plateauPressure;
     Diagnostic_Parameter meanPressure;
     Diagnostic_Parameter minuteVolume;
+    Diagnostic_Parameter pressureChange; //millibar per second
 } diagnosticParameters;
 
 struct stopwatches_t{
     Stopwatch holdingIn;
     Stopwatch inspiration;
     Stopwatch expiration;
+    Stopwatch mainLoop;
+    Stopwatch pressureRate;
 } stopwatch;
 
 
@@ -136,6 +139,8 @@ bool startCyclingSwitch = 0;
 VentilationMode mode=VC_CMV ;
 VentilationState State = STARTUP;
 
+float oldPressure;
+unsigned long cycleTime =0;
 //manual control
 int stepCounter=0;
 int stepperPosition=0;
@@ -179,15 +184,26 @@ void setup()
     allUserParams[(int) UP::FLOW] = User_Parameter(20, 5, 50); //  milliliters per second
     allUserParams[(int) UP::D_PRESSURE_SUPP] = User_Parameter(20, 5, 50); //  millibar
     allUserParams[(int) UP::INSPIRATORY_PRESSURE] = User_Parameter(20, 5, 50); //  millibar
+    allUserParams[(int) UP::PRESSURE_TRIGGER_THRESHOLD] = User_Parameter(5, 5, 50); //  millibar per second
+    allUserParams[(int) UP::FLOW_TRIGGER_THRESHOLD] = User_Parameter(20, 5, 50); //  milliliters per second
+
 
 }
 
 
 void loop(){
+    cycleTime = stopwatch.mainLoop.getElapsedTime();
+    stopwatch.mainLoop.start();
+
     diagnosticParameters.airwayPressure.setValue(pressureSensor.getData().pressure);
     diagnosticParameters.flow.setValue(flowSensor.getData().pressure);
-    bool startInspiration;
-    bool endInspiration;
+
+    float pressureChange = (pressureSensor.getData().pressure - oldPressure)/cycleTime*1000;
+    diagnosticParameters.pressureChange.setValue(pressureChange);
+    oldPressure = pressureSensor.getData().pressure;
+
+
+
 }
 
 VentilationState ventilationStateMachine( VentilationState state){
@@ -206,7 +222,6 @@ VentilationState ventilationStateMachine( VentilationState state){
             if (mode.expirationTrigger()) {
             state = END_IN;
             }
-
             break;
 
         case END_IN:
@@ -236,11 +251,19 @@ VentilationState ventilationStateMachine( VentilationState state){
 }
 
 bool Triggers::respiratoryRate() {
-    return stopwatch.inspiration.getElapsedTime() > 1 / allUserParams[(int) UP::RESPIRATORY_RATE].getValue();
+    return (float)stopwatch.inspiration.getElapsedTime() > 1 / allUserParams[(int) UP::RESPIRATORY_RATE].getValue();
 }
 
 bool Triggers::inspirationTime() {
-    return stopwatch.inspiration.getElapsedTime() > allUserParams[(int)UP::T_IN].getValue();
+    return (float)stopwatch.inspiration.getElapsedTime() > allUserParams[(int)UP::T_IN].getValue();
+}
+
+bool Triggers::pressureDrop() {
+    return (- diagnosticParameters.pressureChange.getValue() > allUserParams[(int)UP::PRESSURE_TRIGGER_THRESHOLD].getValue());
+}
+
+bool Triggers::flowIncrease() {
+    return diagnosticParameters.flow.getValue() > allUserParams[(int)UP::FLOW_TRIGGER_THRESHOLD].getValue();
 }
 
 void toggleEnableEncoder(){
@@ -441,10 +464,10 @@ void ConfigureStepperDriver()
     Stepper.configStepMode(STEP_FS_128); // 1/128 microstepping, full steps = STEP_FS,
     // options: 1, 1/2, 1/4, 1/8, 1/16, 1/32, 1/64, 1/128
 
-    Stepper.setMaxSpeed(100); // max speed in units of full steps/s
+    Stepper.setMaxSpeed(500); // max speed in units of full steps/s
     Stepper.setFullSpeed(1000); // full steps/s threshold for disabling microstepping
-    Stepper.setAcc(200); // full steps/s^2 acceleration
-    Stepper.setDec(200); // full steps/s^2 deceleration
+    Stepper.setAcc(400); // full steps/s^2 acceleration
+    Stepper.setDec(400); // full steps/s^2 deceleration
 
     Stepper.setSlewRate(SR_520V_us); // faster may give more torque (but also EM noise),
     // options are: 114, 220, 400, 520, 790, 980(V/us)
@@ -478,10 +501,10 @@ void ConfigureStepperDriver()
     // use a value between 0-255 where 0 = no power, 255 = full power.
     // Start low and monitor the motor temperature until you find a safe balance
     // between power and temperature. Only use what you need
-    Stepper.setRunKVAL(64);
-    Stepper.setAccKVAL(64);
-    Stepper.setDecKVAL(64);
-    Stepper.setHoldKVAL(32);
+    Stepper.setRunKVAL(180);
+    Stepper.setAccKVAL(180);
+    Stepper.setDecKVAL(180);
+    Stepper.setHoldKVAL(62);
 
     Stepper.setParam(ALARM_EN, 0x8F); // disable ADC UVLO (divider not populated),
     // disable stall detection (not configured),
