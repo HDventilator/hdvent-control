@@ -19,10 +19,10 @@ private:
 template<typename T, size_t N>
 bool anyTrue(T (&array)[N])
 {
-    bool result = array[0];
+    bool result = array[0]();
     for (int a = 1; ~result && a < N; ++a)
     {
-        result = result || array[a];
+        result = result || array[a]();
     }
     return result;
 }
