@@ -194,11 +194,8 @@ void loop(){
 VentilationState ventilationStateMachine( VentilationState state){
     switch (state){
         case HOLDING_EX:
-            if (startInspiration) {
+            if (mode.inspirationTrigger()) {
                 state = MOVING_IN;
-            }
-            else {
-                state = HOLDING_EX;
             }
             break;
 
@@ -207,12 +204,10 @@ VentilationState ventilationStateMachine( VentilationState state){
             break;
 
         case MOVING_IN:
-            if (endInspiration) {
+            if (mode.expirationTrigger()) {
             state = END_IN;
             }
-            else {
-                state = MOVING_IN;
-            }
+
             break;
 
         case END_IN:
@@ -235,11 +230,15 @@ VentilationState ventilationStateMachine( VentilationState state){
             }
             state = END_EX;
             break;
+            
         case END_EX:
             state = HOLDING_EX;
     }
 }
-void
+
+bool Triggers::respiratoryRate() {
+
+}
 
 void toggleEnableEncoder(){
     void(0);

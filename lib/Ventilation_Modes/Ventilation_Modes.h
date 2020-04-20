@@ -4,7 +4,7 @@
 
 #ifndef HDVENT_CONTROL_VENTILATION_MODES_H
 #define HDVENT_CONTROL_VENTILATION_MODES_H
-
+#include "Trigger.h"
 enum struct userSetParameters_t {
     BLANK,
     INSPIRATORY_PRESSURE,
@@ -55,6 +55,9 @@ struct VentilationMode {
     userSetParameters_t userSetParameters[(int)userSetParameters_t::LAST_PARAM_LABEL];
     trigger_func_t expirationTriggers[NUMBER_TRIGGERS];
     trigger_func_t inspirationTriggers[NUMBER_TRIGGERS];
+    bool expirationTrigger(){return anyTrue(expirationTriggers);}
+    bool inspirationTrigger(){return anyTrue(inspirationTriggers);}
+
 };
 
 
