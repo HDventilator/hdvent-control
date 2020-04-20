@@ -8,7 +8,7 @@
 
 class User_Parameter {
 public:
-    User_Parameter();
+    User_Parameter(){};
     User_Parameter(float initialValue, float minOutValue, float maxOutValue, float minInValue=0, float maxInValue=1);
 
     float getValue() const;

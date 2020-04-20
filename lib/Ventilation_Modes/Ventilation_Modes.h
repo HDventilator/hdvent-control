@@ -5,7 +5,7 @@
 #ifndef HDVENT_CONTROL_VENTILATION_MODES_H
 #define HDVENT_CONTROL_VENTILATION_MODES_H
 #include "Trigger.h"
-enum struct userSetParameters_t {
+enum struct UP {
     BLANK,
     INSPIRATORY_PRESSURE,
     TIDAL_VOLUME,
@@ -44,15 +44,15 @@ void fillArray(T A[], int N, T a[], int n, T fillValue) {
 const uint8_t NUMBER_TRIGGERS=5;
 struct VentilationMode {
     VentilationMode(
-            userSetParameters_t userSetParametersSelection[], int nUserSetParameters,
+            UP userSetParametersSelection[], int nUserSetParameters,
             trigger_func_t inspirationTriggersSelection[], int nInspirationTriggers,
             trigger_func_t expirationTriggersSelection[], int nExpirationTriggers){
-        fillArray(userSetParameters, (int)userSetParameters_t::LAST_PARAM_LABEL, userSetParametersSelection, nUserSetParameters, userSetParameters_t::BLANK);
+        fillArray(parameters, (int)UP::LAST_PARAM_LABEL, userSetParametersSelection, nUserSetParameters, UP::BLANK);
         fillArray(inspirationTriggers, NUMBER_TRIGGERS, inspirationTriggersSelection, nInspirationTriggers, &alwaysFalseTrigger);
         fillArray(expirationTriggers, NUMBER_TRIGGERS, expirationTriggersSelection, nExpirationTriggers, &alwaysFalseTrigger);
     }
 
-    userSetParameters_t userSetParameters[(int)userSetParameters_t::LAST_PARAM_LABEL];
+    UP parameters[(int)UP::LAST_PARAM_LABEL];
     trigger_func_t expirationTriggers[NUMBER_TRIGGERS];
     trigger_func_t inspirationTriggers[NUMBER_TRIGGERS];
     bool expirationTrigger(){return anyTrue(expirationTriggers);}
@@ -62,11 +62,11 @@ struct VentilationMode {
 
 
 const VentilationMode VC_CMV = VentilationMode(
-        (userSetParameters_t[]) {
-            userSetParameters_t::RESPIRATORY_RATE,
-            userSetParameters_t::TIDAL_VOLUME,
-            userSetParameters_t::T_IN,
-            userSetParameters_t::FLOW},4,
+        (UP[]) {
+                UP::RESPIRATORY_RATE,
+                UP::TIDAL_VOLUME,
+                UP::T_IN,
+                UP::FLOW}, 4,
         (trigger_func_t[]) {Triggers::respiratoryRate}, 1,
         (trigger_func_t[]) {Triggers::inspirationTime}, 1);
 

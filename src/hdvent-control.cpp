@@ -110,8 +110,7 @@ unsigned int stepsFullRange = 300;
 unsigned int stepsInterval = 300;
 
 // user-set parameters
-User_Parameter allUserParams[(int) userSetParameters_t::LAST_PARAM_LABEL];
-/*Diagnostic_Parameter diagnosticParameters[(int) diagnosticParameters_t::LAST_PARAM_LABEL];*/
+User_Parameter allUserParams[(int) UP::LAST_PARAM_LABEL];
 
 struct diagnosticParameters_t {
     Diagnostic_Parameter peep;
@@ -173,13 +172,13 @@ void setup()
     ConfigureStepperDriver();
     pressureSensor.begin();
 
-    allUserParams[(int) userSetParameters_t::RESPIRATORY_RATE] = User_Parameter(15, 5, 35); //  breaths per minute
-    allUserParams[(int) userSetParameters_t::TIDAL_VOLUME] = User_Parameter(250, 0, 650); // milliliters
-    allUserParams[(int) userSetParameters_t::T_IN] = User_Parameter(2, 0.6, 4); // Inspiration time
-    allUserParams[(int) userSetParameters_t::INSPIRATORY_PRESSURE] = User_Parameter(20, 5, 50); //  millibar
-    allUserParams[(int) userSetParameters_t::FLOW] = User_Parameter(20, 5, 50); //  milliliters per second
-    allUserParams[(int) userSetParameters_t::D_PRESSURE_SUPP] = User_Parameter(20, 5, 50); //  millibar
-    allUserParams[(int) userSetParameters_t::INSPIRATORY_PRESSURE] = User_Parameter(20, 5, 50); //  millibar
+    allUserParams[(int) UP::RESPIRATORY_RATE] = User_Parameter(15, 5, 35); //  breaths per minute
+    allUserParams[(int) UP::TIDAL_VOLUME] = User_Parameter(250, 0, 650); // milliliters
+    allUserParams[(int) UP::T_IN] = User_Parameter(2, 0.6, 4); // Inspiration time
+    allUserParams[(int) UP::INSPIRATORY_PRESSURE] = User_Parameter(20, 5, 50); //  millibar
+    allUserParams[(int) UP::FLOW] = User_Parameter(20, 5, 50); //  milliliters per second
+    allUserParams[(int) UP::D_PRESSURE_SUPP] = User_Parameter(20, 5, 50); //  millibar
+    allUserParams[(int) UP::INSPIRATORY_PRESSURE] = User_Parameter(20, 5, 50); //  millibar
 
 }
 
@@ -230,14 +229,18 @@ VentilationState ventilationStateMachine( VentilationState state){
             }
             state = END_EX;
             break;
-            
+
         case END_EX:
             state = HOLDING_EX;
     }
 }
 
 bool Triggers::respiratoryRate() {
+    return stopwatch.inspiration.getElapsedTime() > 1 / allUserParams[(int) UP::RESPIRATORY_RATE].getValue();
+}
 
+bool Triggers::inspirationTime() {
+    return stopwatch.inspiration.getElapsedTime() > allUserParams[(int)UP::T_IN].getValue();
 }
 
 void toggleEnableEncoder(){
