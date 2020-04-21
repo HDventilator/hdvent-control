@@ -6,14 +6,7 @@
 #include <PID_v1.h>
 #include <Stopwatch.h>
 
-VentilationController::VentilationController(VentilationMode mode, double kp, double ki, double kd) : _pid(_pidIn,_pidOut,_pidSetpoint,kp,ki,kd){
-    _pidIn =0;
-    _pidOut = 0;
-    _slope=0;
-    _level=0;
-    _slopeTime=0;
-    _timer = Stopwatch();
-_mode = mode;
+VentilationController::VentilationController(VentilationMode mode, double kp, double ki, double kd): _pid(&_pidIn, &_pidOut, &_pidSetpoint, kp, ki, kd, DIRECT), _mode(mode){
 }
 
 bool VentilationController::expirationTrigger(){
@@ -41,8 +34,11 @@ float VentilationController::calcSetPoint() {
     }
 }
 
-float VentilationController::calcSpeed(double input) {
+float VentilationController::calcSpeed() {
     _pidSetpoint = calcSetPoint();
+    switch (_mode.controlMode){
+        case ControlMode::PC:
+    }
     _pidIn = input;
     _pid.Compute();
     return _pidOut;

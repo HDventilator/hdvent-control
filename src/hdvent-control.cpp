@@ -113,17 +113,6 @@ unsigned int stepsInterval = 300;
 // user-set parameters
 User_Parameter allUserParams[(int) UP::LAST_PARAM_LABEL];
 
-struct diagnosticParameters_t {
-    Diagnostic_Parameter peep;
-    Diagnostic_Parameter tidalVolume;
-    Diagnostic_Parameter flow;
-    Diagnostic_Parameter airwayPressure;
-    Diagnostic_Parameter respiratoryRate;
-    Diagnostic_Parameter plateauPressure;
-    Diagnostic_Parameter meanPressure;
-    Diagnostic_Parameter minuteVolume;
-    Diagnostic_Parameter pressureChange; //millibar per second
-} diagnosticParameters;
 
 struct stopwatches_t{
     Stopwatch holdingIn;
@@ -150,7 +139,7 @@ Sensor::SensorState stepperPositionState = Sensor::OK;
 Sensor::SensorState anglePositionState = Sensor::OK;
 float motorSpeed;
 PID pressureControlPID();
-
+VentilationController controller=VentilationController(VC_CMV, 1,1,1);
 void setup()
 {
     Serial.begin(115200);
@@ -191,10 +180,12 @@ void setup()
     allUserParams[(int) UP::FLOW_TRIGGER_THRESHOLD] = User_Parameter(20, 5, 50); //  milliliters per second
 
 
+
 }
 
 
 void loop(){
+
     cycleTime = stopwatch.mainLoop.getElapsedTime();
     stopwatch.mainLoop.start();
 
@@ -212,7 +203,7 @@ void loop(){
 VentilationState ventilationStateMachine( VentilationState state){
     switch (state){
         case HOLDING_EX:
-            if (mode.inspirationTrigger()) {
+            if (controller.inspirationTrigger()) {
                 state = MOVING_IN;
             }
             break;
@@ -222,9 +213,9 @@ VentilationState ventilationStateMachine( VentilationState state){
             break;
 
         case MOVING_IN:
-            Stepper.run(DIR_IN, mode.speedControl());
+            Stepper.run(DIR_IN, controller.calcSpeed());
 
-            if (mode.expirationTrigger()) {
+            if (controller.expirationTrigger()) {
             state = END_IN;
             }
             break;

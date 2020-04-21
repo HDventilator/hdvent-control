@@ -18,6 +18,19 @@ enum struct UP {
     D_PRESSURE_SUPP,
     LAST_PARAM_LABEL=10
 };
+
+struct diagnosticParameters_t {
+    Diagnostic_Parameter peep;
+    Diagnostic_Parameter tidalVolume;
+    Diagnostic_Parameter flow;
+    Diagnostic_Parameter airwayPressure;
+    Diagnostic_Parameter respiratoryRate;
+    Diagnostic_Parameter plateauPressure;
+    Diagnostic_Parameter meanPressure;
+    Diagnostic_Parameter minuteVolume;
+    Diagnostic_Parameter pressureChange; //millibar per second
+} diagnosticParameters;
+
 typedef bool (*trigger_func_t)();
 
 struct Triggers{

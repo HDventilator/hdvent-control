@@ -9,20 +9,24 @@
 #include <Stopwatch.h>
 #include "Ventilation_Modes.h"
 
+typedef float (*input_func_t)();
+
 class VentilationController {
 public:
     VentilationController(VentilationMode mode, double kp, double ki, double kd);
     bool expirationTrigger();
     bool inspirationTrigger();
-    float calcSpeed(double input);
+    float calcSpeed();
     float calcSetPoint();
     void startRamp(float slope, float level);
+
 private:
     VentilationMode _mode;
     PID _pid;
     double _pidIn;
     double _pidOut;
     double _pidSetpoint;
+    input_func_t _getInput;
     float _slope;
     float _level;
     unsigned long _slopeTime;
