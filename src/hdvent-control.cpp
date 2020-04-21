@@ -139,7 +139,10 @@ Sensor::SensorState stepperPositionState = Sensor::OK;
 Sensor::SensorState anglePositionState = Sensor::OK;
 float motorSpeed;
 PID pressureControlPID();
-VentilationController controller=VentilationController(VC_CMV, 1,1,1);
+
+VentilationController controller=VentilationController(VC_CMV, 1,1,1, diagnosticParameters.airwayPressure,
+        diagnosticParameters.flow);
+
 void setup()
 {
     Serial.begin(115200);

@@ -7,13 +7,14 @@
 
 #include <PID_v1.h>
 #include <Stopwatch.h>
+#include <Diagnostic_Parameter.h>
 #include "Ventilation_Modes.h"
 
 typedef float (*input_func_t)();
 
 class VentilationController {
 public:
-    VentilationController(VentilationMode mode, double kp, double ki, double kd, input_func_t pressureInput, input_func_t volumeInput,);
+    VentilationController(VentilationMode mode, double kp, double ki, double kd, Diagnostic_Parameter &pressure, Diagnostic_Parameter &flow);
     bool expirationTrigger();
     bool inspirationTrigger();
     float calcSpeed();
@@ -31,6 +32,7 @@ private:
     float _level;
     unsigned long _slopeTime;
     Stopwatch _timer;
+    Diagnostic_Parameter _param;
 };
 
 

@@ -4,19 +4,19 @@
 
 #include "Ventilation_Controller.h"
 #include <PID_v1.h>
-#include <Stopwatch.h>
 
 
-VentilationController::VentilationController(VentilationMode mode,  double kp, double ki, double kd, input_func_t pressureInput, input_func_t volumeInput): _pid(&_pidIn, &_pidOut, &_pidSetpoint, kp, ki, kd, DIRECT), _mode(mode){
+VentilationController::VentilationController(VentilationMode mode,  double kp, double ki, double kd,
+        Diagnostic_Parameter &pressure, Diagnostic_Parameter &flow): _pid(&_pidIn, &_pidOut, &_pidSetpoint, kp, ki, kd, DIRECT), _mode(mode){
     switch (_mode.controlMode){
         case ControlMode::PC:
-            _getInput = pressureInput;
+            _param = pressure;
             break;
         case ControlMode::VC:
-            _getInput = volumeInput;
+            _param = flow;
             break;
         case ControlMode::OPEN_LOOP:
-            _getInput = pressureInput;
+            _param = pressure;
     }
 }
 
@@ -47,7 +47,7 @@ float VentilationController::calcSetPoint() {
 
 float VentilationController::calcSpeed() {
     _pidSetpoint = calcSetPoint();
-    _pidIn = _getInput();
+    _pidIn = _param.getValue();
     _pid.Compute();
     return _pidOut;
 }
