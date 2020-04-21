@@ -14,6 +14,8 @@
 #include "Ventilation_Modes.h"
 #include "Stopwatch.h"
 #include "Trigger.h"
+#include "PID_v1.h"
+#include "Ventilation_Controller.h"
 /* ***********************
  * Constant definitions
  * ***********************
@@ -54,7 +56,6 @@ int const STEPS_FS_FULL_TURN = 200; // how many full steps for one full turn of 
 
 // state flags
 enum VentilationState {START_IN, MOVING_IN, HOLDING_IN, START_EX, MOVING_EX, HOLDING_EX, STARTUP, END_IN, END_EX, HOMING_EX, HOMING_IN, IDLE};
-enum ControlMode {VOLUME_CONTROLLED, PRESSURE_CONTROLLED, BIPAP, VOLUME_OPEN_LOOP, MANUAL, CALIBRATION};
 enum DisplayState {HOME, };
 /* **********************
  * Function declarations
@@ -147,6 +148,8 @@ int stepperPosition=0;
 float anglePosition=0; // TODO map angle position on motor steps
 Sensor::SensorState stepperPositionState = Sensor::OK;
 Sensor::SensorState anglePositionState = Sensor::OK;
+float motorSpeed;
+PID pressureControlPID();
 
 void setup()
 {
@@ -219,6 +222,8 @@ VentilationState ventilationStateMachine( VentilationState state){
             break;
 
         case MOVING_IN:
+            Stepper.run(DIR_IN, mode.speedControl());
+
             if (mode.expirationTrigger()) {
             state = END_IN;
             }
@@ -248,6 +253,10 @@ VentilationState ventilationStateMachine( VentilationState state){
         case END_EX:
             state = HOLDING_EX;
     }
+}
+
+float pressureControl(){
+
 }
 
 bool Triggers::respiratoryRate() {
