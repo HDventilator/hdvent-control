@@ -16,6 +16,8 @@
 #include "Trigger.h"
 #include "PID_v1.h"
 #include "Ventilation_Controller.h"
+#include <LCD_Display.h>
+
 /* ***********************
  * Constant definitions
  * ***********************
@@ -172,17 +174,14 @@ void setup()
     ConfigureStepperDriver();
     pressureSensor.begin();
 
-    allUserParams[(int) UP::RESPIRATORY_RATE] = User_Parameter(15, 5, 35); //  breaths per minute
-    allUserParams[(int) UP::TIDAL_VOLUME] = User_Parameter(250, 0, 650); // milliliters
-    allUserParams[(int) UP::T_IN] = User_Parameter(2, 0.6, 4); // Inspiration time
-    allUserParams[(int) UP::INSPIRATORY_PRESSURE] = User_Parameter(20, 5, 50); //  millibar
-    allUserParams[(int) UP::FLOW] = User_Parameter(20, 5, 50); //  milliliters per second
-    allUserParams[(int) UP::D_PRESSURE_SUPP] = User_Parameter(20, 5, 50); //  millibar
-    allUserParams[(int) UP::INSPIRATORY_PRESSURE] = User_Parameter(20, 5, 50); //  millibar
-    allUserParams[(int) UP::PRESSURE_TRIGGER_THRESHOLD] = User_Parameter(5, 5, 50); //  millibar per second
-    allUserParams[(int) UP::FLOW_TRIGGER_THRESHOLD] = User_Parameter(20, 5, 50); //  milliliters per second
-
-
+    allUserParams[(int) UP::RESPIRATORY_RATE] = User_Parameter(15, 5, 35, "f"); //  breaths per minute
+    allUserParams[(int) UP::TIDAL_VOLUME] = User_Parameter(250, 0, 650, "VT"); // milliliters
+    allUserParams[(int) UP::T_IN] = User_Parameter(2, 0.6, 4,"Ti"); // Inspiration time
+    allUserParams[(int) UP::INSPIRATORY_PRESSURE] = User_Parameter(20, 5, 50, "Paw"); //  millibar
+    allUserParams[(int) UP::FLOW] = User_Parameter(20, 5, 50,"Flo"); //  milliliters per second
+    allUserParams[(int) UP::D_PRESSURE_SUPP] = User_Parameter(20, 5, 50, "dPs"); //  millibar
+    allUserParams[(int) UP::PRESSURE_TRIGGER_THRESHOLD] = User_Parameter(5, 5, 50, "Ptr"); //  millibar per second
+    allUserParams[(int) UP::FLOW_TRIGGER_THRESHOLD] = User_Parameter(20, 5, 50, "Ftr"); //  milliliters per second
 
 }
 
@@ -224,11 +223,16 @@ VentilationState ventilationStateMachine( VentilationState state){
             break;
 
         case END_IN:
+            Stepper.hardStop();
             stopwatch.holdingIn.start();
             state=HOLDING_IN;
 
         case HOLDING_IN:
             state = MOVING_EX;
+
+            if (stopwatch.holdingIn.getElapsedTime() > TIME_HOLD_PLATEAU){
+                state = START_EX;
+            }
             break;
 
         case START_EX:
@@ -247,10 +251,6 @@ VentilationState ventilationStateMachine( VentilationState state){
         case END_EX:
             state = HOLDING_EX;
     }
-}
-
-float pressureControl(){
-
 }
 
 bool Triggers::respiratoryRate() {

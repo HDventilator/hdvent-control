@@ -4,12 +4,13 @@
 
 #include "User_Parameter.h"
 
-User_Parameter::User_Parameter(float initialValue, float minOutValue, float maxOutValue, float minInValue, float maxInValue) {
+User_Parameter::User_Parameter(float initialValue, float minOutValue, float maxOutValue, char string[], float minInValue, float maxInValue) {
     _min = minOutValue;
     _max = maxOutValue;
     _value = initialValue;
     _minIn = minInValue;
     _maxIn = maxInValue;
+    lcdString = string;
 }
 
 float User_Parameter::getValue() const {

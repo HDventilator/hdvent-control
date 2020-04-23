@@ -41,6 +41,17 @@ struct Triggers{
     static bool inspirationTime();
 };
 
+enum struct ControlMode { PC, VC, VN };
+
+struct PID_parameters_t {
+    float k_p;
+    float k_i;
+    float k_d;
+};
+
+const PID_parameters_t pidParams_PC{.k_p=1.0, .k_i=0.3, .k_d=0};
+const PID_parameters_t pidParams_VC{.k_p=2.0, .k_i=0.3, .k_d=0};
+const PID_parameters_t pidParams_VN{.k_p=1.0, .k_i=0., .k_d=0};
 
 bool alwaysFalseTrigger(){
     return false;
@@ -60,7 +71,6 @@ void fillArray(T A[], int N, T a[], int n, T fillValue) {
 const uint8_t NUMBER_TRIGGERS=5;
 
 
-enum struct ControlMode { PC, VC, OPEN_LOOP };
 
 struct VentilationMode {
     VentilationMode(
@@ -73,15 +83,24 @@ struct VentilationMode {
         fillArray(inspirationTriggers, NUMBER_TRIGGERS, inspirationTriggersSelection, nInspirationTriggers, &alwaysFalseTrigger);
         fillArray(expirationTriggers, NUMBER_TRIGGERS, expirationTriggersSelection, nExpirationTriggers, &alwaysFalseTrigger);
         controlMode = control;
+        switch (control){
+            case ControlMode::PC :
+                pidParameters = pidParams_PC;
+                break;
+            case ControlMode::VC :
+                pidParameters = pidParams_VC;
+                break;
+            case ControlMode::VN :
+                pidParameters = pidParams_VN;
+        }
     }
 
     UP parameters[(int)UP::LAST_PARAM_LABEL];
     trigger_func_t expirationTriggers[NUMBER_TRIGGERS];
     trigger_func_t inspirationTriggers[NUMBER_TRIGGERS];
     ControlMode controlMode;
-
+    PID_parameters_t pidParameters;
 };
-
 
 
 const VentilationMode VC_CMV = VentilationMode(
@@ -94,6 +113,14 @@ const VentilationMode VC_CMV = VentilationMode(
         (trigger_func_t[]) {Triggers::respiratoryRate}, 1,
         (trigger_func_t[]) {Triggers::inspirationTime}, 1);
 
+const VentilationMode OL_CMV = VentilationMode(
+        ControlMode::VN,
+        (UP[]) {
+                UP::RESPIRATORY_RATE,
+                UP::TIDAL_VOLUME,
+                UP::T_IN}, 3,
+        (trigger_func_t[]) {Triggers::respiratoryRate}, 1,
+        (trigger_func_t[]) {Triggers::inspirationTime}, 1);
 
 
 #endif //HDVENT_CONTROL_VENTILATION_MODES_H

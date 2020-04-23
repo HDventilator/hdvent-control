@@ -6,8 +6,10 @@
 #include <PID_v1.h>
 
 
-VentilationController::VentilationController(VentilationMode mode,  double kp, double ki, double kd,
-        Diagnostic_Parameter &pressure, Diagnostic_Parameter &flow): _pid(&_pidIn, &_pidOut, &_pidSetpoint, kp, ki, kd, DIRECT), _mode(mode){
+VentilationController::VentilationController(VentilationMode mode, Diagnostic_Parameter &pressure, Diagnostic_Parameter &flow)
+: _pid(&_pidIn, &_pidOut, &_pidSetpoint, mode.pidParameters.k_p, mode.pidParameters.k_i, mode.pidParameters.k_d, DIRECT),
+_mode(mode)
+{
     switch (_mode.controlMode){
         case ControlMode::PC:
             _param = pressure;
@@ -15,8 +17,10 @@ VentilationController::VentilationController(VentilationMode mode,  double kp, d
         case ControlMode::VC:
             _param = flow;
             break;
-        case ControlMode::OPEN_LOOP:
+        case ControlMode::VN:
             _param = pressure;
+
+            break;
     }
 }
 
