@@ -9,7 +9,7 @@
 int const PIN_OPTICAL_END = 9;
 int const MANUAL_CYCLE_SWITCH_PIN = 8;
 
-// Pin definitions for the X-NUCLEO-IHM03A1 connected to an Uno-compatible board
+// Pin definitions for the X-NUCLEO-IHM03A1
 int const nCS_PIN = 10;
 int const STCK_PIN = 9;
 int const nSTBY_nRESET_PIN = 8;
@@ -54,6 +54,14 @@ int const PIN_ENCO_A = 37;
 int const PIN_ENCO_B = 39;
 int const PIN_ENCO_BTN = 41;
 int const PIN_HEAT_ENABLE = 36;
+
+int const PIN_LCD_RS = 26;
+int const PIN_LCD_RW = 28;
+int const PIN_LCD_EN = 30;
+int const PIN_LCD_D4 = 32;
+int const PIN_LCD_D5 = 34;
+int const PIN_LCD_D6 = 36;
+int const PIN_LCD_D7 = 38;
 
 
 
