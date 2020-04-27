@@ -33,7 +33,7 @@ public:
     void loadParams();
     void printStaticText();
 
-private:
+
     uint8_t _valueColumnPos=3;
     const VentilationMode *_mode;
     uint8_t columnValues;
@@ -48,7 +48,7 @@ private:
     uint8_t  _markerPositionMax;
    uint8_t _markerPositionMin;
    void moveMarker();
-   LiquidCrystal lcd;
+   LiquidCrystal _lcd;
    User_Parameter* _allUserParameters;
 
     float _parametersMemory[];

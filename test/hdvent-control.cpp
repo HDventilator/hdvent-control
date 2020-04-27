@@ -16,7 +16,7 @@
 #include "Trigger.h"
 #include "PID_v1.h"
 #include "Ventilation_Controller.h"
-#include <display.h>
+#include <Display.h>
 #include <LiquidCrystal.h>
 
 /* ***********************
@@ -212,8 +212,6 @@ lcd.clear();
 lcd.setCursor(1,1);
 lcd.print("Hello     ");
 delay(100);
-
-
 
 }
 

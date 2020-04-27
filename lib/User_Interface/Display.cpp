@@ -6,8 +6,9 @@
 #include <Arduino.h>
 #include <LiquidCrystal.h>
 
-Display::Display(LiquidCrystal &lcd, User_Parameter* allUserParameters, const VentilationMode* mode,int *cursorIncrementer, int *valueIncrementer, bool *toggleEditState, bool *toggleMenuState): lcd(12, 11, 10, 9, 8, 7){
-    lcd.begin(20, 4);
+Display::Display(LiquidCrystal &lcd, User_Parameter* allUserParameters, const VentilationMode* mode,int *cursorIncrementer, int *valueIncrementer, bool *toggleEditState, bool *toggleMenuState): _lcd(12, 11, 10, 9, 8, 7){
+    _lcd = lcd;
+    _lcd.begin(20, 4);
     byte CURSOR_SYMBOL[8] = {
             B00000,
             B00100,
@@ -18,13 +19,24 @@ Display::Display(LiquidCrystal &lcd, User_Parameter* allUserParameters, const Ve
             B00000,
             B00000
     };
+    _mode = mode;
+    _allUserParameters = allUserParameters;
+    _valueIncrementer = valueIncrementer;
+    _toggleMenuState = toggleMenuState;
+    _toggleEditState = toggleEditState;
+    markerIncrementer = cursorIncrementer;
+    _valueIncrementer= valueIncrementer;
+    _editState = VIEW_ONLY;
+    _markerPositionMax =3;
+    _markerPositionMin = 0;
+
 }
 
 void Display::updateDisplay() {
     switch(_editState){
         case VIEW_ONLY:{
             moveMarker();
-            if (_toggleEditState){
+            if (*_toggleEditState){
                 _editState=EDIT_ENTRY;
 
             }
@@ -32,11 +44,11 @@ void Display::updateDisplay() {
         }
         case NAVIGATE:
             moveMarker();
-            if (_toggleEditState){
+            if (*_toggleEditState){
                 loadParams();
                 _editState=EDIT_ENTRY;
             }
-            else if (_toggleMenuState){
+            else if (*_toggleMenuState){
                 _editState=VIEW_ONLY;
             }
             break;
@@ -49,10 +61,10 @@ void Display::updateDisplay() {
 
             printParameterValue();
 
-            if (_toggleEditState) {
+            if (*_toggleEditState) {
                 _editState = NAVIGATE;
 
-            } else if (_toggleMenuState) {
+            } else if (*_toggleMenuState) {
                 _editState = VIEW_ONLY;
             }
             break;
@@ -67,18 +79,18 @@ void Display::updateDisplay() {
 
 void Display::moveMarker() {
 // calc new position
-    lcd.setCursor(0, _markerPosition);
-    lcd.print(" ");
+    _lcd.setCursor(0, _markerPosition);
+    _lcd.print(" ");
     int newPos = _markerPosition + *markerIncrementer;
     _markerPosition = min((newPos), _markerPositionMax);
     _markerPosition = max((newPos), _markerPositionMin);
-    lcd.setCursor(0, _markerPosition);
-    lcd.write(byte(0));
+    _lcd.setCursor(0, _markerPosition);
+    _lcd.write(byte(0));
 }
 
 void Display::printParameterValue() {
-    lcd.setCursor(_markerPosition,_valueColumnPos);
-    lcd.print(_parametersMemory[_activeParamIndex]);
+    _lcd.setCursor(_markerPosition, _valueColumnPos);
+    _lcd.print(_parametersMemory[_activeParamIndex]);
 }
 
 
@@ -97,13 +109,8 @@ void Display::loadParams() {
 }
 
 void Display::printStaticText() {
-    for (int i; i < (_mode->nParams); i++){
-        lcd.setCursor(1,i);
-        lcd.print(_allUserParameters[(int)_mode->parameters[_activeParamIndex]].lcdString);
+    for (int i=0; i < (_mode->nParams); i++){
+        _lcd.setCursor(1, i);
+        _lcd.print(_allUserParameters[(int)_mode->parameters[i]].lcdString);
     }
-
 }
-
-
-
-
