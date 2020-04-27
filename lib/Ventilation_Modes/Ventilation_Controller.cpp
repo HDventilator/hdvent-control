@@ -3,8 +3,6 @@
 //
 
 #include "Ventilation_Controller.h"
-#include <PID_v1.h>
-
 
 VentilationController::VentilationController(VentilationMode mode, Diagnostic_Parameter &pressure, Diagnostic_Parameter &flow)
 : _pid(&_pidIn, &_pidOut, &_pidSetpoint, mode.pidParameters.k_p, mode.pidParameters.k_i, mode.pidParameters.k_d, DIRECT),

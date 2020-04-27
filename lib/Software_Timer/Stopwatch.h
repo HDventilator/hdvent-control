@@ -13,11 +13,12 @@ public:
     void start();
     unsigned long stop();
     unsigned long getElapsedTime();
+    bool isRunning;
 
 private:
     unsigned long _startTime;
     unsigned long _elapsedTime;
-    bool _isRunning;
+
 };
 
 

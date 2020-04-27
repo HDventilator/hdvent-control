@@ -5,6 +5,8 @@
 #ifndef HDVENT_CONTROL_VENTILATION_MODES_H
 #define HDVENT_CONTROL_VENTILATION_MODES_H
 #include "Trigger.h"
+#include <Diagnostic_Parameter.h>
+
 enum struct UP {
     BLANK,
     INSPIRATORY_PRESSURE,
@@ -29,7 +31,7 @@ struct diagnosticParameters_t {
     Diagnostic_Parameter meanPressure;
     Diagnostic_Parameter minuteVolume;
     Diagnostic_Parameter pressureChange; //millibar per second
-} diagnosticParameters;
+};
 
 typedef bool (*trigger_func_t)();
 
@@ -53,9 +55,7 @@ const PID_parameters_t pidParams_PC{.k_p=1.0, .k_i=0.3, .k_d=0};
 const PID_parameters_t pidParams_VC{.k_p=2.0, .k_i=0.3, .k_d=0};
 const PID_parameters_t pidParams_VN{.k_p=1.0, .k_i=0., .k_d=0};
 
-bool alwaysFalseTrigger(){
-    return false;
-}
+bool alwaysFalseTrigger();
 
 template <typename T>
 void fillArray(T A[], int N, T a[], int n, T fillValue) {
@@ -70,38 +70,20 @@ void fillArray(T A[], int N, T a[], int n, T fillValue) {
 
 const uint8_t NUMBER_TRIGGERS=5;
 
-
-
 struct VentilationMode {
     VentilationMode(
             ControlMode control,
             UP userSetParametersSelection[], int nUserSetParameters,
             trigger_func_t inspirationTriggersSelection[], int nInspirationTriggers,
-            trigger_func_t expirationTriggersSelection[], int nExpirationTriggers)
-            {
-        fillArray(parameters, (int)UP::LAST_PARAM_LABEL, userSetParametersSelection, nUserSetParameters, UP::BLANK);
-        fillArray(inspirationTriggers, NUMBER_TRIGGERS, inspirationTriggersSelection, nInspirationTriggers, &alwaysFalseTrigger);
-        fillArray(expirationTriggers, NUMBER_TRIGGERS, expirationTriggersSelection, nExpirationTriggers, &alwaysFalseTrigger);
-        controlMode = control;
-        switch (control){
-            case ControlMode::PC :
-                pidParameters = pidParams_PC;
-                break;
-            case ControlMode::VC :
-                pidParameters = pidParams_VC;
-                break;
-            case ControlMode::VN :
-                pidParameters = pidParams_VN;
-        }
-    }
+            trigger_func_t expirationTriggersSelection[], int nExpirationTriggers);
 
     UP parameters[(int)UP::LAST_PARAM_LABEL];
     trigger_func_t expirationTriggers[NUMBER_TRIGGERS];
     trigger_func_t inspirationTriggers[NUMBER_TRIGGERS];
     ControlMode controlMode;
     PID_parameters_t pidParameters;
+    uint8_t nParams;
 };
-
 
 const VentilationMode VC_CMV = VentilationMode(
         ControlMode::VC,

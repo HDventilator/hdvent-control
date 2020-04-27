@@ -16,7 +16,8 @@
 #include "Trigger.h"
 #include "PID_v1.h"
 #include "Ventilation_Controller.h"
-#include <LCD_Display.h>
+#include <display.h>
+#include <LiquidCrystal.h>
 
 /* ***********************
  * Constant definitions
@@ -101,9 +102,9 @@ void toggleEnableEncoder();
 /*
  * Sensors
  */
-Honeywell_SSC pressureSensor = Honeywell_SSC(0x48,0,-150,150,0.1*16383,0.9*16383);
-Honeywell_SSC flowSensor = Honeywell_SSC(0x68,0,0,4000,-1,1);
-Angle_Sensor angleSensor = Angle_Sensor(PIN_RPS_OUT, STEPS_FS_FULL_TURN*STEP_DIVIDER, 360, 0, 1024, 10);
+Honeywell_SSC pressureSensor(0x48,0,-150,150,0.1*16383,0.9*16383);
+Honeywell_SSC flowSensor(0x68,0,0,4000,-1,1);
+Angle_Sensor angleSensor(PIN_RPS_OUT, STEPS_FS_FULL_TURN*STEP_DIVIDER, 360, 0, 1024, 10);
 
 float timeEx=1;
 float timeIn=1;
@@ -115,6 +116,8 @@ unsigned int stepsInterval = 300;
 // user-set parameters
 User_Parameter allUserParams[(int) UP::LAST_PARAM_LABEL];
 
+
+diagnosticParameters_t diagnosticParameters;
 
 struct stopwatches_t{
     Stopwatch holdingIn;
@@ -142,13 +145,14 @@ Sensor::SensorState anglePositionState = Sensor::OK;
 float motorSpeed;
 PID pressureControlPID();
 
-VentilationController controller=VentilationController(VC_CMV, 1,1,1, diagnosticParameters.airwayPressure,
-        diagnosticParameters.flow);
+VentilationController controller(VC_CMV, diagnosticParameters.airwayPressure,diagnosticParameters.flow);
+
+LiquidCrystal lcd(12, 11, 10, 9, 8, 7);
 
 void setup()
 {
     Serial.begin(115200);
-
+/*
     // Prepare pins
     pinMode(nSTBY_nRESET_PIN, OUTPUT);
     pinMode(nCS_PIN, OUTPUT);
@@ -164,16 +168,18 @@ void setup()
     digitalWrite(nSTBY_nRESET_PIN, HIGH);
     digitalWrite(nCS_PIN, HIGH);
 
-    // Start SPI
-    SPI.begin();
-    SPI.setDataMode(SPI_MODE3);
+
 
     pinMode(PIN_OPTICAL_SWITCH_HOME, INPUT_PULLUP);
     attachInterrupt(digitalPinToInterrupt(PIN_OPTICAL_SWITCH_HOME), toggleIsHome, RISING);
-    attachInterrupt(digitalPinToInterrupt(PIN_ENCO_BTN), toggleEnableEncoder, RISING);
+    attachInterrupt(digitalPinToInterrupt(PIN_ENCO_BTN), toggleEnableEncoder, RISING);*/
     ConfigureStepperDriver();
     pressureSensor.begin();
 
+    // Start SPI
+    SPI.begin();
+    SPI.setDataMode(SPI_MODE3);
+/*
     allUserParams[(int) UP::RESPIRATORY_RATE] = User_Parameter(15, 5, 35, "f"); //  breaths per minute
     allUserParams[(int) UP::TIDAL_VOLUME] = User_Parameter(250, 0, 650, "VT"); // milliliters
     allUserParams[(int) UP::T_IN] = User_Parameter(2, 0.6, 4,"Ti"); // Inspiration time
@@ -182,12 +188,13 @@ void setup()
     allUserParams[(int) UP::D_PRESSURE_SUPP] = User_Parameter(20, 5, 50, "dPs"); //  millibar
     allUserParams[(int) UP::PRESSURE_TRIGGER_THRESHOLD] = User_Parameter(5, 5, 50, "Ptr"); //  millibar per second
     allUserParams[(int) UP::FLOW_TRIGGER_THRESHOLD] = User_Parameter(20, 5, 50, "Ftr"); //  milliliters per second
-
+*/
+    lcd.begin(20,4);
 }
 
 
 void loop(){
-
+/*
     cycleTime = stopwatch.mainLoop.getElapsedTime();
     stopwatch.mainLoop.start();
 
@@ -197,6 +204,14 @@ void loop(){
     float pressureChange = (pressureSensor.getData().pressure - oldPressure)/cycleTime*1000;
     diagnosticParameters.pressureChange.setValue(pressureChange);
     oldPressure = pressureSensor.getData().pressure;
+*/
+Serial.println("looping...");
+
+lcd.home();
+lcd.clear();
+lcd.setCursor(1,1);
+lcd.print("Hello     ");
+delay(100);
 
 
 
@@ -525,3 +540,4 @@ int readStatusRegister(){
     paramValue = Stepper.getStatus();
     return(paramValue);
 }
+

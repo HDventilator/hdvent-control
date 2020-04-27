@@ -6,23 +6,23 @@
 
 Stopwatch::Stopwatch(){
     _startTime = 0;
-    _isRunning = false;
+    isRunning = false;
     _elapsedTime = 0;
 }
 
 unsigned long Stopwatch::stop(){
     getElapsedTime();
-    _isRunning = false;
+    isRunning = false;
 }
 
 void Stopwatch::start() {
     _startTime = millis();
-    _isRunning = true;
+    isRunning = true;
 }
 
 unsigned long Stopwatch::getElapsedTime() {
-    if (_isRunning){
-        _elapsedTime = millis();
+    if (isRunning){
+        _elapsedTime = millis()-_startTime;
     }
     else {
         _elapsedTime =0;

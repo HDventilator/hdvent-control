@@ -15,6 +15,7 @@ public:
 
     void setValue(float value);
     char* lcdString;
+    float step;
 
 private:
     float _value;
