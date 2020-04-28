@@ -33,8 +33,9 @@ bool Triggers::inspirationTime(){
 
 struct{
     bool wasTurned=false;
-    bool wasPressed=false;
+    bool shortPressDetected=false;
     bool sense=false;
+    bool wasPressed=true;
     int _increment=0;
     Stopwatch pressingTime;
     bool longPressDetected=false;
@@ -58,21 +59,40 @@ void turnEncoderInterruptRoutine(){
 
 
 void buttonEncoderInterruptRoutine(){
+    delay(1);
     if (digitalRead(PIN_ENCO_BTN)==HIGH){
-        encoder.wasPressed = true;
         encoder.pressingTime.start();
     }
-    if (digitalRead(PIN_ENCO_BTN)==LOW){
-        encoder.pressingTime.stop();
+    if (digitalRead(PIN_ENCO_BTN)==LOW) {
+        unsigned long elapsed = encoder.pressingTime.stop();
+        if (elapsed > 2000) {
+            encoder.longPressDetected = true;
+        } else if (elapsed > 30) {
+            encoder.shortPressDetected = true;
+        }
     }
 }
 
 
 void detectButtonLongPress(){
-    if (encoder.pressingTime.getElapsedTime() > 1000){
+    if (encoder.pressingTime.getElapsedTime() > 2000){
         encoder.longPressDetected=true;
+        encoder.pressingTime.reset();
+        Serial.println("longPress");
+    }
+    else if (encoder.pressingTime.getElapsedTime()>30){
+        encoder.shortPressDetected=true;
+        encoder.pressingTime.reset();
     }
 }
+/*
+int buttonCounter=0;
+int doubleCounter=0;
+int _incrementer;
+*/
+Display display=Display(lcd, allUserParams, &VC_CMV, &encoder._increment, &encoder._increment, &encoder.shortPressDetected, &encoder.longPressDetected);
+
+const VentilationMode * pointer=&VC_CMV;
 
 
 void setup(){
@@ -92,29 +112,44 @@ void setup(){
     attachInterrupt(digitalPinToInterrupt(PIN_ENCO_BTN), buttonEncoderInterruptRoutine, CHANGE);
     attachInterrupt (digitalPinToInterrupt(PIN_ENCO_A),turnEncoderInterruptRoutine,FALLING);
 
-    lcd.begin(20, 4);
 
     Serial.begin(115200);
-}
-/*
-int buttonCounter=0;
-int doubleCounter=0;
-int _incrementer;
-*/
-Display display=Display(lcd, allUserParams, &VC_CMV, &encoder._increment, &encoder._increment, &encoder.wasPressed, &encoder.longPressDetected);
 
-const VentilationMode * pointer=&VC_CMV;
+    display.printStaticText();
+
+}
+
 void loop(){
+    delay(100);
     /*for (int i=0; i < (display._mode->nParams); i++){
         lcd.setCursor(1,i);
         lcd.print(display._allUserParameters[(int)display._mode->parameters[i]].lcdString);
     }*/
     //display.printStaticText();
-    display.moveMarker();
-    //display._lcd.setCursor(1,1);
-    //display._lcd.write(1);
-    //display.updateDisplay();
-    //Serial.println(display._editState);
+    /*
+    if (encoder.shortPressDetected){
+        Serial.println("short Press");
+        encoder.shortPressDetected=false;
+    }
+    if (encoder.longPressDetected){
+        Serial.println("long Press");
+        encoder.longPressDetected=false;
+    }
+*/
+    if (*display._toggleEditState){
+        Serial.println("short Press");
+        //*display._toggleEditState=false;
+    }
+    if (*display._toggleMenuState){
+        Serial.println("long Press");
+        //*display._toggleMenuState=false;
+    }
+
+    encoder.incrementEncoder();
+    display.updateDisplay();
+    Serial.println(display._editState);
+
+
 }
 /*
 void loop(){
@@ -124,14 +159,14 @@ void loop(){
     encoder.incrementEncoder();
     detectButtonLongPress();
 
-    if (encoder.wasPressed) {
+    if (encoder.shortPressDetected) {
         buttonCounter++;
     }
     if (encoder.longPressDetected) {
         doubleCounter++;
         encoder.longPressDetected=false;
     }
-    encoder.wasPressed=false;
+    encoder.shortPressDetected=false;
     lcd.setCursor(1,0);
     lcd.print(buttonCounter);
     lcd.setCursor(1,2);

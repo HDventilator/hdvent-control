@@ -34,7 +34,9 @@ public:
     void printStaticText();
 
 
-    uint8_t _valueColumnPos=3;
+    float _parametersMemory[4];
+
+    uint8_t _valueColumnPos=5;
     const VentilationMode *_mode;
     uint8_t columnValues;
     uint8_t _activeParamIndex;
@@ -51,7 +53,6 @@ public:
    LiquidCrystal _lcd;
    User_Parameter* _allUserParameters;
 
-    float _parametersMemory[];
 
 
 };

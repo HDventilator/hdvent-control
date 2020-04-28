@@ -13,6 +13,7 @@ public:
     void start();
     unsigned long stop();
     unsigned long getElapsedTime();
+    void reset();
     bool isRunning;
 
 private:

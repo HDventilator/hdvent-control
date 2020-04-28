@@ -11,8 +11,9 @@ Stopwatch::Stopwatch(){
 }
 
 unsigned long Stopwatch::stop(){
-    getElapsedTime();
+    _elapsedTime = millis()-_startTime;
     isRunning = false;
+    return _elapsedTime;
 }
 
 void Stopwatch::start() {
@@ -28,4 +29,10 @@ unsigned long Stopwatch::getElapsedTime() {
         _elapsedTime =0;
     }
     return(_elapsedTime);
+}
+
+void Stopwatch::reset() {
+    _elapsedTime=0;
+    isRunning=false;
+
 }

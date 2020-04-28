@@ -29,6 +29,7 @@ Display::Display(LiquidCrystal &lcd, User_Parameter* allUserParameters, const Ve
     _editState = VIEW_ONLY;
     _markerPositionMax =3;
     _markerPositionMin = 0;
+    printStaticText();
 
 }
 
@@ -38,6 +39,7 @@ void Display::updateDisplay() {
             moveMarker();
             if (*_toggleEditState){
                 _editState=EDIT_ENTRY;
+                *_toggleEditState=false;
 
             }
             break;
@@ -47,9 +49,11 @@ void Display::updateDisplay() {
             if (*_toggleEditState){
                 loadParams();
                 _editState=EDIT_ENTRY;
+                *_toggleEditState=false;
             }
             else if (*_toggleMenuState){
                 _editState=VIEW_ONLY;
+                *_toggleMenuState=false;
             }
             break;
 
@@ -58,14 +62,19 @@ void Display::updateDisplay() {
             _activeParamIndex = _markerPosition;
             _parametersMemory[_activeParamIndex]+=
                     (float) *_valueIncrementer * _allUserParameters[(int)_mode->parameters[_activeParamIndex]].step;
-
+            Serial.println(_parametersMemory[_activeParamIndex]);
             printParameterValue();
+            *_valueIncrementer=0;
 
             if (*_toggleEditState) {
                 _editState = NAVIGATE;
+                *_toggleEditState=false;
 
-            } else if (*_toggleMenuState) {
+            }
+            else if (*_toggleMenuState) {
+                Serial.println("from edit to view_only");
                 _editState = VIEW_ONLY;
+                *_toggleMenuState=false;
             }
             break;
         }
@@ -74,25 +83,30 @@ void Display::updateDisplay() {
     *_toggleEditState=false;
 }
 
-
-
-
 void Display::moveMarker() {
 // calc new position
     _lcd.setCursor(0, _markerPosition);
     _lcd.print(" ");
     int newPos = _markerPosition + *markerIncrementer;
-    _markerPosition = min((newPos), _markerPositionMax);
-    _markerPosition = max((newPos), _markerPositionMin);
+    *markerIncrementer=0;
+    if (newPos>_markerPositionMax){
+        _markerPosition=_markerPositionMax;
+    }
+    else if (newPos<_markerPositionMin){
+        _markerPosition=_markerPositionMin;
+    }
+    else{
+        _markerPosition = newPos;
+    }
     _lcd.setCursor(0, _markerPosition);
     _lcd.write(byte(0));
+
 }
 
 void Display::printParameterValue() {
-    _lcd.setCursor(_markerPosition, _valueColumnPos);
+    _lcd.setCursor(_valueColumnPos, _markerPosition);
     _lcd.print(_parametersMemory[_activeParamIndex]);
 }
-
 
 void Display::safeParams() {
     // save user parameters momentarily

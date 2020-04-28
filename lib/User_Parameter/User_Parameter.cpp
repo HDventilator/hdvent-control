@@ -11,7 +11,7 @@ User_Parameter::User_Parameter(float initialValue, float minOutValue, float maxO
     _minIn = minInValue;
     _maxIn = maxInValue;
     lcdString = string;
-    step = (_max-_min)/1000;
+    step = (_max-_min)/200;
 }
 
 float User_Parameter::getValue() const {
