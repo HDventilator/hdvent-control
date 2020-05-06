@@ -16,8 +16,12 @@ public:
     void setValue(float value);
     char* lcdString;
     float step;
+    float getDisplayValue() const;
+
+    void setDisplayValue(float displayValue);
 
 private:
+    float _displayValue;
     float _value;
     float _min;
     float _max;

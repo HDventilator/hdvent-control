@@ -25,3 +25,11 @@ void User_Parameter::setValue(float value) {
 float User_Parameter::transferFunction(int valueIn){
     return ((float)valueIn-_minIn) / (_maxIn-_minIn) * (_max-_min) + _min;
 }
+
+float User_Parameter::getDisplayValue() const {
+    return _displayValue;
+}
+
+void User_Parameter::setDisplayValue(float displayValue) {
+    _displayValue = displayValue;
+}
