@@ -145,6 +145,8 @@ VentilationState State = STARTUP;
 
 float oldPressure;
 unsigned long cycleTime =0;
+
+
 //manual control
 int stepCounter=0;
 int stepperPosition=0;

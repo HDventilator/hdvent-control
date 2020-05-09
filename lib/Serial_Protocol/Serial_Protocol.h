@@ -6,6 +6,7 @@
 #define MON_ARDUINO_SERIAL_SERIAL_PROTOCOL_H
 
 #include <Arduino.h>
+#include <PacketSerial.h>
 
 const uint8_t PACKAGE_SIZE = 14;
 const uint8_t IDENTIFIER_LENGTH = 6;
@@ -27,5 +28,17 @@ struct __attribute__ ((packed)) package_struct_4char_t{
     char value[4]; // 4 bytes
     uint32_t checksum; // 4 bytes
 };
+
+void serialWritePackage(package_struct_float_t package, PacketSerial* packetSerial){
+
+    // Use either this to get byte string
+    uint8_t tmp[PACKAGE_SIZE];
+    memcpy(tmp, &package, PACKAGE_SIZE);
+    // or this:
+    //const char* tmp = reinterpret_cast<char*>(&package);
+
+    // Write data to serial port
+    packetSerial->send(tmp, PACKAGE_SIZE);
+}
 
 #endif //MON_ARDUINO_SERIAL_SERIAL_PROTOCOL_H
