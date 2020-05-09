@@ -8,7 +8,10 @@ bool alwaysFalseTrigger(){
 return false;
 }
 
-VentilationMode::VentilationMode(ControlMode control,UP userSetParametersSelection[], int nUserSetParameters, trigger_func_t inspirationTriggersSelection[], int nInspirationTriggers,trigger_func_t expirationTriggersSelection[], int nExpirationTriggers)
+VentilationMode::VentilationMode(ControlMode control, UP userSetParametersSelection[], int nUserSetParameters,
+                                 trigger_func_t inspirationTriggersSelection[], int nInspirationTriggers,
+                                 trigger_func_t expirationTriggersSelection[], int nExpirationTriggers,
+                                 char *identifier)
 {
     fillArray(parameters, (int)UP::LAST_PARAM_LABEL, userSetParametersSelection, nUserSetParameters, UP::BLANK);
     fillArray(inspirationTriggers, NUMBER_TRIGGERS, inspirationTriggersSelection, nInspirationTriggers, &alwaysFalseTrigger);
@@ -25,4 +28,6 @@ VentilationMode::VentilationMode(ControlMode control,UP userSetParametersSelecti
         case ControlMode::VN :
             pidParameters = pidParams_VN;
     }
+
 }
+

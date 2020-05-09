@@ -5,6 +5,10 @@
 #ifndef HDVENT_CONTROL_USER_PARAMETER_H
 #define HDVENT_CONTROL_USER_PARAMETER_H
 
+const char USER_PARAMETER_VALUE_ID_PREFIX[] = "Pv";
+const char USER_PARAMETER_MIN_ID_PREFIX[] = "P_";
+const char USER_PARAMETER_MAX_ID_PREFIX[] = "P^";
+const char USER_PARAMETER_DISPLAY_ID_PREFIX[] = "DM";
 
 class User_Parameter {
 public:
@@ -19,6 +23,10 @@ public:
     float getDisplayValue() const;
 
     void setDisplayValue(float displayValue);
+    package_struct_float_t getValuePackage();
+    package_struct_float_t getMinPackage();
+    package_struct_float_t getMaxPackage();
+    package_struct_float_t get_displayValuePackage();
 
 private:
     float _displayValue;
@@ -28,6 +36,8 @@ private:
     float _minIn;
     float _maxIn;
     float transferFunction(int data);
+    package_struct_float_t _package;
+    void _packStruct(float value);
 
 };
 

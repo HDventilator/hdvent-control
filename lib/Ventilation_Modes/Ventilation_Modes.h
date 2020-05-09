@@ -7,6 +7,8 @@
 #include "Trigger.h"
 #include <Diagnostic_Parameter.h>
 
+
+
 enum struct UP {
     BLANK,
     INSPIRATORY_PRESSURE,
@@ -20,7 +22,7 @@ enum struct UP {
     D_PRESSURE_SUPP,
     LAST_PARAM_LABEL=10
 };
-
+/*
 struct diagnosticParameters_t {
     Diagnostic_Parameter peep;
     Diagnostic_Parameter tidalVolume;
@@ -32,7 +34,7 @@ struct diagnosticParameters_t {
     Diagnostic_Parameter minuteVolume;
     Diagnostic_Parameter pressureChange; //millibar per second
 };
-
+*/
 typedef bool (*trigger_func_t)();
 
 struct Triggers{
@@ -71,11 +73,10 @@ void fillArray(T A[], int N, T a[], int n, T fillValue) {
 const uint8_t NUMBER_TRIGGERS=5;
 
 struct VentilationMode {
-    VentilationMode(
-            ControlMode control,
-            UP userSetParametersSelection[], int nUserSetParameters,
-            trigger_func_t inspirationTriggersSelection[], int nInspirationTriggers,
-            trigger_func_t expirationTriggersSelection[], int nExpirationTriggers);
+    VentilationMode(ControlMode control, UP userSetParametersSelection[], int nUserSetParameters,
+                    trigger_func_t inspirationTriggersSelection[], int nInspirationTriggers,
+                    trigger_func_t expirationTriggersSelection[], int nExpirationTriggers,
+                    char *identifier);
 
     UP parameters[(int)UP::LAST_PARAM_LABEL];
     trigger_func_t expirationTriggers[NUMBER_TRIGGERS];
@@ -83,6 +84,8 @@ struct VentilationMode {
     ControlMode controlMode;
     PID_parameters_t pidParameters;
     uint8_t nParams;
+    package_struct_4char_t _package;
+
 };
 
 const VentilationMode VC_CMV = VentilationMode(
@@ -93,7 +96,7 @@ const VentilationMode VC_CMV = VentilationMode(
                 UP::T_IN,
                 UP::FLOW}, 4,
         (trigger_func_t[]) {Triggers::respiratoryRate}, 1,
-        (trigger_func_t[]) {Triggers::inspirationTime}, 1);
+        (trigger_func_t[]) {Triggers::inspirationTime}, 1, nullptr);
 
 const VentilationMode OL_CMV = VentilationMode(
         ControlMode::VN,
@@ -102,7 +105,17 @@ const VentilationMode OL_CMV = VentilationMode(
                 UP::TIDAL_VOLUME,
                 UP::T_IN}, 3,
         (trigger_func_t[]) {Triggers::respiratoryRate}, 1,
-        (trigger_func_t[]) {Triggers::inspirationTime}, 1);
+        (trigger_func_t[]) {Triggers::inspirationTime}, 1, nullptr);
+
+const VentilationMode PC_CMV = VentilationMode(
+        ControlMode::VN,
+        (UP[]) {
+                UP::INSPIRATORY_PRESSURE,
+                UP::RESPIRATORY_RATE,
+                UP::TIDAL_VOLUME,
+                UP::T_IN}, 3,
+        (trigger_func_t[]) {Triggers::respiratoryRate}, 1,
+        (trigger_func_t[]) {Triggers::inspirationTime}, 1, nullptr);
 
 
 #endif //HDVENT_CONTROL_VENTILATION_MODES_H
