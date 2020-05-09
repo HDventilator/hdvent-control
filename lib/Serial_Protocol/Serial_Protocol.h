@@ -29,7 +29,9 @@ struct __attribute__ ((packed)) package_struct_4char_t{
     uint32_t checksum; // 4 bytes
 };
 
-void serialWritePackage(package_struct_float_t package, PacketSerial* packetSerial){
+
+template <typename T>
+void serialWritePackage(T package, PacketSerial* packetSerial){
 
     // Use either this to get byte string
     uint8_t tmp[PACKAGE_SIZE];
