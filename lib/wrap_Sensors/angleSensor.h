@@ -29,7 +29,7 @@ public:
     /// @brief update the position data, by calling analogRead on the initialised pin
     /// @param timestamp Timestamp associated to the current read out
     /// @return true if read succeed, else:false
-    bool readSensor (int timestamp) override;
+    bool readSensor () override;
 
     /// @brief Make current position home.
     void resetPos();

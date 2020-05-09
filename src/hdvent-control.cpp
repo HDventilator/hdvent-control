@@ -290,7 +290,10 @@ void toggleEnableEncoder(){
 }
 
 
-int votePosition(int stepper, int angle, Sensor::SensorState stepperState, Sensor::SensorState angleState, int tolerance=1*STEP_DIVIDER){
+int getPosition(Sensor::SensorState stepperState, Sensor::SensorState angleState, int tolerance=1*STEP_DIVIDER){
+    int stepper = Stepper.getPos();
+    int angle = angleSensor.readSensor();
+
     // TODO handle deviating position readings
     if ((stepper-angle) < tolerance){
         return stepper;

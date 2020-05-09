@@ -19,7 +19,7 @@ public:
     Honeywell_SSC(int i2cAddress, int sensorID,
                   float pressureMin, float pressureMax, float outputMin, float outputMax);
     bool  begin() override;
-    bool  readSensor (int timestamp = 0) override;
+    bool readSensor() override;
 
     const sensor_values_t &getDataMin() const;
     const sensor_values_t &getDataMax() const;

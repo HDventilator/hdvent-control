@@ -21,7 +21,7 @@ void setup()
 void loop()
 {
     sensors_event_t event;
-    hps.readSensor(&event);
+    hps.readSensor();
     Serial.print("pressure    (BAR) ");
     Serial.println(event.pt.pressure);
 

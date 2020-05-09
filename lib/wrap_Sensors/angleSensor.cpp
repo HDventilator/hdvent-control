@@ -14,7 +14,7 @@ Angle_Sensor::Angle_Sensor(int pin, int stepRange, int angleRange, int analogMin
     _homeTolerance = homeTolerance;
 }
 
-bool Angle_Sensor::readSensor(int timestamp){
+bool Angle_Sensor::readSensor(){
     int16_t analogValue = analogRead(_pin);
     int16_t stepValue = transferFunction(analogValue);
 

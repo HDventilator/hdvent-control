@@ -13,7 +13,7 @@ public:
     // Constructor(s)
     Sensor() {}
     virtual ~Sensor(){}
-    virtual bool readSensor(int timestamp) = 0;
+    virtual bool readSensor() = 0;
     enum SensorState {OK, TIME_OUT, FAULTY};
     virtual bool begin(){};
 

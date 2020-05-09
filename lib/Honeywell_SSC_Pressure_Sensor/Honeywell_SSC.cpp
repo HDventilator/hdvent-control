@@ -31,7 +31,7 @@ float Honeywell_SSC::transferFunction(uint16_t data) {
     return (pressure);
 }
 
-bool Honeywell_SSC::readSensor( int timestamp)
+bool Honeywell_SSC::readSensor()
 {
     int i2c_address = getI2CAddress();
     Wire.requestFrom(i2c_address, 4);
