@@ -29,7 +29,7 @@ struct __attribute__ ((packed)) package_struct_4char_t{
     uint32_t checksum; // 4 bytes
 };
 
-//! @brief write a packed struct with the PACKAGE_SIZE to the serial port using cobs
+//! @brief write a packed struct with the PACKAGE_SIZE to the serial port using PacketSerial (COBS)
 //! @tparam T
 //! @param packetSerial pointer to the PacketSerial instance
 //! @param package packed struct to transmit
