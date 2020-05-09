@@ -73,4 +73,8 @@ package_struct_float_t Diagnostic_Parameter::getPackageStruct() {
     return dataPackage;
 }
 
+Diagnostic_Parameter::Diagnostic_Parameter(char *identifier) {
+    _identifier = identifier;
+}
+
 

@@ -13,6 +13,7 @@ class Diagnostic_Parameter {
 public:
     enum Alarm {TOO_LOW, OK, TOO_HIGH};
     Diagnostic_Parameter(float initialValue, float minAlarm, float maxAlarm, char *identifier);
+    Diagnostic_Parameter(char *identifier);
     Diagnostic_Parameter();
 
     float getMaxAlarm() const;

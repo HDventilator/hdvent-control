@@ -116,8 +116,6 @@ unsigned int stepsInterval = 300;
 // user-set parameters
 User_Parameter allUserParams[(int) UP::LAST_PARAM_LABEL];
 
-
-
 struct diagnosticParameters_t {
     Diagnostic_Parameter peep;
     Diagnostic_Parameter tidalVolume=Diagnostic_Parameter(0,0,0,"TVOL");
@@ -138,7 +136,6 @@ struct stopwatches_t{
     Stopwatch mainLoop;
     Stopwatch pressureRate;
 } stopwatch;
-
 
 float pathRatio=1;
 bool startCyclingSwitch = 0;
@@ -229,8 +226,10 @@ VentilationState ventilationStateMachine( VentilationState state){
             break;
 
         case MOVING_IN:
+            // set stepper speed to calculated value
             Stepper.run(DIR_IN, controller.calcSpeed());
 
+            // start expiration on trigger
             if (controller.expirationTrigger()) {
             state = END_IN;
             }
