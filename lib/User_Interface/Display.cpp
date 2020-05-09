@@ -30,6 +30,8 @@ Display::Display(LiquidCrystal &lcd, User_Parameter* allUserParameters, const Ve
     _markerPositionMax =3;
     _markerPositionMin = 0;
     printStaticText();
+    lcd.cursor();
+    lcd.blink();
 
 }
 
@@ -40,6 +42,7 @@ void Display::updateDisplay() {
             if (*_toggleEditState){
                 _editState=EDIT_ENTRY;
                 *_toggleEditState=false;
+                _lcd.cursor();
 
             }
             break;
@@ -75,6 +78,7 @@ void Display::updateDisplay() {
                 Serial.println("from edit to view_only");
                 _editState = VIEW_ONLY;
                 *_toggleMenuState=false;
+                _lcd.noCursor();
             }
             break;
         }
@@ -86,7 +90,7 @@ void Display::updateDisplay() {
 void Display::moveMarker() {
 // calc new position
     _lcd.setCursor(0, _markerPosition);
-    _lcd.print(" ");
+    //_lcd.print(" ");
     int newPos = _markerPosition + *markerIncrementer;
     *markerIncrementer=0;
     if (newPos>_markerPositionMax){
@@ -99,13 +103,21 @@ void Display::moveMarker() {
         _markerPosition = newPos;
     }
     _lcd.setCursor(0, _markerPosition);
-    _lcd.write(byte(0));
+    //_lcd.write(byte(0));
 
 }
 
 void Display::printParameterValue() {
     _lcd.setCursor(_valueColumnPos, _markerPosition);
-    _lcd.print(_parametersMemory[_activeParamIndex]);
+    float value = _parametersMemory[_activeParamIndex];
+    uint8_t len=0;
+    if (value<10){
+        len=2;
+    }
+    else if (value<100){
+        len=1;
+    }
+       _lcd.print(value, len );
 }
 
 void Display::safeParams() {
@@ -124,7 +136,7 @@ void Display::loadParams() {
 
 void Display::printStaticText() {
     for (int i=0; i < (_mode->nParams); i++){
-        _lcd.setCursor(1, i);
+        _lcd.setCursor(0, i);
         _lcd.print(_allUserParameters[(int)_mode->parameters[i]].lcdString);
     }
 }
