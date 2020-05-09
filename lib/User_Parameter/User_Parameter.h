@@ -5,6 +5,8 @@
 #ifndef HDVENT_CONTROL_USER_PARAMETER_H
 #define HDVENT_CONTROL_USER_PARAMETER_H
 
+#include <Serial_Protocol.h>
+
 const char USER_PARAMETER_VALUE_ID_PREFIX[] = "Pv";
 const char USER_PARAMETER_MIN_ID_PREFIX[] = "P_";
 const char USER_PARAMETER_MAX_ID_PREFIX[] = "P^";

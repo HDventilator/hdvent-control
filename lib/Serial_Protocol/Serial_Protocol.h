@@ -10,6 +10,7 @@
 const uint8_t PACKAGE_SIZE = 14;
 const uint8_t IDENTIFIER_LENGTH = 6;
 const uint8_t IDENTIFIER_PREFIX_LENGTH = 2;
+
 // struct with components of single data package
 struct __attribute__ ((packed)) package_struct_float_t{
     // if you change identifier length, don't forget to change PACKAGE_SIZE too!!
@@ -17,6 +18,7 @@ struct __attribute__ ((packed)) package_struct_float_t{
     float value; // 4 bytes
     uint32_t checksum; // 4 bytes
 };
+
 
 // struct with components of single data package
 struct __attribute__ ((packed)) package_struct_4char_t{

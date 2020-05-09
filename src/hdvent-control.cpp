@@ -117,7 +117,19 @@ unsigned int stepsInterval = 300;
 User_Parameter allUserParams[(int) UP::LAST_PARAM_LABEL];
 
 
-diagnosticParameters_t diagnosticParameters;
+
+struct diagnosticParameters_t {
+    Diagnostic_Parameter peep;
+    Diagnostic_Parameter tidalVolume=Diagnostic_Parameter(0,0,0,"TVOL");
+    Diagnostic_Parameter Volume=Diagnostic_Parameter(0,0,0,"VOLU");
+    Diagnostic_Parameter flow=Diagnostic_Parameter(0,0,0,"FLOW");
+    Diagnostic_Parameter airwayPressure = Diagnostic_Parameter(0,0,0,"P_AW");;
+    Diagnostic_Parameter respiratoryRate;
+    Diagnostic_Parameter plateauPressure;
+    Diagnostic_Parameter meanPressure;
+    Diagnostic_Parameter minuteVolume;
+    Diagnostic_Parameter pressureChange; //millibar per second
+} diagnosticParameters;
 
 struct stopwatches_t{
     Stopwatch holdingIn;
@@ -168,8 +180,6 @@ void setup()
     digitalWrite(nSTBY_nRESET_PIN, HIGH);
     digitalWrite(nCS_PIN, HIGH);
 
-
-
     pinMode(PIN_OPTICAL_SWITCH_HOME, INPUT_PULLUP);
     attachInterrupt(digitalPinToInterrupt(PIN_OPTICAL_SWITCH_HOME), toggleIsHome, RISING);
     attachInterrupt(digitalPinToInterrupt(PIN_ENCO_BTN), toggleEnableEncoder, RISING);*/
@@ -179,22 +189,21 @@ void setup()
     // Start SPI
     SPI.begin();
     SPI.setDataMode(SPI_MODE3);
-/*
-    allUserParams[(int) UP::RESPIRATORY_RATE] = User_Parameter(15, 5, 35, "f"); //  breaths per minute
-    allUserParams[(int) UP::TIDAL_VOLUME] = User_Parameter(250, 0, 650, "VT"); // milliliters
-    allUserParams[(int) UP::T_IN] = User_Parameter(2, 0.6, 4,"Ti"); // Inspiration time
-    allUserParams[(int) UP::INSPIRATORY_PRESSURE] = User_Parameter(20, 5, 50, "Paw"); //  millibar
-    allUserParams[(int) UP::FLOW] = User_Parameter(20, 5, 50,"Flo"); //  milliliters per second
-    allUserParams[(int) UP::D_PRESSURE_SUPP] = User_Parameter(20, 5, 50, "dPs"); //  millibar
-    allUserParams[(int) UP::PRESSURE_TRIGGER_THRESHOLD] = User_Parameter(5, 5, 50, "Ptr"); //  millibar per second
-    allUserParams[(int) UP::FLOW_TRIGGER_THRESHOLD] = User_Parameter(20, 5, 50, "Ftr"); //  milliliters per second
-*/
+
+    allUserParams[(int) UP::RESPIRATORY_RATE] = User_Parameter(15, 5, 35, "freq"); //  breaths per minute
+    allUserParams[(int) UP::TIDAL_VOLUME] = User_Parameter(250, 0, 650, "VTid"); // milliliters
+    allUserParams[(int) UP::T_IN] = User_Parameter(2, 0.6, 4,"T_in"); // Inspiration time
+    allUserParams[(int) UP::INSPIRATORY_PRESSURE] = User_Parameter(20, 5, 50, "P_aw"); //  millibar
+    allUserParams[(int) UP::FLOW] = User_Parameter(20, 5, 50,"Flow"); //  milliliters per second
+    allUserParams[(int) UP::D_PRESSURE_SUPP] = User_Parameter(20, 5, 50, "Psup"); //  millibar
+    allUserParams[(int) UP::PRESSURE_TRIGGER_THRESHOLD] = User_Parameter(5, 5, 50, "Pthr"); //  millibar per second
+    allUserParams[(int) UP::FLOW_TRIGGER_THRESHOLD] = User_Parameter(20, 5, 50, "Fthr"); //  milliliters per second
+
     lcd.begin(20,4);
 }
 
 
 void loop(){
-/*
     cycleTime = stopwatch.mainLoop.getElapsedTime();
     stopwatch.mainLoop.start();
 
@@ -204,14 +213,6 @@ void loop(){
     float pressureChange = (pressureSensor.getData().pressure - oldPressure)/cycleTime*1000;
     diagnosticParameters.pressureChange.setValue(pressureChange);
     oldPressure = pressureSensor.getData().pressure;
-*/
-Serial.println("looping...");
-
-lcd.home();
-lcd.clear();
-lcd.setCursor(1,1);
-lcd.print("Hello     ");
-delay(100);
 
 }
 
