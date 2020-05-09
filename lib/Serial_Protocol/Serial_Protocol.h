@@ -9,10 +9,10 @@
 #include <PacketSerial.h>
 
 const uint8_t PACKAGE_SIZE = 14;
-const uint8_t IDENTIFIER_LENGTH = 6;
 const uint8_t IDENTIFIER_PREFIX_LENGTH = 2;
+const uint8_t IDENTIFIER_LENGTH = 6;
 
-// struct with components of single data package
+//! @brief struct with components of single data package
 struct __attribute__ ((packed)) package_struct_float_t{
     // if you change identifier length, don't forget to change PACKAGE_SIZE too!!
     char identifier[IDENTIFIER_LENGTH]; // IDENTIFIER_LENGTH bytes
@@ -21,17 +21,20 @@ struct __attribute__ ((packed)) package_struct_float_t{
 };
 
 
-// struct with components of single data package
+//! @brief struct with components of single data package
 struct __attribute__ ((packed)) package_struct_4char_t{
     // if you change identifier length, don't forget to change PACKAGE_SIZE too!!
-    char identifier[4]; // IDENTIFIER_LENGTH bytes
+    char identifier[IDENTIFIER_LENGTH]; // IDENTIFIER_LENGTH bytes
     char value[4]; // 4 bytes
     uint32_t checksum; // 4 bytes
 };
 
-
+//! @brief write a packed struct with the PACKAGE_SIZE to the serial port using cobs
+//! @tparam T
+//! @param packetSerial pointer to the PacketSerial instance
+//! @param package packed struct to transmit
 template <typename T>
-void serialWritePackage(T package, PacketSerial* packetSerial){
+void serialWritePackage(PacketSerial *packetSerial, T package) {
 
     // Use either this to get byte string
     uint8_t tmp[PACKAGE_SIZE];
