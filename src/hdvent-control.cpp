@@ -18,6 +18,7 @@
 #include "Ventilation_Controller.h"
 #include <Display.h>
 #include <LiquidCrystal.h>
+#include <Motor_Settings.h>
 
 /* ***********************
  * Constant definitions
@@ -30,27 +31,6 @@ powerSTEP Stepper(0, nCS_PIN, nSTBY_nRESET_PIN);;  // Nr, CS, Reset => 0 , D16/A
 int const PRESSURE_MAX = 0; // mm H20
 float const TIME_HOLD_PLATEAU = 0.200; // seconds, hold time after inspiratory phase
 float const TEMPERATURE_INFLUX_THRESHOLD = 20;// °C, start heating when influx temperature falls below this value
-
-// Motor settings
-// motor curve for volume control operation
-uint8_t const RUN_KVAL_IN = 200;
-uint8_t const ACC_KVAL_IN = 200;
-uint8_t const DEC_KVAL_IN = 200;
-uint8_t const HOLD_KVAL_IN = 200;
-uint8_t const RUN_KVAL_EX = 200;
-uint8_t const ACC_KVAL_EX = 200;
-uint8_t const DEC_KVAL_EX = 200;
-uint8_t const HOLD_KVAL_EX = 200;
-
-float const ACC_IN = 300; // steps/s/s
-float const DEC_IN = 300; // steps/s/s
-float const ACC_EX = 300; // steps/s/s
-float const SPEED_EX = 100; //steps/s
-float const DEC_EX = 300; // steps/s/s
-bool const DIR_IN = 1;
-bool const DIR_EX = abs(DIR_IN - 1);
-int const STEP_DIVIDER_REGISTER = STEP_FS_128;
-int const STEP_DIVIDER = 128;
 
 int const STEPS_EX_HOMING = 80; // steps to move out when trying to find home
 int const STEPS_IN_HOMING = 80; // steps to move in when trying to find home
@@ -74,21 +54,11 @@ bool isBusy();
 
 void moveStepper(int steps, int speed, int acc, int dec, int dir);
 VentilationState ventilationStateMachine(VentilationState state);
-int motorStatusRegister;
-void writeToLCD(float respiratoryRate, float tidalVolume, float ratioInEx, float PEEP, float peak, float plat);
-void read_potis();
 int readStatusRegister();
-void printUserValues();
 bool getStatusFlag(int r, int n);
-void updateDisplay(float respiratoryRate, float pathRatio, float IERatio,
-                   float pressurePeak, float plateauPressure, float peePressure);
 
-void startInfluxHeating();
-void stopInfluxHeating();
-void manualControl();
-void enableEncoder();
 bool tripleVoteHome(bool optical, bool angle, bool stepper, bool &isHome);
-int votePosition(int stepper, int angle);
+int getPosition(int tolerance);
 float motorPositionToVolume(uint16_t position);
 bool isHome();
 void toggleIsHome();
@@ -290,7 +260,7 @@ void toggleEnableEncoder(){
 }
 
 
-int getPosition(Sensor::SensorState stepperState, Sensor::SensorState angleState, int tolerance=1*STEP_DIVIDER){
+int getPosition(int tolerance=1*STEP_DIVIDER){
     int stepper = Stepper.getPos();
     int angle = angleSensor.readSensor();
 
@@ -298,7 +268,7 @@ int getPosition(Sensor::SensorState stepperState, Sensor::SensorState angleState
     if ((stepper-angle) < tolerance){
         return stepper;
     }
-    else if (angleState==Sensor::OK){
+    else if (angleSensor.getState()==Sensor::OK){
         return angle;
     }
     else {
@@ -365,20 +335,6 @@ bool tripleVoteHome(bool optical, bool angle, bool stepper, bool &isHome){
 void toggleIsHome(){
     Stepper.hardStop();
 }
-
-void stopInfluxHeating(){
-    // TODO
-}
-
-void startInfluxHeating(){
-    // TODO
-}
-
-void updateDisplay(float respiratoryRate, float pathRatio, float IERatio,
-                   float pressurePeak, float pressurePlateau, float pressurePEEP){
-    delay(10);
-}
-
 
 
 bool getStatusFlag(int r, int n){
@@ -535,12 +491,4 @@ void ConfigureStepperDriver()
 
     Serial.println(F("Initialisation complete"));
 
-
 }
-
-int readStatusRegister(){
-    int paramValue;
-    paramValue = Stepper.getStatus();
-    return(paramValue);
-}
-
