@@ -31,7 +31,9 @@ Display::Display(LiquidCrystal &lcd, User_Parameter* allUserParameters, const Ve
     _markerPositionMin = 0;
     printStaticText();
     lcd.cursor();
-    lcd.blink();
+    for (int8_t i=0; i<_mode->nParams;i++){
+        printParameterValue(_allUserParameters[(int) _mode->parameters[i]].getValue(),5,i);
+    }
 
 }
 
@@ -66,7 +68,7 @@ void Display::updateDisplay() {
             _parametersMemory[_activeParamIndex]+=
                     (float) *_valueIncrementer * _allUserParameters[(int)_mode->parameters[_activeParamIndex]].step;
             Serial.println(_parametersMemory[_activeParamIndex]);
-            printParameterValue();
+            printParameterValue(_parametersMemory[_activeParamIndex], _valueColumnPos, _markerPosition);
             *_valueIncrementer=0;
 
             if (*_toggleEditState) {
@@ -107,17 +109,22 @@ void Display::moveMarker() {
 
 }
 
-void Display::printParameterValue() {
-    _lcd.setCursor(_valueColumnPos, _markerPosition);
-    float value = _parametersMemory[_activeParamIndex];
+void Display::printParameterValue(float value, uint8_t col, uint8_t row) {
+    _lcd.setCursor(col, row);
     uint8_t len=0;
+    uint8_t blank=1;
     if (value<10){
         len=2;
+        blank=0;
     }
     else if (value<100){
         len=1;
+        blank=0;
     }
-       _lcd.print(value, len );
+    if (blank){
+        _lcd.print(" ");
+    }
+     _lcd.print(value, len );
 }
 
 void Display::safeParams() {

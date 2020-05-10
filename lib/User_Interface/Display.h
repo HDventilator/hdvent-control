@@ -25,7 +25,7 @@ public:
     enum menuState_t {EDIT_SETTINGS, VIEW};
 
     void updateDisplay();
-    void printParameterValue();
+    void printParameterValue(float value, uint8_t col, uint8_t row);
     void displayParameterValue();
 
     uint8_t getParameterIndex();
