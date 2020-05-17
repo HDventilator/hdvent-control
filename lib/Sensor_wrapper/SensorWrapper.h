@@ -14,10 +14,10 @@ public:
     Sensor() {}
     virtual ~Sensor(){}
     virtual bool readSensor() = 0;
-    enum SensorState {OK=0, TIME_OUT, FAULTY};
+    enum state_t {OK=0, TIME_OUT, FAULTY, DISCONNECTED};
     virtual bool begin(){};
 
-    SensorState getState() const {
+    state_t getState() const {
         return _state;
     }
 
@@ -37,7 +37,7 @@ public:
         _sensorID = sensorId;
     }
 
-    void setState(SensorState state) {
+    void setState(state_t state) {
         _state = state;
     }
 
@@ -48,7 +48,7 @@ private:
                         constant rate */
     int _i2cAddress;
     int _sensorID;
-    SensorState _state;
+    state_t _state;
 };
 
 #endif //_SENSORWRAPPER_H

@@ -44,6 +44,10 @@ void setup()
     allUserParams[(int) UP::ANGLE] = User_Parameter(0, 0, 1, "angl"); //  milliliters per second
 
     lcd.begin(20,4);
+
+    // adjust sensor state if connected/disconnected
+    opticalHomeSensor.setState(Sensor::DISCONNECTED);
+    angleSensor.setState(Sensor::DISCONNECTED);
 }
 
 
@@ -163,9 +167,9 @@ float motorPositionToVolume(uint16_t position){
 //! Use the optical switch the angle Sensor and the stepper driver data to determine if the stepper is at home position
 //! \param isHome
 void checkHomeSensors(bool &isHome) {
-    bool optical = opticalHomeSensor.getState()==Sensor::SensorState::OK;
-    bool angle = angleSensor.getState()==Sensor::SensorState::OK;
-    bool stepper = stepperMonitor.getState()==Sensor::SensorState::OK;
+    bool optical = opticalHomeSensor.getState()==Sensor::state_t::OK;
+    bool angle = angleSensor.getState()==Sensor::state_t::OK;
+    bool stepper = stepperMonitor.getState()==Sensor::state_t::OK;
     uint8_t state = ((optical<<2)+(angle<<1)+stepper);
     switch (state) {
         // 0: sensor not ok

@@ -126,8 +126,8 @@ float oldPressure;
 unsigned long cycleTime =0;
 
 
-Sensor::SensorState stepperPositionState = Sensor::OK;
-Sensor::SensorState anglePositionState = Sensor::OK;
+Sensor::state_t stepperPositionState = Sensor::OK;
+Sensor::state_t anglePositionState = Sensor::OK;
 float motorSpeed;
 PID pressureControlPID();
 
