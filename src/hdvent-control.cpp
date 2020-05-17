@@ -7,7 +7,7 @@
 void setup()
 {
     Serial.begin(115200);
-/*
+
     // Prepare pins
     pinMode(nSTBY_nRESET_PIN, OUTPUT);
     pinMode(nCS_PIN, OUTPUT);
@@ -25,7 +25,8 @@ void setup()
 
     pinMode(PIN_OPTICAL_SWITCH_HOME, INPUT_PULLUP);
     attachInterrupt(digitalPinToInterrupt(PIN_OPTICAL_SWITCH_HOME), toggleIsHome, RISING);
-    attachInterrupt(digitalPinToInterrupt(PIN_ENCO_BTN), toggleEnableEncoder, RISING);*/
+    attachInterrupt(digitalPinToInterrupt(PIN_ENCO_BTN), toggleEnableEncoder, RISING);
+
     ConfigureStepperDriver();
     pressureSensor.begin();
 
