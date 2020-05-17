@@ -28,9 +28,11 @@ bool VentilationController::expirationTrigger(){
     return anyTrue(_mode.expirationTriggers);
 }
 
+
 bool VentilationController::inspirationTrigger(){
     return anyTrue(_mode.inspirationTriggers);
 }
+
 
 void VentilationController::startRamp(float slope, float level) {
     _slope = slope;
@@ -38,6 +40,7 @@ void VentilationController::startRamp(float slope, float level) {
     _slopeTime = level / slope;
     _timer.start();
 }
+
 
 float VentilationController::calcSetPoint() {
     unsigned long time = _timer.getElapsedTime();

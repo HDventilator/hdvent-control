@@ -37,7 +37,7 @@ public:
     /// @brief Mark current position.
     void markPos();
 
-
+    const sensor_values_t &getData() const;
 
 
 private:

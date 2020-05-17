@@ -20,7 +20,8 @@ enum struct UP {
     FLOW_TRIGGER_THRESHOLD,
     PRESSURE_TRIGGER_THRESHOLD,
     D_PRESSURE_SUPP,
-    LAST_PARAM_LABEL=10
+    ANGLE,
+    LAST_PARAM_LABEL=11
 };
 /*
 struct diagnosticParameters_t {
@@ -43,6 +44,7 @@ struct Triggers{
     static bool flowIncrease();
     static bool respiratoryRate();
     static bool inspirationTime();
+    static bool angleReached();
 };
 
 enum struct ControlMode { PC, VC, VN };
@@ -105,7 +107,7 @@ const VentilationMode OL_CMV = VentilationMode(
                 UP::TIDAL_VOLUME,
                 UP::T_IN}, 3,
         (trigger_func_t[]) {Triggers::respiratoryRate}, 1,
-        (trigger_func_t[]) {Triggers::inspirationTime}, 1, nullptr);
+        (trigger_func_t[]) {Triggers::inspirationTime, Triggers::angleReached}, 2, nullptr);
 
 const VentilationMode PC_CMV = VentilationMode(
         ControlMode::VN,

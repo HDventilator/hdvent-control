@@ -27,5 +27,7 @@ bool const DIR_EX = abs(DIR_IN - 1);
 int const STEP_DIVIDER_REGISTER = STEP_FS_128;
 int const STEP_DIVIDER = 128;
 
+unsigned int const STEPS_FULL_RANGE = 200;
+
 
 #endif //HDVENT_CONTROL_MOTOR_SETTINGS_H

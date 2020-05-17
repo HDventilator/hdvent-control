@@ -40,3 +40,7 @@ void Angle_Sensor::markPos() {
 void Angle_Sensor::resetPos() {
     _home = _data.absolutePosition;
 }
+
+const Angle_Sensor::sensor_values_t &Angle_Sensor::getData() const {
+    return _data;
+}

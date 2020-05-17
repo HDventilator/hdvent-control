@@ -56,12 +56,16 @@ VentilationState ventilationStateMachine(VentilationState state);
 int readStatusRegister();
 bool getStatusFlag(int r, int n);
 
+void checkHomeSensors();
+
+
+
 bool tripleVoteHome(bool optical, bool angle, bool stepper, bool &isHome);
-int getPosition(int tolerance);
+int getPosition(int tolerance=1*STEP_DIVIDER);
 float motorPositionToVolume(uint16_t position);
-bool isHome();
 void toggleIsHome();
 void toggleEnableEncoder();
+
 
 /* *****************************
  * Global Variables
@@ -78,8 +82,6 @@ Angle_Sensor angleSensor(PIN_RPS_OUT, STEPS_FS_FULL_TURN*STEP_DIVIDER, 360, 0, 1
 float timeEx=1;
 float timeIn=1;
 float speedIn = 50; // steps/s
-
-unsigned int stepsFullRange = 300;
 unsigned int stepsInterval = 300;
 
 // user-set parameters
@@ -107,7 +109,6 @@ struct stopwatches_t{
 } stopwatch;
 
 float pathRatio=1;
-bool startCyclingSwitch = 0;
 
 VentilationMode mode=VC_CMV ;
 VentilationState State = STARTUP;
@@ -116,16 +117,12 @@ float oldPressure;
 unsigned long cycleTime =0;
 
 
-//manual control
-int stepCounter=0;
-int stepperPosition=0;
-float anglePosition=0; // TODO map angle position on motor steps
 Sensor::SensorState stepperPositionState = Sensor::OK;
 Sensor::SensorState anglePositionState = Sensor::OK;
 float motorSpeed;
 PID pressureControlPID();
 
-VentilationController controller(VC_CMV, diagnosticParameters.airwayPressure,diagnosticParameters.flow);
+VentilationController controller(OL_CMV, diagnosticParameters.airwayPressure,diagnosticParameters.flow);
 
 LiquidCrystal lcd(12, 11, 10, 9, 8, 7);
 
@@ -166,6 +163,7 @@ void setup()
     allUserParams[(int) UP::D_PRESSURE_SUPP] = User_Parameter(20, 5, 50, "Psup"); //  millibar
     allUserParams[(int) UP::PRESSURE_TRIGGER_THRESHOLD] = User_Parameter(5, 5, 50, "Pthr"); //  millibar per second
     allUserParams[(int) UP::FLOW_TRIGGER_THRESHOLD] = User_Parameter(20, 5, 50, "Fthr"); //  milliliters per second
+    allUserParams[(int) UP::ANGLE] = User_Parameter(0, 0, 1, "angl"); //  milliliters per second
 
     lcd.begin(20,4);
 }
@@ -175,12 +173,12 @@ void loop(){
     cycleTime = stopwatch.mainLoop.getElapsedTime();
     stopwatch.mainLoop.start();
 
-    diagnosticParameters.airwayPressure.setValue(pressureSensor.getData().pressure);
-    diagnosticParameters.flow.setValue(flowSensor.getData().pressure);
+    //diagnosticParameters.airwayPressure.setValue(pressureSensor.getData().pressure);
+    //diagnosticParameters.flow.setValue(flowSensor.getData().pressure);
 
-    float pressureChange = (pressureSensor.getData().pressure - oldPressure)/cycleTime*1000;
-    diagnosticParameters.pressureChange.setValue(pressureChange);
-    oldPressure = pressureSensor.getData().pressure;
+    //float pressureChange = (pressureSensor.getData().pressure - oldPressure)/cycleTime*1000;
+    //diagnosticParameters.pressureChange.setValue(pressureChange);
+    //oldPressure = pressureSensor.getData().pressure;
 
 }
 
@@ -253,15 +251,19 @@ bool Triggers::flowIncrease() {
     return diagnosticParameters.flow.getValue() > allUserParams[(int)UP::FLOW_TRIGGER_THRESHOLD].getValue();
 }
 
+bool Triggers::angleReached() {
+    return (float) getPosition() > allUserParams[(int)UP::ANGLE].getValue() * STEPS_FULL_RANGE * STEP_DIVIDER;
+}
+
 void toggleEnableEncoder(){
     void(0);
     //TODO toggle global var, when encoder button is pressed
 }
 
 
-int getPosition(int tolerance=1*STEP_DIVIDER){
+int getPosition(int tolerance){
     int stepper = Stepper.getPos();
-    int angle = angleSensor.readSensor();
+    int angle = angleSensor.getData().relativePosition;
 
     // TODO handle deviating position readings
     if ((stepper-angle) < tolerance){
@@ -279,6 +281,12 @@ float motorPositionToVolume(uint16_t position){
     // TODO LUT or linear scaling to convert Stepper position to volume
     return position;
 }
+
+void checkHomeSensors() {
+    uint8_t state = ((Op<<2)+(angle<<1)+stepper);
+}
+
+
 
 bool tripleVoteHome(bool optical, bool angle, bool stepper, bool &isHome){
     // optical=notHome more reliable than optical=isHome
@@ -380,7 +388,7 @@ void UpdateMotorCurveParameters(float respiratoryRate, float pathRatio, float IE
     float t_total = 60 / respiratoryRate;
     timeEx = t_total / (IERatio + 1);
     timeIn = t_total - timeEx ;
-    int steps = stepsFullRange * pathRatio;
+    int steps = STEPS_FULL_RANGE * pathRatio;
 
     float discriminant = sq(timeIn) - 2 * (1. / ACC_IN + 1. / DEC_IN) * steps;
     if (discriminant > 0) {
