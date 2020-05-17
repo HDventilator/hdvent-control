@@ -21,6 +21,7 @@
 #include <Display.h>
 #include <LiquidCrystal.h>
 #include <Motor_Settings.h>
+#include <Optical_Sensor.h>
 
 /* ***********************
  * Constant definitions
@@ -83,6 +84,7 @@ void toggleEnableEncoder();
 Honeywell_SSC pressureSensor(0x48,0,-150,150,0.1*16383,0.9*16383);
 Honeywell_SSC flowSensor(0x68,0,0,4000,-1,1);
 Angle_Sensor angleSensor(PIN_RPS_OUT, STEPS_FS_FULL_TURN*STEP_DIVIDER, 360, 0, 1024, 10);
+Optical_Sensor opticalHomeSensor(PIN_OPTICAL_SWITCH_HOME);
 
 float timeEx=1;
 float timeIn=1;

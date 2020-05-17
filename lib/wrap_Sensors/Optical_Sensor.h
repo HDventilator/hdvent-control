@@ -8,6 +8,7 @@
 #include <Arduino.h>
 
 class Optical_Sensor : Sensor {
+public:
     Optical_Sensor(int pin);
     typedef struct{
         bool isBlocked;
