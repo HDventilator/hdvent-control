@@ -15,6 +15,8 @@ public:
     } sensor_values_t;
     bool readSensor() override ;
 
+    const sensor_values_t &getData() const;
+
     void interruptRoutine();
 
 private:

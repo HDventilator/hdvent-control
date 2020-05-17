@@ -16,3 +16,7 @@ bool Optical_Sensor::readSensor() {
 void Optical_Sensor::interruptRoutine() {
     _data.isBlocked = digitalRead(_pin);
 }
+
+const Optical_Sensor::sensor_values_t &Optical_Sensor::getData() const {
+    return _data;
+}

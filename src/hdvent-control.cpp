@@ -160,13 +160,54 @@ float motorPositionToVolume(uint16_t position){
     return position;
 }
 
-void checkHomeSensors() {
-    uint8_t state = ((opticalHomeSensor.getState()<<2)+(angleSensor.getState()<<1)+stepper);
+
+void checkHomeSensors(bool &isHome) {
+    bool optical = opticalHomeSensor.getState()==Sensor::SensorState::OK;
+    bool angle = angleSensor.getState()==Sensor::SensorState::OK;
+    bool stepper = stepperMonitor.getState()==Sensor::SensorState::OK;
+    uint8_t state = ((optical<<2)+(angle<<1)+stepper);
+    switch (state) {
+        // 0: sensor not ok
+        // 1: sensor ok
+        case 0B000:
+            // all faulty: use Stepper data
+            isHome = stepperMonitor.getData().isHome;
+            break;
+        case 0B001:
+            // only stepper good: use stepper data
+            isHome = stepperMonitor.getData().isHome;
+            break;
+        case 0B010:
+            // only angle good: use angle data
+            isHome = angleSensor.getData().isHome;
+            break;
+        case 0B100:
+            // only optical good: use optical data
+            isHome = opticalHomeSensor.getData().isBlocked;
+            break;
+        case 0B011:
+            // both angle and stepper good: use angle
+            isHome = angleSensor.getData().isHome;
+            break;
+        case 0B110:
+            // both optical and angle good: use optical
+            isHome = opticalHomeSensor.getData().isBlocked;
+            break;
+        case 0B101:
+            // both optical and stepper good: use optical
+            isHome = opticalHomeSensor.getData().isBlocked;
+            break;
+        case 0B111:
+            // all good: do triple voting
+            isHome = tripleVoteHome(opticalHomeSensor.getData().isBlocked,angleSensor.getData().isHome, stepperMonitor.getData().isHome);
+        default:
+            break;
+    }
 }
 
 
 
-bool tripleVoteHome(bool optical, bool angle, bool stepper, bool &isHome){
+bool tripleVoteHome(bool optical, bool angle, bool stepper) {
     // optical=notHome more reliable than optical=isHome
     uint8_t state = ((optical<<2)+(angle<<1)+stepper);
     switch (state) {

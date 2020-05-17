@@ -14,10 +14,10 @@ public:
     Sensor() {}
     virtual ~Sensor(){}
     virtual bool readSensor() = 0;
-    enum SensorState {OK, TIME_OUT, FAULTY};
+    enum SensorState {OK=0, TIME_OUT, FAULTY};
     virtual bool begin(){};
 
-    int getState() const {
+    SensorState getState() const {
         return _state;
     }
 

@@ -22,6 +22,7 @@
 #include <LiquidCrystal.h>
 #include <Motor_Settings.h>
 #include <Optical_Sensor.h>
+#include <Stepper_Monitor.h>
 
 /* ***********************
  * Constant definitions
@@ -66,7 +67,7 @@ void checkHomeSensors();
 
 
 
-bool tripleVoteHome(bool optical, bool angle, bool stepper, bool &isHome);
+bool tripleVoteHome(bool optical, bool angle, bool stepper);
 int getPosition(int tolerance=1*STEP_DIVIDER);
 float motorPositionToVolume(uint16_t position);
 void toggleIsHome();
@@ -85,6 +86,7 @@ Honeywell_SSC pressureSensor(0x48,0,-150,150,0.1*16383,0.9*16383);
 Honeywell_SSC flowSensor(0x68,0,0,4000,-1,1);
 Angle_Sensor angleSensor(PIN_RPS_OUT, STEPS_FS_FULL_TURN*STEP_DIVIDER, 360, 0, 1024, 10);
 Optical_Sensor opticalHomeSensor(PIN_OPTICAL_SWITCH_HOME);
+Stepper_Monitor stepperMonitor(&Stepper);
 
 float timeEx=1;
 float timeIn=1;
