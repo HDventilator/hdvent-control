@@ -30,4 +30,4 @@ add_custom_target(
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
-add_executable(Z_DUMMY_TARGET ${SRC_LIST} lib/wrap_Sensors/Optical_Sensor.cpp lib/wrap_Sensors/Optical_Sensor.h)
+add_executable(Z_DUMMY_TARGET ${SRC_LIST} lib/wrap_Sensors/Optical_Sensor.cpp lib/wrap_Sensors/Optical_Sensor.h include/hdvent-control.h)
