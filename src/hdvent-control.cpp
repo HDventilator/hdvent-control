@@ -6,8 +6,7 @@
 #include <avr/wdt.h> // watchdog library
 #include <powerSTEP01ArduinoLibrary.h>
 #include <Honeywell_SSC.h>
-#include "Pin_Definitions_Uno.h"
-#include <Wire.h>
+#include "Pin_Definitions_Mega.h"
 #include <angleSensor.h>
 #include "User_Parameter.h"
 #include "Diagnostic_Parameter.h"
