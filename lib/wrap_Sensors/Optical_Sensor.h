@@ -7,7 +7,7 @@
 #include "SensorWrapper.h"
 #include <Arduino.h>
 
-class Optical_Sensor : Sensor {
+class Optical_Sensor : public Sensor {
 public:
     Optical_Sensor(int pin);
     typedef struct{

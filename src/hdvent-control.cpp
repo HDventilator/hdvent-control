@@ -161,7 +161,7 @@ float motorPositionToVolume(uint16_t position){
 }
 
 void checkHomeSensors() {
-    uint8_t state = ((<<2)+(angle<<1)+stepper);
+    uint8_t state = ((opticalHomeSensor.getState()<<2)+(angleSensor.getState()<<1)+stepper);
 }
 
 
