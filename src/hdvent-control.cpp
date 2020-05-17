@@ -160,7 +160,8 @@ float motorPositionToVolume(uint16_t position){
     return position;
 }
 
-
+//! Use the optical switch the angle Sensor and the stepper driver data to determine if the stepper is at home position
+//! \param isHome
 void checkHomeSensors(bool &isHome) {
     bool optical = opticalHomeSensor.getState()==Sensor::SensorState::OK;
     bool angle = angleSensor.getState()==Sensor::SensorState::OK;
@@ -206,7 +207,11 @@ void checkHomeSensors(bool &isHome) {
 }
 
 
-
+//! Voting logic for three boolean inputs
+//! \param optical
+//! \param angle
+//! \param stepper
+//! \return
 bool tripleVoteHome(bool optical, bool angle, bool stepper) {
     // optical=notHome more reliable than optical=isHome
     uint8_t state = ((optical<<2)+(angle<<1)+stepper);
@@ -263,10 +268,6 @@ void toggleIsHome(){
 }
 
 
-bool getStatusFlag(int r, int n){
-    int flag = ((r >> (n-1)) & 0x01);
-    return(flag);
-}
 
 //! \brief move the step motor using the given parameters.
 //!
