@@ -11,13 +11,15 @@ _mode(mode)
     switch (_mode.controlMode){
         case ControlMode::PC:
             _param = pressure;
+            _bypass = false;
             break;
         case ControlMode::VC:
             _param = flow;
+            _bypass = false;
             break;
         case ControlMode::VN:
             _param = pressure;
-
+            _bypass = true;
             break;
     }
 }
@@ -51,5 +53,10 @@ float VentilationController::calcSpeed() {
     _pidSetpoint = calcSetPoint();
     _pidIn = _param.getValue();
     _pid.Compute();
-    return _pidOut;
+    if (_bypass){
+        return _pidSetpoint;
+    }
+    else {
+        return _pidOut;
+    }
 }

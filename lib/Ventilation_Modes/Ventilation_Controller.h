@@ -24,6 +24,7 @@ public:
 private:
     VentilationMode _mode;
     PID _pid;
+    bool _bypass;
     double _pidIn;
     double _pidOut;
     double _pidSetpoint;
