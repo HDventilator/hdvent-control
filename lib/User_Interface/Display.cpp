@@ -38,10 +38,10 @@ Display::Display(LiquidCrystal &lcd, User_Parameter* allUserParameters, const Ve
 
 }
 
-Display::Display(LiquidCrystal &lcd, User_Parameter* allUserParameters) : _lcd(12, 11, 10, 9, 8, 7) {
+Display::Display(LiquidCrystal &lcd, User_Parameter* allUserParameters, VentilationMode* mode) : _lcd(12, 11, 10, 9, 8, 7) {
     _lcd = lcd;
     _lcd.begin(20, 4);
-    _mode = &OL_CMV;
+    _mode = mode;
 }
 
 void Display::updateDisplay() {

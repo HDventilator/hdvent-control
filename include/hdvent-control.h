@@ -119,7 +119,7 @@ struct stopwatches_t{
 
 float pathRatio=1;
 
-VentilationMode mode=VC_CMV ;
+VentilationMode mode= OL_CMV ;
 VentilationState State = STARTUP;
 
 float oldPressure;
@@ -132,9 +132,9 @@ float motorSpeed;
 PID pressureControlPID();
 
 VentilationController controller(OL_CMV, diagnosticParameters.airwayPressure,diagnosticParameters.flow);
+LiquidCrystal lcd(PIN_LCD_RS, PIN_LCD_RW, PIN_LCD_EN, PIN_LCD_D4, PIN_LCD_D5, PIN_LCD_D6, PIN_LCD_D7);
 
-LiquidCrystal lcd(PIN_LCD_RS, PIN_LCD_EN, PIN_LCD_D4, PIN_LCD_D5, PIN_LCD_D6, PIN_LCD_D7);
 
-Display display(lcd, allUserParams);
+Display display(lcd, allUserParams, &mode);
 
 #endif //HDVENT_CONTROL_HDVENT_CONTROL_H

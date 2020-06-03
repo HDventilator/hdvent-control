@@ -10,6 +10,7 @@ User_Parameter::User_Parameter(float initialValue, float minOutValue, float maxO
     _min = minOutValue;
     _max = maxOutValue;
     _value = initialValue;
+    _displayValue = initialValue;
     _minIn = minInValue;
     _maxIn = maxInValue;
     lcdString = string;
