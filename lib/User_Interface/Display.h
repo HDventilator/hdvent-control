@@ -25,13 +25,14 @@ public:
     enum menuState_t {EDIT_SETTINGS, VIEW};
 
     void updateDisplay();
-    void printParameterValue();
+    void printParameterValue(float value);
     void displayParameterValue();
 
     uint8_t getParameterIndex();
     void safeParams();
     void loadParams();
     void printStaticText();
+    void incrementToPos(uint8_t i);
 
 
     float _parametersMemory[4];
@@ -42,7 +43,9 @@ public:
     uint8_t _activeParamIndex;
     editState_t _editState;
     menuState_t _menuState;
-     uint8_t  _markerPosition;
+     uint8_t  _index;
+     uint8_t _cursorRow;
+     uint8_t _cursorCol;
     int *markerIncrementer;
     int *_valueIncrementer;
     bool *_toggleEditState;
