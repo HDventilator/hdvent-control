@@ -42,6 +42,7 @@ Display::Display(LiquidCrystal &lcd, User_Parameter* allUserParameters, Ventilat
     _lcd = lcd;
     _lcd.begin(20, 4);
     _mode = mode;
+    _allUserParameters = allUserParameters;
 }
 
 void Display::updateDisplay() {
