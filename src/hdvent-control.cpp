@@ -56,6 +56,7 @@ void loop(){
     cycleTime = stopwatch.mainLoop.getElapsedTime();
     stopwatch.mainLoop.start();
 
+
     //diagnosticParameters.airwayPressure.setValue(pressureSensor.getData().pressure);
     //diagnosticParameters.flow.setValue(flowSensor.getData().pressure);
 

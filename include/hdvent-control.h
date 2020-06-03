@@ -135,4 +135,6 @@ VentilationController controller(OL_CMV, diagnosticParameters.airwayPressure,dia
 
 LiquidCrystal lcd(12, 11, 10, 9, 8, 7);
 
+//Display display(lcd, &allUserParams, &OL_CMV, )
+
 #endif //HDVENT_CONTROL_HDVENT_CONTROL_H
