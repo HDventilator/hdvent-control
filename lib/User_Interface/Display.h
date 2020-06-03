@@ -21,6 +21,7 @@ float roundNumber(float a, uint8_t n){
 class Display {
 public:
     Display(LiquidCrystal &lcd, User_Parameter* allUserParameters, const VentilationMode* mode, int* cursorIncrementer, int* valueIncrementer, bool* toggleEditState, bool* toggleMenuState);
+    Display(LiquidCrystal &lcd, User_Parameter* allUserParameters);
     enum editState_t {EDIT_ENTRY, NAVIGATE, VIEW_ONLY};
     enum menuState_t {EDIT_SETTINGS, VIEW};
 
@@ -33,10 +34,12 @@ public:
     void loadParams();
     void printStaticText();
     void incrementToPos(uint8_t i);
+    void printUserParamValues();
 
+    void setMode(const VentilationMode *mode);
 
     float _parametersMemory[4];
-
+private:
     uint8_t _valueColumnPos=5;
     const VentilationMode *_mode;
     uint8_t columnValues;

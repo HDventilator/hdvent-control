@@ -27,7 +27,7 @@ void setup()
     attachInterrupt(digitalPinToInterrupt(PIN_OPTICAL_SWITCH_HOME), toggleIsHome, RISING);
     attachInterrupt(digitalPinToInterrupt(PIN_ENCO_BTN), toggleEnableEncoder, RISING);
 
-    ConfigureStepperDriver();
+    //ConfigureStepperDriver();
     pressureSensor.begin();
 
     // Start SPI
@@ -49,12 +49,17 @@ void setup()
     // adjust sensor state if connected/disconnected
     opticalHomeSensor.setState(Sensor::DISCONNECTED);
     angleSensor.setState(Sensor::DISCONNECTED);
+    display.setMode(&OL_CMV);
 }
 
 
 void loop(){
     cycleTime = stopwatch.mainLoop.getElapsedTime();
     stopwatch.mainLoop.start();
+    lcd.setCursor(0,0);
+    lcd.print("Hello World");
+    Serial.println("Hello World");
+    //display.printStaticText();
 
 
     //diagnosticParameters.airwayPressure.setValue(pressureSensor.getData().pressure);

@@ -38,6 +38,12 @@ Display::Display(LiquidCrystal &lcd, User_Parameter* allUserParameters, const Ve
 
 }
 
+Display::Display(LiquidCrystal &lcd, User_Parameter* allUserParameters) : _lcd(12, 11, 10, 9, 8, 7) {
+    _lcd = lcd;
+    _lcd.begin(20, 4);
+    _mode = &OL_CMV;
+}
+
 void Display::updateDisplay() {
     switch(_editState){
         case VIEW_ONLY:{
@@ -142,9 +148,22 @@ void Display::printStaticText() {
     }
 }
 
+void Display::printUserParamValues() {
+    for (int i=0; i < (_mode->nParams); i++){
+        incrementToPos(i);
+        _lcd.setCursor(_cursorCol, _cursorRow);
+        _lcd.print(_allUserParameters[(int)_mode->parameters[i]].lcdString);
+        printParameterValue(_allUserParameters[(int)_mode->parameters[i]].getValue());
+    }
+}
+
 void Display::incrementToPos(uint8_t i) {
     uint8_t nRows=3;
 
     _cursorRow = i%nRows + 1;
     _cursorCol = i/nRows * 10;
+}
+
+void Display::setMode(const VentilationMode *mode) {
+    _mode = mode;
 }
