@@ -15,7 +15,7 @@ const char USER_PARAMETER_DISPLAY_ID_PREFIX[] = "DM";
 class User_Parameter {
 public:
     User_Parameter(){};
-    User_Parameter(float initialValue, float minOutValue, float maxOutValue, char string[], float minInValue=0, float maxInValue=1);
+    User_Parameter(float initialValue, float minOutValue, float maxOutValue, char string[], float minInValue=0, float maxInValue=1024, bool invert=false);
 
     float getValue() const;
 
@@ -23,7 +23,7 @@ public:
     char* lcdString;
     float step;
     float getDisplayValue() const;
-
+    void loadValue(int data);
     void setDisplayValue(float displayValue);
     package_struct_float_t getValuePackage();
     package_struct_float_t getMinPackage();
@@ -40,9 +40,10 @@ private:
     float _minIn;
     float _maxIn;
     bool _valueChanged;
-    float transferFunction(int data);
+    float transferFunction(float valueIn);
     package_struct_float_t _package;
     void _packStruct(float value);
+    bool _invert;
 
 };
 

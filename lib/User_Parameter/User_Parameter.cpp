@@ -6,7 +6,7 @@
 #include "User_Parameter.h"
 #include <CRC32.h>
 
-User_Parameter::User_Parameter(float initialValue, float minOutValue, float maxOutValue, char string[], float minInValue, float maxInValue) {
+User_Parameter::User_Parameter(float initialValue, float minOutValue, float maxOutValue, char string[], float minInValue, float maxInValue, bool invert) {
     _min = minOutValue;
     _max = maxOutValue;
     _value = initialValue;
@@ -15,6 +15,7 @@ User_Parameter::User_Parameter(float initialValue, float minOutValue, float maxO
     _maxIn = maxInValue;
     lcdString = string;
     step = (_max-_min)/200;
+    _invert = invert;
 
 }
 
@@ -23,12 +24,13 @@ float User_Parameter::getValue() const {
 }
 
 void User_Parameter::setValue(float value) {
-    float _diff = value -_value;
-    _valueChanged = _diff > step;
     _value = value;
 }
 
-float User_Parameter::transferFunction(int valueIn){
+float User_Parameter::transferFunction(float valueIn){
+    if (_invert){
+        valueIn = _maxIn - valueIn;
+    }
     return ((float)valueIn-_minIn) / (_maxIn-_minIn) * (_max-_min) + _min;
 }
 
@@ -81,4 +83,11 @@ void User_Parameter::_packStruct(float value) {
 
 bool User_Parameter::hasChanged() const {
     return _valueChanged;
+}
+
+void User_Parameter::loadValue(int data) {
+    _displayValue = transferFunction(data);
+    float _diff = _displayValue -_value;
+    _valueChanged = _diff > step;
+
 }

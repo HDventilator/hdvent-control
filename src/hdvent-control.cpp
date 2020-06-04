@@ -36,15 +36,15 @@ void setup()
     SPI.begin();
     SPI.setDataMode(SPI_MODE3);
 
-    allUserParams[(int) UP::RESPIRATORY_RATE] = User_Parameter(15, 5, 35, "freq"); //  breaths per minute
-    allUserParams[(int) UP::TIDAL_VOLUME] = User_Parameter(250, 0, 650, "VTid"); // milliliters
-    allUserParams[(int) UP::T_IN] = User_Parameter(2, 0.6, 4,"T_in"); // Inspiration time
-    allUserParams[(int) UP::INSPIRATORY_PRESSURE] = User_Parameter(20, 5, 50, "P_aw"); //  millibar
-    allUserParams[(int) UP::FLOW] = User_Parameter(20, 5, 50,"Flow"); //  milliliters per second
-    allUserParams[(int) UP::D_PRESSURE_SUPP] = User_Parameter(20, 5, 50, "Psup"); //  millibar
-    allUserParams[(int) UP::PRESSURE_TRIGGER_THRESHOLD] = User_Parameter(5, 5, 50, "Pthr"); //  millibar per second
-    allUserParams[(int) UP::FLOW_TRIGGER_THRESHOLD] = User_Parameter(20, 5, 50, "Fthr"); //  milliliters per second
-    allUserParams[(int) UP::ANGLE] = User_Parameter(0, 0, 1, "angl"); //  milliliters per second
+    allUserParams[(int) UP::RESPIRATORY_RATE] = User_Parameter(15, 5, 35, "freq", 0, 1024, true); //  breaths per minute
+    allUserParams[(int) UP::TIDAL_VOLUME] = User_Parameter(250, 0, 650, "VTid", 0, 1024, true); // milliliters
+    allUserParams[(int) UP::T_IN] = User_Parameter(2, 0.6, 4,"T_in", 0, 1024, true); // Inspiration time
+    allUserParams[(int) UP::INSPIRATORY_PRESSURE] = User_Parameter(20, 5, 50, "P_aw", 0, 1024, true); //  millibar
+    allUserParams[(int) UP::FLOW] = User_Parameter(20, 5, 50,"Flow", 0, 1024, true); //  milliliters per second
+    allUserParams[(int) UP::D_PRESSURE_SUPP] = User_Parameter(20, 5, 50, "Psup", 0, 1024, true); //  millibar
+    allUserParams[(int) UP::PRESSURE_TRIGGER_THRESHOLD] = User_Parameter(5, 5, 50, "Pthr", 0, 1024, true); //  millibar per second
+    allUserParams[(int) UP::FLOW_TRIGGER_THRESHOLD] = User_Parameter(20, 5, 50, "Fthr", 0, 1024, true); //  milliliters per second
+    allUserParams[(int) UP::ANGLE] = User_Parameter(0, 0, 1, "angl", 0, 1024, true); //  milliliters per second
 
     lcd.begin(20,4);
     lcd.flush();
@@ -60,10 +60,13 @@ void setup()
 void loop(){
     cycleTime = stopwatch.mainLoop.getElapsedTime();
     stopwatch.mainLoop.start();
-    saveUserParams = digitalRead(PIN_)
-    display.printStaticText();
-    delay(1000);
+    saveUserParams = digitalRead(PIN_EDIT_MODE);
+    UserInput.update();
 
+    display.printUserParamValues();
+
+    allUserParams[(int) UP::RESPIRATORY_RATE].loadValue(analogRead(PIN_POTI_RR));
+    allUserParams[(int) UP::T_IN].loadValue(analogRead(PIN_POTI_IE));
 
     //diagnosticParameters.airwayPressure.setValue(pressureSensor.getData().pressure);
     //diagnosticParameters.flow.setValue(flowSensor.getData().pressure);

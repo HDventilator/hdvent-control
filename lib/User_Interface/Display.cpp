@@ -154,7 +154,7 @@ void Display::printUserParamValues() {
         incrementToPos(i);
         _lcd.setCursor(_cursorCol, _cursorRow);
         _lcd.print(_allUserParameters[(int)_mode->parameters[i]].lcdString);
-        printParameterValue(_allUserParameters[(int)_mode->parameters[i]].getValue());
+        printParameterValue(_allUserParameters[(int)_mode->parameters[i]].getDisplayValue());
     }
 }
 
