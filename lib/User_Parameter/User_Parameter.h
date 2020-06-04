@@ -30,6 +30,8 @@ public:
     package_struct_float_t getMaxPackage();
     package_struct_float_t get_displayValuePackage();
 
+    bool hasChanged() const;
+
 private:
     float _displayValue;
     float _value;
@@ -37,6 +39,7 @@ private:
     float _max;
     float _minIn;
     float _maxIn;
+    bool _valueChanged;
     float transferFunction(int data);
     package_struct_float_t _package;
     void _packStruct(float value);

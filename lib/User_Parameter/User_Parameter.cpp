@@ -23,6 +23,8 @@ float User_Parameter::getValue() const {
 }
 
 void User_Parameter::setValue(float value) {
+    float _diff = value -_value;
+    _valueChanged = _diff > step;
     _value = value;
 }
 
@@ -75,4 +77,8 @@ void User_Parameter::_packStruct(float value) {
     CRC32 crc;
     crc.update((uint8_t*) &_package, IDENTIFIER_LENGTH+4);
     _package.checksum = crc.finalize();
+}
+
+bool User_Parameter::hasChanged() const {
+    return _valueChanged;
 }

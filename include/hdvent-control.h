@@ -23,6 +23,7 @@
 #include <Motor_Settings.h>
 #include <Optical_Sensor.h>
 #include <Stepper_Monitor.h>
+#include <User_Input.h>
 
 /* ***********************
  * Constant definitions
@@ -124,6 +125,7 @@ VentilationState State = STARTUP;
 
 float oldPressure;
 unsigned long cycleTime =0;
+bool saveUserParams = false;
 
 
 Sensor::state_t stepperPositionState = Sensor::OK;
@@ -136,5 +138,6 @@ LiquidCrystal lcd(PIN_LCD_RS, PIN_LCD_RW, PIN_LCD_EN, PIN_LCD_D4, PIN_LCD_D5, PI
 
 
 Display display(lcd, allUserParams, &mode);
+User_Input UserInput(allUserParams, &mode, &saveUserParams);
 
 #endif //HDVENT_CONTROL_HDVENT_CONTROL_H

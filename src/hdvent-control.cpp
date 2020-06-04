@@ -60,6 +60,7 @@ void setup()
 void loop(){
     cycleTime = stopwatch.mainLoop.getElapsedTime();
     stopwatch.mainLoop.start();
+    saveUserParams = digitalRead(PIN_)
     display.printStaticText();
     delay(1000);
 
