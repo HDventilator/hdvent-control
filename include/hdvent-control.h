@@ -43,7 +43,7 @@ int const STEPS_IN_HOMING = 80; // steps to move in when trying to find home
 int const STEPS_FS_FULL_TURN = 200; // how many full steps for one full turn of the motor
 
 // state flags
-enum VentilationState {START_IN, MOVING_IN, HOLDING_IN, START_EX, MOVING_EX, HOLDING_EX, STARTUP, END_IN, END_EX, HOMING_EX, HOMING_IN, IDLE};
+enum VentilationState {START_IN=0, MOVING_IN=1, HOLDING_IN=2, START_EX=3, MOVING_EX=4, HOLDING_EX=5, STARTUP=6, END_IN=7, END_EX=8, HOMING_EX=9, IDLE=10, START_HOMING=11};
 enum DisplayState {HOME, };
 
 
@@ -60,12 +60,14 @@ void PrintMotorCurveParameters();
 bool isBusy();
 
 void moveStepper(int steps, int speed, int acc, int dec, int dir);
-VentilationState ventilationStateMachine(VentilationState state);
+void runStepper(int speed, int acc, int dec, int dir);
+
+VentilationState ventilationStateMachine(VentilationState &state);
 int readStatusRegister();
 bool getStatusFlag(int r, int n);
 
-void checkHomeSensors();
-
+void checkHomeSensors(bool& isHome);
+void readSensors();
 
 
 bool tripleVoteHome(bool optical, bool angle, bool stepper);
@@ -73,6 +75,7 @@ int getPosition(int tolerance=1*STEP_DIVIDER);
 float motorPositionToVolume(uint16_t position);
 void toggleIsHome();
 void toggleEnableEncoder();
+void readUserInput();
 
 
 /* *****************************
@@ -116,17 +119,21 @@ struct stopwatches_t{
     Stopwatch expiration;
     Stopwatch mainLoop;
     Stopwatch pressureRate;
+    Stopwatch homing;
 } stopwatch;
 
 float pathRatio=1;
 
 VentilationMode mode= OL_CMV ;
-VentilationState State = STARTUP;
+VentilationState ventilationState = STARTUP;
 
 float oldPressure;
 unsigned long cycleTime =0;
 bool saveUserParams = false;
+bool isHome=false;
+bool runVentilation=true;
 
+bool debuggingOn = true;
 
 Sensor::state_t stepperPositionState = Sensor::OK;
 Sensor::state_t anglePositionState = Sensor::OK;
@@ -136,7 +143,7 @@ PID pressureControlPID();
 VentilationController controller(OL_CMV, diagnosticParameters.airwayPressure,diagnosticParameters.flow);
 LiquidCrystal lcd(PIN_LCD_RS, PIN_LCD_RW, PIN_LCD_EN, PIN_LCD_D4, PIN_LCD_D5, PIN_LCD_D6, PIN_LCD_D7);
 
-
+uint8_t potiPins[4] = {PIN_POTI_AD, PIN_POTI_IE, PIN_POTI_TV, PIN_POTI_RR};
 Display display(lcd, allUserParams, &mode);
 User_Input UserInput(allUserParams, &mode, &saveUserParams);
 

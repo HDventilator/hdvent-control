@@ -17,11 +17,19 @@ void setup()
     pinMode(MISO, OUTPUT);
     pinMode(SCK, OUTPUT);
 
+    //
+    pinMode(10, INPUT);
+    pinMode(11, INPUT);
+    pinMode(12, INPUT);
+    pinMode(13, INPUT);
+
     // Reset powerSTEP and set CS
     digitalWrite(nSTBY_nRESET_PIN, HIGH);
     digitalWrite(nSTBY_nRESET_PIN, LOW);
     digitalWrite(nSTBY_nRESET_PIN, HIGH);
     digitalWrite(nCS_PIN, HIGH);
+
+
 
     pinMode(PIN_LCD_RW, INPUT);
 
@@ -29,8 +37,7 @@ void setup()
     attachInterrupt(digitalPinToInterrupt(PIN_OPTICAL_SWITCH_HOME), toggleIsHome, RISING);
     attachInterrupt(digitalPinToInterrupt(PIN_ENCO_BTN), toggleEnableEncoder, RISING);
 
-    //ConfigureStepperDriver();
-    pressureSensor.begin();
+
 
     // Start SPI
     SPI.begin();
@@ -46,6 +53,9 @@ void setup()
     allUserParams[(int) UP::FLOW_TRIGGER_THRESHOLD] = User_Parameter(20, 5, 50, "Fthr", 0, 1024, true); //  milliliters per second
     allUserParams[(int) UP::ANGLE] = User_Parameter(0, 0, 1, "angl", 0, 1024, true); //  milliliters per second
 
+    ConfigureStepperDriver();
+    pressureSensor.begin();
+
     lcd.begin(20,4);
     lcd.flush();
     lcd.home();
@@ -54,39 +64,137 @@ void setup()
     opticalHomeSensor.setState(Sensor::DISCONNECTED);
     angleSensor.setState(Sensor::DISCONNECTED);
 
+    ventilationState = IDLE;
 }
 
 
 void loop(){
     cycleTime = stopwatch.mainLoop.getElapsedTime();
     stopwatch.mainLoop.start();
-    saveUserParams = digitalRead(PIN_EDIT_MODE);
-    UserInput.update();
 
-    display.printUserParamValues();
+    //readUserInput();
+    //readSensors();
+    //checkHomeSensors(isHome);
 
-    allUserParams[(int) UP::RESPIRATORY_RATE].loadValue(analogRead(PIN_POTI_RR));
-    allUserParams[(int) UP::T_IN].loadValue(analogRead(PIN_POTI_IE));
+    //ventilationStateMachine(ventilationState);
+    Stepper.move(DIR_EX, 20000);
+    delay(1000);
 
-    //diagnosticParameters.airwayPressure.setValue(pressureSensor.getData().pressure);
-    //diagnosticParameters.flow.setValue(flowSensor.getData().pressure);
-
-    //float pressureChange = (pressureSensor.getData().pressure - oldPressure)/cycleTime*1000;
-    //diagnosticParameters.pressureChange.setValue(pressureChange);
-    //oldPressure = pressureSensor.getData().pressure;
+    if (debuggingOn){
+        Serial.print("ventilationState   ");Serial.println(ventilationState);
+        Serial.print("runVentilation   ");Serial.println(runVentilation);
+        Serial.print("StepperState    "); Serial.println(Stepper.getStatus());
+        Serial.println((int)Stepper.getStatus(), HEX); // print STATUS register
+    }
 
 }
 
-VentilationState ventilationStateMachine( VentilationState state){
+void readUserInput(){
+    // read Buttons and Switches
+    saveUserParams = digitalRead(PIN_EDIT_MODE);
+    runVentilation = digitalRead(PIN_VENTI_MODE);
+
+
+    // read all four potis and update params
+    for ( int i=0;  i<(mode.nParams); i++)
+    {
+        allUserParams[(int)mode.parameters[i]].loadValue(analogRead(potiPins[i]));
+    }
+
+
+    UserInput.update();
+    display.printUserParamValues();
+}
+
+void readSensors(){
+    // read pressure Sensors
+    diagnosticParameters.airwayPressure.setValue(pressureSensor.getData().pressure);
+    diagnosticParameters.flow.setValue(flowSensor.getData().pressure);
+
+    float pressureChange = (pressureSensor.getData().pressure - oldPressure)/cycleTime*1000;
+    diagnosticParameters.pressureChange.setValue(pressureChange);
+    oldPressure = pressureSensor.getData().pressure;
+
+    // read position sensors
+    stepperMonitor.readSensor();
+    angleSensor.readSensor();
+    opticalHomeSensor.readSensor();
+
+}
+
+VentilationState ventilationStateMachine( VentilationState &state){
     switch (state){
-        case HOLDING_EX:
-            if (controller.inspirationTrigger()) {
-                state = MOVING_IN;
+        case START_HOMING: // executed when transitioning to HOMING_EX
+            // stepper driver doesn't know absolute home position
+            stepperMonitor.setState(Sensor::FAULTY);
+
+            // start full revolution of stepper in ex direction to find home position
+            moveStepper(STEPS_FS_FULL_TURN*STEP_DIVIDER, 200, 400, 400, DIR_EX);
+
+            state = HOMING_EX;
+            break;
+
+        case HOMING_EX:
+
+            // home position is recognized
+            if (isHome){
+                Stepper.hardStop();
+
+                // store home position in stepper driver memory
+                Stepper.resetPos();
+                state=IDLE;
+            }
+
+            // home not found but stepper still moving
+            else if (Stepper.busyCheck()){
+                state=HOMING_EX;
+            }
+
+            // stepper finished full revolution, but home not found
+            else {
+                // store home position in stepper driver memory
+                Stepper.resetPos();
+
+                // home not found, thus angle sensor and optical sensor are faulty
+                angleSensor.setState(Sensor::FAULTY);
+                opticalHomeSensor.setState(Sensor::FAULTY);
+                state=IDLE;
             }
             break;
 
+        case IDLE: // executed at startup
+            if (runVentilation){
+                if (isHome){
+                    state = START_IN;
+                }
+                else {
+                    state = START_HOMING;
+                }
+            }
+            else{
+                state = IDLE;
+            }
+            break;
+
+
+
+        case HOLDING_EX:
+
+            if (controller.inspirationTrigger()) {
+                state = MOVING_IN;
+            }
+
+            break;
+
         case START_IN:
+            // record time after start of inspiration
             stopwatch.inspiration.start();
+
+            // start the setpoint generation for the controller
+            controller.startRamp(1000, 200);
+
+
+            state =MOVING_IN;
             break;
 
         case MOVING_IN:
@@ -102,7 +210,7 @@ VentilationState ventilationStateMachine( VentilationState state){
         case END_IN:
             Stepper.hardStop();
             stopwatch.holdingIn.start();
-            state=HOLDING_IN;
+            state = HOLDING_IN;
 
         case HOLDING_IN:
             state = MOVING_EX;
@@ -114,6 +222,7 @@ VentilationState ventilationStateMachine( VentilationState state){
 
         case START_EX:
             stopwatch.expiration.start();
+            runStepper(500, 400, 400, DIR_EX);
             state=MOVING_EX;
             break;
 
@@ -122,11 +231,21 @@ VentilationState ventilationStateMachine( VentilationState state){
             if (stopwatch.expiration.getElapsedTime() > 50){
                 diagnosticParameters.peep.setValue(pressureSensor.getData().pressure);
             }
-            state = END_EX;
+            if (isHome){
+                state = END_EX;
+            }
+
             break;
 
         case END_EX:
-            state = HOLDING_EX;
+            Stepper.hardStop();
+
+            if (runVentilation){
+                state = HOLDING_EX;
+            }
+            else {
+                state = IDLE;
+            }
     }
 }
 
@@ -314,6 +433,36 @@ void moveStepper(int steps, int speed, int acc, int dec, int dir) {
     Stepper.setAcc(acc);
     Stepper.setDec(dec);
     Stepper.move(dir, steps);
+}
+
+//! \brief run the step motor using the given parameters.
+//!
+//! The motor driver will accelerate with a constant acceleration
+//! until the maximal speed is achieved. For deceleration the inverse
+//! process is used.
+//!
+//! \param steps : number of steps to move
+//! \param speed : maximal speed in steps/s
+//! \param acc : acceleration in steps/s^2
+//! \param acc : deceleration in steps/s^2
+//! \param dir : indicate the rotate direction
+void runStepper(int speed, int acc, int dec, int dir) {
+    if (dir==DIR_EX){
+        Stepper.setRunKVAL(RUN_KVAL_EX);
+        Stepper.setAccKVAL(ACC_KVAL_EX);
+        Stepper.setDecKVAL(DEC_KVAL_EX);
+        Stepper.setHoldKVAL(HOLD_KVAL_EX);
+    }
+    else {
+        Stepper.setRunKVAL(RUN_KVAL_IN);
+        Stepper.setAccKVAL(ACC_KVAL_IN);
+        Stepper.setDecKVAL(DEC_KVAL_IN);
+        Stepper.setHoldKVAL(HOLD_KVAL_IN);
+    }
+    Stepper.setMaxSpeed(speed);
+    Stepper.setAcc(acc);
+    Stepper.setDec(dec);
+    Stepper.run(dir, speed);
 }
 
 //! take user-set parameters and calculate the parameters for the motor curve,

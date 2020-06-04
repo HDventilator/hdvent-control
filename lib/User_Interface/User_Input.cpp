@@ -17,6 +17,9 @@ User_Input::User_Input(User_Parameter *allUserParameters, VentilationMode *mode,
 
 void User_Input::update() {
     switch(_inputState){
+        case EDIT_VENTILATION_MODE:
+            break;
+
         case VIEW_SETTINGS:
             {
                 bool valueChanged=false;
@@ -43,6 +46,10 @@ void User_Input::update() {
             }
 
         case SAVE_SETTINGS:
+            for ( int i=0;  i<(_mode->nParams); i++)
+            {
+                _allUserParameters[(int)_mode->parameters[i]].saveValue();
+            }
             _inputState = VIEW_SETTINGS;
             break;
 

@@ -91,3 +91,8 @@ void User_Parameter::loadValue(int data) {
     _valueChanged = _diff > step;
 
 }
+
+void User_Parameter::saveValue() {
+    _value = _displayValue;
+
+}

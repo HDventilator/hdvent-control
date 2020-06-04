@@ -15,7 +15,7 @@ const unsigned int ALLOWED_USER_EDIT_TIME = 30000; //milliseconds
 class User_Input {
 public:
     User_Input(User_Parameter *allUserParameters, VentilationMode *mode, bool *do_save);
-    enum input_state_t {EDIT_SETTINGS, VIEW_SETTINGS, SAVE_SETTINGS, ENTER_EDIT};
+    enum input_state_t {EDIT_SETTINGS, VIEW_SETTINGS, SAVE_SETTINGS, ENTER_EDIT, EDIT_VENTILATION_MODE};
     void update();
 private:
     input_state_t _inputState;

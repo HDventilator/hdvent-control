@@ -10,7 +10,7 @@ int const PIN_OPTICAL_END = 9;
 int const MANUAL_CYCLE_SWITCH_PIN = 8;
 
 // Pin definitions for the X-NUCLEO-IHM03A1
-int const nCS_PIN = 10;
+int const nCS_PIN = 53;
 int const STCK_PIN = 9;
 int const nSTBY_nRESET_PIN = 8;
 int const nBUSY_PIN = 4;
@@ -25,7 +25,7 @@ int const PIN_HEAT_SENSE = A6;
 int const PIN_POTI_RR = A7;
 int const PIN_POTI_TV = A8;
 int const PIN_POTI_IE = A9;
-int const PIN_AD_SENSI = A10;
+int const PIN_POTI_AD = A10;
 
 int const PIN_STEPPER_FLAG = 2;
 int const PIN_STEPPER_BUSY = 4;

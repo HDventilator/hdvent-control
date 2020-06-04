@@ -25,6 +25,7 @@ public:
     float getDisplayValue() const;
     void loadValue(int data);
     void setDisplayValue(float displayValue);
+    void saveValue();
     package_struct_float_t getValuePackage();
     package_struct_float_t getMinPackage();
     package_struct_float_t getMaxPackage();
