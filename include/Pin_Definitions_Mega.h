@@ -47,13 +47,17 @@ int const PIN_I2C_SCL = 21;
 int const PIN_STATUS3_FP_R = 23;
 int const PIN_STATUS3_FP_G = 25;
 int const PIN_ALARM_ENABLE = 27;
-int const PIN_ALARM_MUTE = 29;
-int const PIN_SD_VENTI = 31;
-int const PIN_VENTI_MODE = 35;
-int const PIN_ENCO_A = 37;
-int const PIN_ENCO_B = 39;
-int const PIN_ENCO_BTN = 41;
-int const PIN_HEAT_ENABLE = 36;
+
+int const PIN_SD_VENTI = 41;
+int const PIN_VENTI_MODE = 43;
+int const PIN_ENCO_A = 40;
+int const PIN_ENCO_B = 42;
+int const PIN_ENCO_BTN = 3;
+int const PIN_HEAT_ENABLE = 45;
+
+int const PIN_EDIT_MODE = 37;
+int const PIN_ALARM_MUTE = 39;
+
 
 int const PIN_LCD_RS = 26;
 int const PIN_LCD_RW = 28;
