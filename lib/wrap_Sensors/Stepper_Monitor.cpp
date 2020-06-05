@@ -4,9 +4,9 @@
 
 #include "Stepper_Monitor.h"
 
-Stepper_Monitor::Stepper_Monitor(powerSTEP *stepper) {
+Stepper_Monitor::Stepper_Monitor(powerSTEP *stepper, int homeTolerance) {
     _stepper = stepper;
-    _homeTolerance=2;
+    _homeTolerance=homeTolerance;
 
 }
 

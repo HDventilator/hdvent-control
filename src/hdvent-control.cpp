@@ -64,6 +64,10 @@ void setup()
     opticalHomeSensor.setState(Sensor::DISCONNECTED);
     angleSensor.setState(Sensor::DISCONNECTED);
 
+    // stepper cannot know absolute position on startup
+    stepperMonitor.setState(Sensor::FAULTY);
+
+    // initial state for state machine
     ventilationState = IDLE;
 }
 
@@ -73,18 +77,23 @@ void loop(){
     stopwatch.mainLoop.start();
 
     //readUserInput();
-    //readSensors();
-    //checkHomeSensors(isHome);
+    readSensors();
+    checkHomeSensors(isHome);
 
-    //ventilationStateMachine(ventilationState);
-    Stepper.move(DIR_EX, 20000);
-    delay(1000);
+    ventilationStateMachine(ventilationState);
+
 
     if (debuggingOn){
-        Serial.print("ventilationState   ");Serial.println(ventilationState);
-        Serial.print("runVentilation   ");Serial.println(runVentilation);
-        Serial.print("StepperState    "); Serial.println(Stepper.getStatus());
-        Serial.println((int)Stepper.getStatus(), HEX); // print STATUS register
+        if (true) {
+            // Serial.print("Stepper pos   ");Serial.println(stepperMonitor.getData().relativePosition);
+            //Serial.print("home?   "); Serial.println(isHome);
+            Serial.print("ventilationState:  ");Serial.println(ventilationState);
+            //Serial.print("busy?   ");            Serial.println(Stepper.busyCheck());
+            Serial.print("stopwatch inspiration:");Serial.println(stopwatch.inspiration.getElapsedTime());
+        }
+        //Serial.print("runVentilation   ");Serial.println(runVentilation);
+        //Serial.print("StepperState    "); Serial.println(Stepper.getStatus());
+        //Serial.println((int)Stepper.getStatus(), HEX); // print STATUS register
     }
 
 }
@@ -152,8 +161,9 @@ VentilationState ventilationStateMachine( VentilationState &state){
 
             // stepper finished full revolution, but home not found
             else {
-                // store home position in stepper driver memory
+                // store home position in stepper driver memory and switch sensor state to ok
                 Stepper.resetPos();
+                stepperMonitor.setState(Sensor::OK);
 
                 // home not found, thus angle sensor and optical sensor are faulty
                 angleSensor.setState(Sensor::FAULTY);
@@ -181,7 +191,7 @@ VentilationState ventilationStateMachine( VentilationState &state){
         case HOLDING_EX:
 
             if (controller.inspirationTrigger()) {
-                state = MOVING_IN;
+                state = START_IN;
             }
 
             break;
@@ -190,8 +200,15 @@ VentilationState ventilationStateMachine( VentilationState &state){
             // record time after start of inspiration
             stopwatch.inspiration.start();
 
+            if (mode.controlMode==ControlMode::VN){
+                int speed = calculateSpeed(ACC_IN, DEC_IN, allUserParams[(int)UP::T_IN].getValue(), 50);
+                // start the setpoint generation for the controller
+                controller.startRamp(1000, speed);
+            }
+            else{
+                controller.startRamp(1000, 100);
+            }
             // start the setpoint generation for the controller
-            controller.startRamp(1000, 200);
 
 
             state =MOVING_IN;
@@ -213,7 +230,6 @@ VentilationState ventilationStateMachine( VentilationState &state){
             state = HOLDING_IN;
 
         case HOLDING_IN:
-            state = MOVING_EX;
 
             if (stopwatch.holdingIn.getElapsedTime() > TIME_HOLD_PLATEAU){
                 state = START_EX;
@@ -222,7 +238,8 @@ VentilationState ventilationStateMachine( VentilationState &state){
 
         case START_EX:
             stopwatch.expiration.start();
-            runStepper(500, 400, 400, DIR_EX);
+            Stepper.goToDir(0, DIR_EX);
+            //runStepper(500, 400, 400, DIR_EX);
             state=MOVING_EX;
             break;
 
@@ -231,15 +248,19 @@ VentilationState ventilationStateMachine( VentilationState &state){
             if (stopwatch.expiration.getElapsedTime() > 50){
                 diagnosticParameters.peep.setValue(pressureSensor.getData().pressure);
             }
-            if (isHome){
+            // Stepper has reached home position
+            if (isHome) {
                 state = END_EX;
+            }
+            // Stepper not busy anymore but hasn't reached home (step loss)
+            else if (!Stepper.busyCheck()){
+                state = START_HOMING;
             }
 
             break;
 
         case END_EX:
             Stepper.hardStop();
-
             if (runVentilation){
                 state = HOLDING_EX;
             }
@@ -250,11 +271,11 @@ VentilationState ventilationStateMachine( VentilationState &state){
 }
 
 bool Triggers::respiratoryRate() {
-    return (float)stopwatch.inspiration.getElapsedTime() > 1 / allUserParams[(int) UP::RESPIRATORY_RATE].getValue();
+    return (float)stopwatch.inspiration.getElapsedTime() > 1 / allUserParams[(int) UP::RESPIRATORY_RATE].getValue()*60*1000;
 }
 
 bool Triggers::inspirationTime() {
-    return (float)stopwatch.inspiration.getElapsedTime() > allUserParams[(int)UP::T_IN].getValue();
+    return (float)stopwatch.inspiration.getElapsedTime() > allUserParams[(int)UP::T_IN].getValue()*1000;
 }
 
 bool Triggers::pressureDrop() {
@@ -266,7 +287,7 @@ bool Triggers::flowIncrease() {
 }
 
 bool Triggers::angleReached() {
-    return (float) getPosition() > allUserParams[(int)UP::ANGLE].getValue() * STEPS_FULL_RANGE * STEP_DIVIDER;
+    return (float) getPosition() > allUserParams[(int)UP::ANGLE].getValue() * STEPS_FULL_TURN * STEP_DIVIDER;
 }
 
 void toggleEnableEncoder(){
@@ -299,9 +320,9 @@ float motorPositionToVolume(uint16_t position){
 //! Use the optical switch the angle Sensor and the stepper driver data to determine if the stepper is at home position
 //! \param isHome
 void checkHomeSensors(bool &isHome) {
-    bool optical = opticalHomeSensor.getState()==Sensor::state_t::OK;
-    bool angle = angleSensor.getState()==Sensor::state_t::OK;
-    bool stepper = stepperMonitor.getState()==Sensor::state_t::OK;
+    bool optical = opticalHomeSensor.getState()==Sensor::OK;
+    bool angle = angleSensor.getState()==Sensor::OK;
+    bool stepper = stepperMonitor.getState()==Sensor::OK;
     uint8_t state = ((optical<<2)+(angle<<1)+stepper);
     switch (state) {
         // 0: sensor not ok
@@ -474,7 +495,7 @@ void UpdateMotorCurveParameters(float respiratoryRate, float pathRatio, float IE
     float t_total = 60 / respiratoryRate;
     timeEx = t_total / (IERatio + 1);
     timeIn = t_total - timeEx ;
-    int steps = STEPS_FULL_RANGE * pathRatio;
+    int steps = STEPS_FULL_TURN * pathRatio;
 
     float discriminant = sq(timeIn) - 2 * (1. / ACC_IN + 1. / DEC_IN) * steps;
     if (discriminant > 0) {
@@ -484,6 +505,14 @@ void UpdateMotorCurveParameters(float respiratoryRate, float pathRatio, float IE
     stepsInterval = steps * STEP_DIVIDER;
 }
 
+float calculateSpeed(int acc, int dec, float t, int steps) {
+    float discriminant = sq(t) - 2 * (1. / acc + 1. / dec) * steps;
+    float speed = steps/t;
+    if (discriminant > 0) {
+        speed = (-t + sqrtf(discriminant)) / -(1. / acc + 1. / dec);
+    }
+    return speed;
+}
 
 //! Read the motor driver status. If the motor is moving
 //! the isBusy function return true.
@@ -571,10 +600,10 @@ void ConfigureStepperDriver()
     // use a value between 0-255 where 0 = no power, 255 = full power.
     // Start low and monitor the motor temperature until you find a safe balance
     // between power and temperature. Only use what you need
-    Stepper.setRunKVAL(180);
-    Stepper.setAccKVAL(180);
-    Stepper.setDecKVAL(180);
-    Stepper.setHoldKVAL(62);
+    Stepper.setRunKVAL(100);
+    Stepper.setAccKVAL(100);
+    Stepper.setDecKVAL(100);
+    Stepper.setHoldKVAL(100);
 
     Stepper.setParam(ALARM_EN, 0x8F); // disable ADC UVLO (divider not populated),
     // disable stall detection (not configured),
@@ -585,3 +614,5 @@ void ConfigureStepperDriver()
     Serial.println(F("Initialisation complete"));
 
 }
+
+

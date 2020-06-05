@@ -16,7 +16,7 @@ public:
         uint16_t absolutePosition;
         bool isHome;
     } sensor_values_t;
-    Stepper_Monitor(powerSTEP* stepper);
+    Stepper_Monitor(powerSTEP *stepper, int homeTolerance);
     bool readSensor() override ;
 
     const sensor_values_t &getData() const;

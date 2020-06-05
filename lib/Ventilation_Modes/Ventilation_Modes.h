@@ -107,7 +107,7 @@ const VentilationMode OL_CMV = VentilationMode(
                 UP::TIDAL_VOLUME,
                 UP::T_IN}, 3,
         (trigger_func_t[]) {Triggers::respiratoryRate}, 1,
-        (trigger_func_t[]) {Triggers::inspirationTime, Triggers::angleReached}, 2, nullptr);
+        (trigger_func_t[]) {Triggers::inspirationTime}, 1, nullptr);
 
 const VentilationMode PC_CMV = VentilationMode(
         ControlMode::VN,

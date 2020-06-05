@@ -42,6 +42,7 @@ int const STEPS_IN_HOMING = 80; // steps to move in when trying to find home
 
 int const STEPS_FS_FULL_TURN = 200; // how many full steps for one full turn of the motor
 
+float calculateSpeed(int acc, int dec, float t, int steps);
 // state flags
 enum VentilationState {START_IN=0, MOVING_IN=1, HOLDING_IN=2, START_EX=3, MOVING_EX=4, HOLDING_EX=5, STARTUP=6, END_IN=7, END_EX=8, HOMING_EX=9, IDLE=10, START_HOMING=11};
 enum DisplayState {HOME, };
@@ -90,7 +91,7 @@ Honeywell_SSC pressureSensor(0x48,0,-150,150,0.1*16383,0.9*16383);
 Honeywell_SSC flowSensor(0x68,0,0,4000,-1,1);
 Angle_Sensor angleSensor(PIN_RPS_OUT, STEPS_FS_FULL_TURN*STEP_DIVIDER, 360, 0, 1024, 10);
 Optical_Sensor opticalHomeSensor(PIN_OPTICAL_SWITCH_HOME);
-Stepper_Monitor stepperMonitor(&Stepper);
+Stepper_Monitor stepperMonitor(&Stepper, STEP_DIVIDER*5);
 
 float timeEx=1;
 float timeIn=1;
