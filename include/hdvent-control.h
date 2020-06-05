@@ -45,7 +45,7 @@ int const STEPS_FS_FULL_TURN = 200; // how many full steps for one full turn of 
 float calculateSpeed(int acc, int dec, float t, int steps);
 // state flags
 enum VentilationState {START_IN=0, MOVING_IN=1, HOLDING_IN=2, START_EX=3, MOVING_EX=4, HOLDING_EX=5, STARTUP=6, END_IN=7, END_EX=8, HOMING_EX=9, IDLE=10, START_HOMING=11};
-enum DisplayState {HOME, };
+
 
 
 /* **********************
@@ -145,7 +145,7 @@ VentilationController controller(OL_CMV, diagnosticParameters.airwayPressure,dia
 LiquidCrystal lcd(PIN_LCD_RS, PIN_LCD_RW, PIN_LCD_EN, PIN_LCD_D4, PIN_LCD_D5, PIN_LCD_D6, PIN_LCD_D7);
 
 uint8_t potiPins[4] = {PIN_POTI_AD, PIN_POTI_IE, PIN_POTI_TV, PIN_POTI_RR};
-Display display(lcd, allUserParams, &mode);
-User_Input UserInput(allUserParams, &mode, &saveUserParams);
+User_Input userInput(allUserParams, &mode, &saveUserParams);
+Display display(lcd, allUserParams, &mode, &userInput);
 
 #endif //HDVENT_CONTROL_HDVENT_CONTROL_H

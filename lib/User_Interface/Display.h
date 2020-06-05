@@ -8,6 +8,8 @@
 #include <LiquidCrystal.h>
 #include <User_Parameter.h>
 #include <Ventilation_Modes.h>
+#include "User_Input.h"
+
 /*
 float roundNumber(float a, uint8_t n){
     static int pow10[5] = {1, 10, 100, 1000, 10000};
@@ -20,12 +22,16 @@ float roundNumber(float a, uint8_t n){
 
 class Display {
 public:
-    Display(LiquidCrystal &lcd, User_Parameter* allUserParameters, const VentilationMode* mode, int* cursorIncrementer, int* valueIncrementer, bool* toggleEditState, bool* toggleMenuState);
-    Display(LiquidCrystal &lcd, User_Parameter* allUserParameters, VentilationMode* mode);
+    Display(LiquidCrystal &lcd, User_Parameter *allUserParameters, const VentilationMode *mode,
+            int *cursorIncrementer, int *valueIncrementer, bool *toggleEditState, bool *toggleMenuState,
+            User_Input* userInput);
+    Display(LiquidCrystal &lcd, User_Parameter *allUserParameters, VentilationMode *mode,
+            User_Input *userInput);
     enum editState_t {EDIT_ENTRY, NAVIGATE, VIEW_ONLY};
     enum menuState_t {EDIT_SETTINGS, VIEW};
 
     void updateDisplay();
+    void refreshDisplay();
     void printParameterValue(float value);
     void displayParameterValue();
 
@@ -35,6 +41,7 @@ public:
     void printStaticText();
     void incrementToPos(uint8_t i);
     void printUserParamValues();
+    void printAllEditMode();
 
     void setMode(const VentilationMode *mode);
 
@@ -53,6 +60,7 @@ private:
     int *_valueIncrementer;
     bool *_toggleEditState;
     bool *_toggleMenuState;
+    User_Input *_userInput;
     uint8_t  _markerPositionMax;
    uint8_t _markerPositionMin;
    void moveMarker();

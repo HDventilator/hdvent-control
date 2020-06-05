@@ -76,7 +76,7 @@ void loop(){
     cycleTime = stopwatch.mainLoop.getElapsedTime();
     stopwatch.mainLoop.start();
 
-    //readUserInput();
+    readUserInput();
     readSensors();
     checkHomeSensors(isHome);
 
@@ -111,7 +111,7 @@ void readUserInput(){
     }
 
 
-    UserInput.update();
+    userInput.update();
     display.printUserParamValues();
 }
 

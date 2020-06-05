@@ -19,6 +19,10 @@ public:
     void update();
 private:
     input_state_t _inputState;
+public:
+    input_state_t getInputState() const;
+
+private:
     User_Parameter* _allUserParameters;
     VentilationMode* _mode;
     bool* _do_save;

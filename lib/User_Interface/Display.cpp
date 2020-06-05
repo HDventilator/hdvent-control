@@ -5,8 +5,11 @@
 #include "Display.h"
 #include <Arduino.h>
 #include <LiquidCrystal.h>
+#include <User_Input.h>
 
-Display::Display(LiquidCrystal &lcd, User_Parameter* allUserParameters, const VentilationMode* mode,int *cursorIncrementer, int *valueIncrementer, bool *toggleEditState, bool *toggleMenuState): _lcd(12, 11, 10, 9, 8, 7){
+Display::Display(LiquidCrystal &lcd, User_Parameter *allUserParameters, const VentilationMode *mode,
+                 int *cursorIncrementer, int *valueIncrementer, bool *toggleEditState, bool *toggleMenuState,
+                 User_Input* userInput) : _lcd(12, 11, 10, 9, 8, 7){
     _lcd = lcd;
     _lcd.begin(20, 4);
     byte CURSOR_SYMBOL[8] = {
@@ -29,6 +32,7 @@ Display::Display(LiquidCrystal &lcd, User_Parameter* allUserParameters, const Ve
     _editState = VIEW_ONLY;
     _markerPositionMax =3;
     _markerPositionMin = 0;
+    _userInput = userInput;
     lcd.clear();
     printStaticText();
     lcd.cursor();
@@ -38,11 +42,13 @@ Display::Display(LiquidCrystal &lcd, User_Parameter* allUserParameters, const Ve
 
 }
 
-Display::Display(LiquidCrystal &lcd, User_Parameter* allUserParameters, VentilationMode* mode) : _lcd(12, 11, 10, 9, 8, 7) {
+Display::Display(LiquidCrystal &lcd, User_Parameter *allUserParameters, VentilationMode *mode,
+                 User_Input *userInput) : _lcd(12, 11, 10, 9, 8, 7) {
     _lcd = lcd;
     _lcd.begin(20, 4);
     _mode = mode;
     _allUserParameters = allUserParameters;
+    _userInput = userInput;
 }
 
 void Display::updateDisplay() {
@@ -96,6 +102,7 @@ void Display::updateDisplay() {
 
     *_toggleEditState=false;
 }
+
 
 void Display::moveMarker() {
 // calc new position
@@ -167,4 +174,17 @@ void Display::incrementToPos(uint8_t i) {
 
 void Display::setMode(const VentilationMode *mode) {
     _mode = mode;
+}
+
+void Display::refreshDisplay() {
+    switch (_userInput->getInputState()){
+        case User_Input::ENTER_EDIT:
+            break;
+
+    }
+
+}
+
+void Display::printAllEditMode() {
+    
 }

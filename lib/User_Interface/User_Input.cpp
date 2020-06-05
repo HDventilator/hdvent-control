@@ -55,3 +55,7 @@ void User_Input::update() {
 
     }
 }
+
+User_Input::input_state_t User_Input::getInputState() const {
+    return _inputState;
+}
