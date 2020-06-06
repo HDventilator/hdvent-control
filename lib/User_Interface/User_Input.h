@@ -11,7 +11,7 @@
 #include "Stopwatch.h"
 #include <Ventilation_Modes.h>
 
-const unsigned int ALLOWED_USER_EDIT_TIME = 15000; //milliseconds
+const unsigned int ALLOWED_USER_EDIT_TIME = 30000; //milliseconds
 
 class User_Input {
 public:

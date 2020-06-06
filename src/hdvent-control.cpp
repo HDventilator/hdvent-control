@@ -44,14 +44,23 @@ void setup()
     SPI.setDataMode(SPI_MODE3);
 
 
-    float respiratory_rate_max = 35;
-    allUserParams[(int) UP::RESPIRATORY_RATE] = User_Parameter(15, 5, respiratory_rate_max, "freq", 0, 1024, true); //  breaths per minute
-    allUserParams[(int) UP::TIDAL_VOLUME] = User_Parameter(250, 0, 650, "VTid", 0, 1024, true); // milliliters
 
+
+    // fastest time to cover full range with chosen motor paramaters, accelerating and then immediately breaking
     float t_in_min = sqrtf(2*(1/(float)ACC_IN+ 1/(float)DEC_IN)*(float) STEPS_FULL_RANGE);
-    float t_in_max = 60/respiratory_rate_max - sqrtf(2*(1/(float)ACC_EX+ 1/(float)DEC_EX)*(float) STEPS_FULL_RANGE);
+    float t_ex_min = sqrtf(2*(1/(float)ACC_EX+ 1/(float)DEC_EX)*(float) STEPS_FULL_RANGE);
+
+    // these define also an upper boundary for the respiratory rate:
+    float respiratory_rate = 20;
+    float respiratory_rate_max = 60/(t_in_min+t_ex_min);
+    float respiratory_rate_min = 5;
+    allUserParams[(int) UP::RESPIRATORY_RATE] = User_Parameter(respiratory_rate, respiratory_rate_min, respiratory_rate_max, "freq", 0, 1024, true); //  breaths per minute
+
+    // slowest in movement is bounded by fastest possible out movement and fastest respiratory rate
+    float t_in_max = 60/respiratory_rate - t_ex_min;
 
     allUserParams[(int) UP::T_IN] = User_Parameter(2, t_in_min, t_in_max,"T_in", 0, 1024, true); // Inspiration time
+    allUserParams[(int) UP::TIDAL_VOLUME] = User_Parameter(250, 0, 650, "VTid", 0, 1024, true); // milliliters
     allUserParams[(int) UP::INSPIRATORY_PRESSURE] = User_Parameter(20, 5, 50, "P_aw", 0, 1024, true); //  millibar
     allUserParams[(int) UP::FLOW] = User_Parameter(20, 5, 50,"Flow", 0, 1024, true); //  milliliters per second
     allUserParams[(int) UP::D_PRESSURE_SUPP] = User_Parameter(20, 5, 50, "Psup", 0, 1024, true); //  millibar
@@ -126,12 +135,10 @@ void readUserInput(){
 
     // dynamically scale allowed range of T_IN when Respiratory Rate Changes
     if (allUserParams[(int)UP::RESPIRATORY_RATE].hasChanged()){
-        Serial.println("changed");
         float rr = allUserParams[(int)UP::RESPIRATORY_RATE].getDialValue();
-        float t_in_min = sqrtf(2*(1/ACC_IN+ 1/DEC_IN)* STEPS_FULL_RANGE);
         float t_in_max = 60/rr - sqrtf(2*(1/ACC_EX+ 1/DEC_EX)* STEPS_FULL_RANGE);
         allUserParams[(int)UP::T_IN].setMax((t_in_max));
-        allUserParams[(int)UP::T_IN].setMin((t_in_min));
+
     }
 }
 
@@ -224,8 +231,7 @@ VentilationState ventilationStateMachine( VentilationState &state){
             if (mode.controlMode==ControlMode::VN){
                 float steps = allUserParams[(int)UP::COMPRESSED_VOLUME_RATIO].getValue() / 100 * STEPS_FULL_RANGE;
                 int speed = calculateSpeed(ACC_IN, DEC_IN, allUserParams[(int)UP::T_IN].getValue(), steps);
-                Serial.println(speed);
-                // start the setpoint generation for the controller
+                Stepper.setMaxSpeed(speed);
                 Stepper.move(DIR_IN, steps*STEP_DIVIDER);
             }
             // start the setpoint generation for the controller
@@ -487,11 +493,14 @@ float calculateSpeed(int acc, int dec, float t, int steps) {
     if (discriminant > 0) {
         speed = (-t + sqrtf(discriminant)) / -(1. / acc + 1. / dec);
     }
+    else{
+        Serial.println("discriminant <0 ");
+    }
     return speed;
 }
 
 //! Read the motor driver status. If the motor is moving
-//! the isBusy function return true.
+//! the isBusy function returns true.
 //!
 //! \return true if the motor is moving
 bool isBusy()
