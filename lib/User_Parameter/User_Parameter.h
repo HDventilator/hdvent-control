@@ -22,19 +22,19 @@ public:
     void setValue(float value);
     char* lcdString;
     float step;
-    float getDisplayValue() const;
+    float getDialValue() const;
     void loadValue(int data);
-    void setDisplayValue(float displayValue);
+    void setDialValue(float displayValue);
     void saveValue();
     package_struct_float_t getValuePackage();
     package_struct_float_t getMinPackage();
     package_struct_float_t getMaxPackage();
-    package_struct_float_t get_displayValuePackage();
+    package_struct_float_t getDialValuePackage();
 
     bool hasChanged() const;
 
 private:
-    float _displayValue;
+    float _dialValue;
     float _value;
     float _min;
     float _max;

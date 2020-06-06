@@ -44,19 +44,25 @@ void User_Input::update() {
                 _inputState = SAVE_SETTINGS;
             }
             else if (_stopwatch.getElapsedTime() > ALLOWED_USER_EDIT_TIME){
-                _inputState = VIEW_SETTINGS;
+                _inputState = ENTER_VIEW_SETTINGS;
             }
             else{
                 _inputState = EDIT_SETTINGS;
             }
             break;
 
+        case ENTER_VIEW_SETTINGS:
+
+            _inputState = VIEW_SETTINGS;
+            break;
+
+
         case SAVE_SETTINGS:
             for ( int i=0;  i<(_mode->nParams); i++)
             {
                 _allUserParameters[(int)_mode->parameters[i]].saveValue();
             }
-            _inputState = VIEW_SETTINGS;
+            _inputState = ENTER_VIEW_SETTINGS;
             break;
 
     }

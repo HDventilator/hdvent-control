@@ -10,7 +10,7 @@ User_Parameter::User_Parameter(float initialValue, float minOutValue, float maxO
     _min = minOutValue;
     _max = maxOutValue;
     _value = initialValue;
-    _displayValue = initialValue;
+    _dialValue = initialValue;
     _minIn = minInValue;
     _maxIn = maxInValue;
     lcdString = string;
@@ -34,12 +34,12 @@ float User_Parameter::transferFunction(float valueIn){
     return ((float)valueIn-_minIn) / (_maxIn-_minIn) * (_max-_min) + _min;
 }
 
-float User_Parameter::getDisplayValue() const {
-    return _displayValue;
+float User_Parameter::getDialValue() const {
+    return _dialValue;
 }
 
-void User_Parameter::setDisplayValue(float displayValue) {
-    _displayValue = displayValue;
+void User_Parameter::setDialValue(float displayValue) {
+    _dialValue = displayValue;
 }
 
 package_struct_float_t User_Parameter::getValuePackage() {
@@ -63,10 +63,10 @@ package_struct_float_t User_Parameter::getMaxPackage() {
     return _package;
 }
 
-package_struct_float_t User_Parameter::get_displayValuePackage() {
+package_struct_float_t User_Parameter::getDialValuePackage() {
     _package.identifier[0]=USER_PARAMETER_DISPLAY_ID_PREFIX[0];
     _package.identifier[1]=USER_PARAMETER_DISPLAY_ID_PREFIX[1];
-    _packStruct(_displayValue);
+    _packStruct(_dialValue);
     return _package;
 }
 
@@ -86,13 +86,13 @@ bool User_Parameter::hasChanged() const {
 }
 
 void User_Parameter::loadValue(int data) {
-    _displayValue = transferFunction(data);
-    float _diff = _displayValue -_value;
+    float newValue  = transferFunction(data);
+    float _diff = newValue - _dialValue;
     _valueChanged = abs(_diff) > step;
 
 }
 
 void User_Parameter::saveValue() {
-    _value = _displayValue;
+    _value = _dialValue;
 
 }

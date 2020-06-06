@@ -11,12 +11,12 @@
 #include "Stopwatch.h"
 #include <Ventilation_Modes.h>
 
-const unsigned int ALLOWED_USER_EDIT_TIME = 30000; //milliseconds
+const unsigned int ALLOWED_USER_EDIT_TIME = 15000; //milliseconds
 
 class User_Input {
 public:
     User_Input(User_Parameter *allUserParameters, VentilationMode *mode, bool *do_save);
-    enum input_state_t {EDIT_SETTINGS, VIEW_SETTINGS, SAVE_SETTINGS, ENTER_EDIT, EDIT_VENTILATION_MODE};
+    enum input_state_t {EDIT_SETTINGS, VIEW_SETTINGS, SAVE_SETTINGS, ENTER_EDIT, EDIT_VENTILATION_MODE, ENTER_VIEW_SETTINGS};
     void update();
 private:
     input_state_t _inputState;

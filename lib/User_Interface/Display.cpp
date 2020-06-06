@@ -179,7 +179,7 @@ void Display::printUserParamValues() {
         incrementToPos(i);
         _lcd.setCursor(_cursorCol, _cursorRow);
         _lcd.print(_allUserParameters[(int)_mode->parameters[i]].lcdString);
-        printValue(_allUserParameters[(int) _mode->parameters[i]].getDisplayValue());
+        printValue(_allUserParameters[(int) _mode->parameters[i]].getDialValue());
     }
 }
 
@@ -200,7 +200,7 @@ void Display::refreshDisplay() {
             break;
 
         case User_Input::VIEW_SETTINGS:
-            printAllViewMode();
+            //printAllViewMode();
             break;
 
         case User_Input::ENTER_EDIT:
@@ -215,6 +215,9 @@ void Display::refreshDisplay() {
         case User_Input::SAVE_SETTINGS:
             _lcd.clear();
             break;
+        case User_Input::ENTER_VIEW_SETTINGS:
+            _lcd.clear();
+            printAllViewMode();
     }
 
 }
@@ -232,7 +235,7 @@ void Display::printAllEditMode() {
         printValue(_allUserParameters[(int) _mode->parameters[i]].getValue());
         _lcd.setCursor(_cursorCol, _cursorRow+2);
         //_lcd.print("(");
-        printValue(_allUserParameters[(int) _mode->parameters[i]].getDisplayValue());
+        printValue(_allUserParameters[(int) _mode->parameters[i]].getDialValue());
     }
 }
 
