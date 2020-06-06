@@ -43,16 +43,22 @@ void setup()
     SPI.begin();
     SPI.setDataMode(SPI_MODE3);
 
-    allUserParams[(int) UP::RESPIRATORY_RATE] = User_Parameter(15, 5, 35, "freq", 0, 1024, true); //  breaths per minute
+
+    float respiratory_rate_max = 35;
+    allUserParams[(int) UP::RESPIRATORY_RATE] = User_Parameter(15, 5, respiratory_rate_max, "freq", 0, 1024, true); //  breaths per minute
     allUserParams[(int) UP::TIDAL_VOLUME] = User_Parameter(250, 0, 650, "VTid", 0, 1024, true); // milliliters
-    allUserParams[(int) UP::T_IN] = User_Parameter(2, 0.6, 4,"T_in", 0, 1024, true); // Inspiration time
+
+    float t_in_min = sqrtf(2*(1/(float)ACC_IN+ 1/(float)DEC_IN)*(float) STEPS_FULL_RANGE);
+    float t_in_max = 60/respiratory_rate_max - sqrtf(2*(1/(float)ACC_EX+ 1/(float)DEC_EX)*(float) STEPS_FULL_RANGE);
+
+    allUserParams[(int) UP::T_IN] = User_Parameter(2, t_in_min, t_in_max,"T_in", 0, 1024, true); // Inspiration time
     allUserParams[(int) UP::INSPIRATORY_PRESSURE] = User_Parameter(20, 5, 50, "P_aw", 0, 1024, true); //  millibar
     allUserParams[(int) UP::FLOW] = User_Parameter(20, 5, 50,"Flow", 0, 1024, true); //  milliliters per second
     allUserParams[(int) UP::D_PRESSURE_SUPP] = User_Parameter(20, 5, 50, "Psup", 0, 1024, true); //  millibar
     allUserParams[(int) UP::PRESSURE_TRIGGER_THRESHOLD] = User_Parameter(5, 5, 50, "Pthr", 0, 1024, true); //  millibar per second
     allUserParams[(int) UP::FLOW_TRIGGER_THRESHOLD] = User_Parameter(20, 5, 50, "Fthr", 0, 1024, true); //  milliliters per second
     allUserParams[(int) UP::ANGLE] = User_Parameter(0, 0, 1, "angl", 0, 1024, true); //  milliliters per second
-    allUserParams[(int) UP::COMPRESSED_VOLUME_RATIO] = User_Parameter(0, 0, 100, "Vol%", 0, 1024, true); //  milliliters per second
+    allUserParams[(int) UP::COMPRESSED_VOLUME_RATIO] = User_Parameter(100, 0, 100, "Vol%", 0, 1024, true); //  milliliters per second
 
     ConfigureStepperDriver();
     pressureSensor.begin();
@@ -83,24 +89,27 @@ void loop(){
 
     ventilationStateMachine(ventilationState);
     display.refreshDisplay();
+    serialDebug();
     //display.printAllViewMode();
 
 
-    if (debuggingOn){
-        if (true) {
+
+
+}
+void serialDebug(){
+Serial.println(allUserParams[(int)UP::T_IN].getValue());
             // Serial.print("Stepper pos   ");Serial.println(stepperMonitor.getData().relativePosition);
             //Serial.print("home?   "); Serial.println(isHome);
             //Serial.print("ventilationState:  ");Serial.println(ventilationState);
             //Serial.print("busy?   ");            Serial.println(Stepper.busyCheck());
             //Serial.print("stopwatch inspiration:");Serial.println(stopwatch.inspiration.getElapsedTime());
-            Serial.print("User Input state:");Serial.println(userInput.getInputState());
-            Serial.print("do save?  ");Serial.println(saveUserParams);
-            Serial.print("User Input stopwatch"); Serial.println(userInput._stopwatch.getElapsedTime());
-        }
+            //Serial.print("User Input state:");Serial.println(userInput.getInputState());
+            //Serial.print("do save?  ");Serial.println(saveUserParams);
+            //Serial.print("User Input stopwatch"); Serial.println(userInput._stopwatch.getElapsedTime());
+
         //Serial.print("runVentilation   ");Serial.println(runVentilation);
         //Serial.print("StepperState    "); Serial.println(Stepper.getStatus());
         //Serial.println((int)Stepper.getStatus(), HEX); // print STATUS register
-    }
 
 }
 
@@ -204,25 +213,29 @@ VentilationState ventilationStateMachine( VentilationState &state){
         case START_IN:
             // record time after start of inspiration
             stopwatch.inspiration.start();
+            setKVals(DIR_IN);
 
+            // In open loop mode, issue single Motor command to move to specified position
             if (mode.controlMode==ControlMode::VN){
-                int speed = calculateSpeed(ACC_IN, DEC_IN, allUserParams[(int)UP::T_IN].getValue(), 50);
+                float steps = allUserParams[(int)UP::COMPRESSED_VOLUME_RATIO].getValue() / 100 * STEPS_FULL_RANGE;
+                int speed = calculateSpeed(ACC_IN, DEC_IN, allUserParams[(int)UP::T_IN].getValue(), steps);
+                Serial.println(speed);
                 // start the setpoint generation for the controller
-                controller.startRamp(1000, speed);
+                Stepper.move(DIR_IN, steps*STEP_DIVIDER);
             }
+            // start the setpoint generation for the controller
             else{
                 controller.startRamp(1000, 100);
             }
-            // start the setpoint generation for the controller
-
 
             state =MOVING_IN;
             break;
 
         case MOVING_IN:
-            // set stepper speed to calculated value
-            Stepper.run(DIR_IN, controller.calcSpeed());
-
+            if (mode.controlMode!=ControlMode::VN) {
+                // set stepper speed to calculated value
+                Stepper.run(DIR_IN, controller.calcSpeed());
+            }
             // start expiration on trigger
             if (controller.expirationTrigger()) {
             state = END_IN;
@@ -243,8 +256,8 @@ VentilationState ventilationStateMachine( VentilationState &state){
 
         case START_EX:
             stopwatch.expiration.start();
-            Stepper.goToDir(0, DIR_EX);
-            //runStepper(500, 400, 400, DIR_EX);
+            setKVals(DIR_EX);
+            Stepper.goToDir(DIR_EX, 0);
             state=MOVING_EX;
             break;
 
@@ -461,54 +474,7 @@ void moveStepper(int steps, int speed, int acc, int dec, int dir) {
     Stepper.move(dir, steps);
 }
 
-//! \brief run the step motor using the given parameters.
-//!
-//! The motor driver will accelerate with a constant acceleration
-//! until the maximal speed is achieved. For deceleration the inverse
-//! process is used.
-//!
-//! \param steps : number of steps to move
-//! \param speed : maximal speed in steps/s
-//! \param acc : acceleration in steps/s^2
-//! \param acc : deceleration in steps/s^2
-//! \param dir : indicate the rotate direction
-void runStepper(int speed, int acc, int dec, int dir) {
-    if (dir==DIR_EX){
-        Stepper.setRunKVAL(RUN_KVAL_EX);
-        Stepper.setAccKVAL(ACC_KVAL_EX);
-        Stepper.setDecKVAL(DEC_KVAL_EX);
-        Stepper.setHoldKVAL(HOLD_KVAL_EX);
-    }
-    else {
-        Stepper.setRunKVAL(RUN_KVAL_IN);
-        Stepper.setAccKVAL(ACC_KVAL_IN);
-        Stepper.setDecKVAL(DEC_KVAL_IN);
-        Stepper.setHoldKVAL(HOLD_KVAL_IN);
-    }
-    Stepper.setMaxSpeed(speed);
-    Stepper.setAcc(acc);
-    Stepper.setDec(dec);
-    Stepper.run(dir, speed);
-}
 
-//! take user-set parameters and calculate the parameters for the motor curve,
-//!
-//! \param respiratoryRate - respiratory rate in breaths per minute
-//! \param pathRatio - float between 0-1, setting the portion of the total path that will be driven
-//! \param IERatio - (inhalation time)/(exhalation time)
-void UpdateMotorCurveParameters(float respiratoryRate, float pathRatio, float IERatio) {
-    float t_total = 60 / respiratoryRate;
-    timeEx = t_total / (IERatio + 1);
-    timeIn = t_total - timeEx ;
-    int steps = STEPS_FULL_TURN * pathRatio;
-
-    float discriminant = sq(timeIn) - 2 * (1. / ACC_IN + 1. / DEC_IN) * steps;
-    if (discriminant > 0) {
-        speedIn = (-timeIn + sqrtf(discriminant)) / -(1. / ACC_IN + 1. / DEC_IN);
-        stepsInterval = steps * STEP_DIVIDER;
-    }
-    stepsInterval = steps * STEP_DIVIDER;
-}
 
 float calculateSpeed(int acc, int dec, float t, int steps) {
     float discriminant = sq(t) - 2 * (1. / acc + 1. / dec) * steps;
@@ -605,10 +571,10 @@ void ConfigureStepperDriver()
     // use a value between 0-255 where 0 = no power, 255 = full power.
     // Start low and monitor the motor temperature until you find a safe balance
     // between power and temperature. Only use what you need
-    Stepper.setRunKVAL(100);
-    Stepper.setAccKVAL(100);
-    Stepper.setDecKVAL(100);
-    Stepper.setHoldKVAL(100);
+    Stepper.setRunKVAL(80);
+    Stepper.setAccKVAL(80);
+    Stepper.setDecKVAL(80);
+    Stepper.setHoldKVAL(30);
 
     Stepper.setParam(ALARM_EN, 0x8F); // disable ADC UVLO (divider not populated),
     // disable stall detection (not configured),
@@ -617,6 +583,28 @@ void ConfigureStepperDriver()
     Stepper.getStatus(); // clears error flags
 
     Serial.println(F("Initialisation complete"));
+
+}
+
+void setKVals(uint8_t dir) {
+    if (dir==DIR_EX){
+        Stepper.setRunKVAL(RUN_KVAL_EX);
+        Stepper.setAccKVAL(ACC_KVAL_EX);
+        Stepper.setDecKVAL(DEC_KVAL_EX);
+        Stepper.setHoldKVAL(HOLD_KVAL_EX);
+
+        Stepper.setMaxSpeed(SPEED_EX);
+        Stepper.setAcc(ACC_EX);
+        Stepper.setDec(DEC_EX);
+    }
+    else {
+        Stepper.setRunKVAL(RUN_KVAL_IN);
+        Stepper.setAccKVAL(ACC_KVAL_IN);
+        Stepper.setDecKVAL(DEC_KVAL_IN);
+        Stepper.setHoldKVAL(HOLD_KVAL_IN);
+        Stepper.setAcc(ACC_IN);
+        Stepper.setDec(DEC_IN);
+    }
 
 }
 

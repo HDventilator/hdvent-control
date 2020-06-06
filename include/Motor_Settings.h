@@ -17,17 +17,18 @@ uint8_t const DEC_KVAL_EX = 100;
 uint8_t const HOLD_KVAL_EX = 100;
 
 
-float const ACC_IN = 300; // steps/s/s
-float const DEC_IN = 300; // steps/s/s
-float const ACC_EX = 300; // steps/s/s
-float const SPEED_EX = 100; //steps/s
-float const DEC_EX = 300; // steps/s/s
+float const ACC_IN = 500; // steps/s/s
+float const DEC_IN = 500; // steps/s/s
+//float const SPEED_IN = 800; //steps/s
+float const ACC_EX = 800; // steps/s/s
+float const SPEED_EX = 800; //steps/s
+float const DEC_EX = 800; // steps/s/s
 bool const DIR_IN = 1;
 bool const DIR_EX = abs(DIR_IN - 1);
 int const STEP_DIVIDER_REGISTER = STEP_FS_128;
 int const STEP_DIVIDER = 128;
 
 unsigned int const STEPS_FULL_TURN = 200;
-
+unsigned int const STEPS_FULL_RANGE = 80;
 
 #endif //HDVENT_CONTROL_MOTOR_SETTINGS_H

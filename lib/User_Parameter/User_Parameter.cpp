@@ -9,12 +9,13 @@
 User_Parameter::User_Parameter(float initialValue, float minOutValue, float maxOutValue, char string[], float minInValue, float maxInValue, bool invert) {
     _min = minOutValue;
     _max = maxOutValue;
-    _value = initialValue;
-    _dialValue = initialValue;
+    _value = min(initialValue, maxOutValue) ;
+    _value = max(_value, minOutValue) ;
+    _dialValue = _value;
     _minIn = minInValue;
     _maxIn = maxInValue;
     lcdString = string;
-    step = (_max-_min)/200;
+    step = (_max-_min)/700;
     _invert = invert;
 
 }
@@ -89,6 +90,7 @@ void User_Parameter::loadValue(int data) {
     float newValue  = transferFunction(data);
     float _diff = newValue - _dialValue;
     _valueChanged = abs(_diff) > step;
+    _dialValue = newValue;
 
 }
 

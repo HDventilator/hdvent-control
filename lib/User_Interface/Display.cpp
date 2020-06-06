@@ -215,6 +215,7 @@ void Display::refreshDisplay() {
         case User_Input::SAVE_SETTINGS:
             _lcd.clear();
             break;
+
         case User_Input::ENTER_VIEW_SETTINGS:
             _lcd.clear();
             printAllViewMode();

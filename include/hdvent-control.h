@@ -34,7 +34,7 @@ powerSTEP Stepper(0, nCS_PIN, nSTBY_nRESET_PIN);;  // Nr, CS, Reset => 0 , D16/A
 
 // Clinical settings
 int const PRESSURE_MAX = 0; // mm H20
-float const TIME_HOLD_PLATEAU = 0.200; // seconds, hold time after inspiratory phase
+float const TIME_HOLD_PLATEAU = 0.050; // seconds, hold time after inspiratory phase
 float const TEMPERATURE_INFLUX_THRESHOLD = 20;// °C, start heating when influx temperature falls below this value
 
 int const STEPS_EX_HOMING = 80; // steps to move out when trying to find home
@@ -77,7 +77,8 @@ float motorPositionToVolume(uint16_t position);
 void toggleIsHome();
 void toggleEnableEncoder();
 void readUserInput();
-
+void serialDebug();
+void setKVals(uint8_t dir);
 
 /* *****************************
  * Global Variables
