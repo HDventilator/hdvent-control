@@ -7,22 +7,22 @@
 
 // Motor settings
 // motor curve for volume control operation
-uint8_t const RUN_KVAL_IN = 100;
-uint8_t const ACC_KVAL_IN = 100;
-uint8_t const DEC_KVAL_IN = 100;
-uint8_t const HOLD_KVAL_IN = 100;
-uint8_t const RUN_KVAL_EX = 100;
-uint8_t const ACC_KVAL_EX = 100;
-uint8_t const DEC_KVAL_EX = 100;
-uint8_t const HOLD_KVAL_EX = 100;
+uint8_t const RUN_KVAL_IN = 80;
+uint8_t const ACC_KVAL_IN = 80;
+uint8_t const DEC_KVAL_IN = 80;
+uint8_t const HOLD_KVAL_IN = 80;
+uint8_t const RUN_KVAL_EX = 70;
+uint8_t const ACC_KVAL_EX = 70;
+uint8_t const DEC_KVAL_EX = 70;
+uint8_t const HOLD_KVAL_EX = 10;
 
 
-float const ACC_IN = 500; // steps/s/s
-float const DEC_IN = 500; // steps/s/s
+float const ACC_IN = 300; // steps/s/s
+float const DEC_IN = 300; // steps/s/s
 //float const SPEED_IN = 800; //steps/s
-float const ACC_EX = 800; // steps/s/s
-float const SPEED_EX = 800; //steps/s
-float const DEC_EX = 800; // steps/s/s
+float const ACC_EX = 500; // steps/s/s
+float const SPEED_EX = 600; //steps/s
+float const DEC_EX = 500; // steps/s/s
 bool const DIR_IN = 1;
 bool const DIR_EX = abs(DIR_IN - 1);
 int const STEP_DIVIDER_REGISTER = STEP_FS_128;

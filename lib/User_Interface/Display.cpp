@@ -80,7 +80,7 @@ void Display::updateDisplay() {
 
             _activeParamIndex = _index;
             _parametersMemory[_activeParamIndex]+=
-                    (float) *_valueIncrementer * _allUserParameters[(int)_mode->parameters[_activeParamIndex]].step;
+                    (float) *_valueIncrementer * _allUserParameters[(int)_mode->parameters[_activeParamIndex]].increment;
             Serial.println(_parametersMemory[_activeParamIndex]);
             printValue(_parametersMemory[_activeParamIndex]);
             *_valueIncrementer=0;

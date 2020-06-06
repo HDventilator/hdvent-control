@@ -92,24 +92,21 @@ void loop(){
     serialDebug();
     //display.printAllViewMode();
 
-
-
-
 }
 void serialDebug(){
-Serial.println(allUserParams[(int)UP::T_IN].getValue());
-            // Serial.print("Stepper pos   ");Serial.println(stepperMonitor.getData().relativePosition);
-            //Serial.print("home?   "); Serial.println(isHome);
-            //Serial.print("ventilationState:  ");Serial.println(ventilationState);
-            //Serial.print("busy?   ");            Serial.println(Stepper.busyCheck());
-            //Serial.print("stopwatch inspiration:");Serial.println(stopwatch.inspiration.getElapsedTime());
-            //Serial.print("User Input state:");Serial.println(userInput.getInputState());
-            //Serial.print("do save?  ");Serial.println(saveUserParams);
-            //Serial.print("User Input stopwatch"); Serial.println(userInput._stopwatch.getElapsedTime());
+    //Serial.println(allUserParams[(int)UP::T_IN].getValue());
+    //Serial.print("Stepper pos   ");Serial.println(stepperMonitor.getData().relativePosition);
+    //Serial.print("home?   "); Serial.println(isHome);
+    //Serial.print("ventilationState:  ");Serial.println(ventilationState);
+    //Serial.print("busy?   ");            Serial.println(Stepper.busyCheck());
+    //Serial.print("stopwatch inspiration:");Serial.println(stopwatch.inspiration.getElapsedTime());
+    //Serial.print("User Input state:");Serial.println(userInput.getInputState());
+    //Serial.print("do save?  ");Serial.println(saveUserParams);
+    //Serial.print("User Input stopwatch"); Serial.println(userInput._stopwatch.getElapsedTime());
 
-        //Serial.print("runVentilation   ");Serial.println(runVentilation);
-        //Serial.print("StepperState    "); Serial.println(Stepper.getStatus());
-        //Serial.println((int)Stepper.getStatus(), HEX); // print STATUS register
+    //Serial.print("runVentilation   ");Serial.println(runVentilation);
+    //Serial.print("StepperState    "); Serial.println(Stepper.getStatus());
+    //Serial.println((int)Stepper.getStatus(), HEX); // print STATUS register
 
 }
 
@@ -125,8 +122,17 @@ void readUserInput(){
         allUserParams[(int)mode.parameters[i]].loadValue(analogRead(potiPins[i]));
     }
 
-
     userInput.update();
+
+    // dynamically scale allowed range of T_IN when Respiratory Rate Changes
+    if (allUserParams[(int)UP::RESPIRATORY_RATE].hasChanged()){
+        Serial.println("changed");
+        float rr = allUserParams[(int)UP::RESPIRATORY_RATE].getDialValue();
+        float t_in_min = sqrtf(2*(1/ACC_IN+ 1/DEC_IN)* STEPS_FULL_RANGE);
+        float t_in_max = 60/rr - sqrtf(2*(1/ACC_EX+ 1/DEC_EX)* STEPS_FULL_RANGE);
+        allUserParams[(int)UP::T_IN].setMax((t_in_max));
+        allUserParams[(int)UP::T_IN].setMin((t_in_min));
+    }
 }
 
 void readSensors(){
@@ -142,7 +148,6 @@ void readSensors(){
     stepperMonitor.readSensor();
     angleSensor.readSensor();
     opticalHomeSensor.readSensor();
-
 }
 
 VentilationState ventilationStateMachine( VentilationState &state){
@@ -571,10 +576,10 @@ void ConfigureStepperDriver()
     // use a value between 0-255 where 0 = no power, 255 = full power.
     // Start low and monitor the motor temperature until you find a safe balance
     // between power and temperature. Only use what you need
-    Stepper.setRunKVAL(80);
-    Stepper.setAccKVAL(80);
-    Stepper.setDecKVAL(80);
-    Stepper.setHoldKVAL(30);
+    Stepper.setRunKVAL(RUN_KVAL_EX);
+    Stepper.setAccKVAL(ACC_KVAL_EX);
+    Stepper.setDecKVAL(DEC_KVAL_EX);
+    Stepper.setHoldKVAL(HOLD_KVAL_EX);
 
     Stepper.setParam(ALARM_EN, 0x8F); // disable ADC UVLO (divider not populated),
     // disable stall detection (not configured),

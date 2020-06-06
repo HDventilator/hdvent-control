@@ -21,10 +21,8 @@ public:
 
     void setValue(float value);
     char* lcdString;
-    float step;
-    float getDialValue() const;
+    float getDialValue();
     void loadValue(int data);
-    void setDialValue(float displayValue);
     void saveValue();
     package_struct_float_t getValuePackage();
     package_struct_float_t getMinPackage();
@@ -32,6 +30,9 @@ public:
     package_struct_float_t getDialValuePackage();
 
     bool hasChanged() const;
+    void setMin(float min);
+    void setMax(float max);
+    float increment;
 
 private:
     float _dialValue;
@@ -40,11 +41,14 @@ private:
     float _max;
     float _minIn;
     float _maxIn;
+    float _oldIn;
     bool _valueChanged;
+    float _toleranceInputChange;
     float transferFunction(float valueIn);
     package_struct_float_t _package;
     void _packStruct(float value);
     bool _invert;
+
 
 };
 
