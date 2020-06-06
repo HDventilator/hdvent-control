@@ -3,7 +3,8 @@
 //
 
 #include "User_Input.h"
-#include "Display.h"
+#include "User_Parameter.h"
+#include <Ventilation_Modes.h>
 #include <Arduino.h>
 #include <LiquidCrystal.h>
 
@@ -39,11 +40,16 @@ void User_Input::update() {
             break;
 
         case EDIT_SETTINGS:
-            if (_do_save){
+            if (*_do_save){
                 _inputState = SAVE_SETTINGS;
-            } else if (_stopwatch.getElapsedTime() > ALLOWED_USER_EDIT_TIME){
+            }
+            else if (_stopwatch.getElapsedTime() > ALLOWED_USER_EDIT_TIME){
                 _inputState = VIEW_SETTINGS;
             }
+            else{
+                _inputState = EDIT_SETTINGS;
+            }
+            break;
 
         case SAVE_SETTINGS:
             for ( int i=0;  i<(_mode->nParams); i++)

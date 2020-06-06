@@ -88,7 +88,7 @@ bool User_Parameter::hasChanged() const {
 void User_Parameter::loadValue(int data) {
     _displayValue = transferFunction(data);
     float _diff = _displayValue -_value;
-    _valueChanged = _diff > step;
+    _valueChanged = abs(_diff) > step;
 
 }
 

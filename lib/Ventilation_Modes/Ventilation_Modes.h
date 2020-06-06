@@ -13,6 +13,7 @@ enum struct UP {
     BLANK,
     INSPIRATORY_PRESSURE,
     TIDAL_VOLUME,
+    COMPRESSED_VOLUME_RATIO,
     RESPIRATORY_RATE,
     T_IN,
     FLOW,
@@ -21,7 +22,7 @@ enum struct UP {
     PRESSURE_TRIGGER_THRESHOLD,
     D_PRESSURE_SUPP,
     ANGLE,
-    LAST_PARAM_LABEL=11
+    LAST_PARAM_LABEL=12
 };
 /*
 struct diagnosticParameters_t {
@@ -104,7 +105,7 @@ const VentilationMode OL_CMV = VentilationMode(
         ControlMode::VN,
         (UP[]) {
                 UP::RESPIRATORY_RATE,
-                UP::TIDAL_VOLUME,
+                UP::COMPRESSED_VOLUME_RATIO,
                 UP::T_IN}, 3,
         (trigger_func_t[]) {Triggers::respiratoryRate}, 1,
         (trigger_func_t[]) {Triggers::inspirationTime}, 1, nullptr);

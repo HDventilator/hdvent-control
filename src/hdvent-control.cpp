@@ -52,6 +52,7 @@ void setup()
     allUserParams[(int) UP::PRESSURE_TRIGGER_THRESHOLD] = User_Parameter(5, 5, 50, "Pthr", 0, 1024, true); //  millibar per second
     allUserParams[(int) UP::FLOW_TRIGGER_THRESHOLD] = User_Parameter(20, 5, 50, "Fthr", 0, 1024, true); //  milliliters per second
     allUserParams[(int) UP::ANGLE] = User_Parameter(0, 0, 1, "angl", 0, 1024, true); //  milliliters per second
+    allUserParams[(int) UP::COMPRESSED_VOLUME_RATIO] = User_Parameter(0, 0, 100, "Vol%", 0, 1024, true); //  milliliters per second
 
     ConfigureStepperDriver();
     pressureSensor.begin();
@@ -81,15 +82,20 @@ void loop(){
     checkHomeSensors(isHome);
 
     ventilationStateMachine(ventilationState);
+    display.refreshDisplay();
+    //display.printAllViewMode();
 
 
     if (debuggingOn){
         if (true) {
             // Serial.print("Stepper pos   ");Serial.println(stepperMonitor.getData().relativePosition);
             //Serial.print("home?   "); Serial.println(isHome);
-            Serial.print("ventilationState:  ");Serial.println(ventilationState);
+            //Serial.print("ventilationState:  ");Serial.println(ventilationState);
             //Serial.print("busy?   ");            Serial.println(Stepper.busyCheck());
-            Serial.print("stopwatch inspiration:");Serial.println(stopwatch.inspiration.getElapsedTime());
+            //Serial.print("stopwatch inspiration:");Serial.println(stopwatch.inspiration.getElapsedTime());
+            Serial.print("User Input state:");Serial.println(userInput.getInputState());
+            Serial.print("do save?  ");Serial.println(saveUserParams);
+            Serial.print("User Input stopwatch"); Serial.println(userInput._stopwatch.getElapsedTime());
         }
         //Serial.print("runVentilation   ");Serial.println(runVentilation);
         //Serial.print("StepperState    "); Serial.println(Stepper.getStatus());
@@ -100,7 +106,7 @@ void loop(){
 
 void readUserInput(){
     // read Buttons and Switches
-    saveUserParams = digitalRead(PIN_EDIT_MODE);
+    saveUserParams = !digitalRead(PIN_EDIT_MODE);
     runVentilation = digitalRead(PIN_VENTI_MODE);
 
 
@@ -112,7 +118,6 @@ void readUserInput(){
 
 
     userInput.update();
-    display.printUserParamValues();
 }
 
 void readSensors(){

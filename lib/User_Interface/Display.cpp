@@ -37,7 +37,7 @@ Display::Display(LiquidCrystal &lcd, User_Parameter *allUserParameters, const Ve
     printStaticText();
     lcd.cursor();
     for (int8_t i=0; i<_mode->nParams;i++){
-        printParameterValue(_allUserParameters[(int) _mode->parameters[i]].getValue());
+        printValue(_allUserParameters[(int) _mode->parameters[i]].getValue());
     }
 
 }
@@ -82,7 +82,7 @@ void Display::updateDisplay() {
             _parametersMemory[_activeParamIndex]+=
                     (float) *_valueIncrementer * _allUserParameters[(int)_mode->parameters[_activeParamIndex]].step;
             Serial.println(_parametersMemory[_activeParamIndex]);
-            printParameterValue(_parametersMemory[_activeParamIndex]);
+            printValue(_parametersMemory[_activeParamIndex]);
             *_valueIncrementer=0;
 
             if (*_toggleEditState) {
@@ -113,8 +113,7 @@ void Display::moveMarker() {
     _lcd.setCursor(_cursorCol, _cursorRow);
 }
 
-void Display::printParameterValue(float value) {
-    _lcd.setCursor(_cursorCol+4, _cursorRow);
+void Display::printValue(float value) {
 
     uint8_t len=0;
     uint8_t blank=1;
@@ -131,6 +130,25 @@ void Display::printParameterValue(float value) {
         _lcd.print(" ");
     }
      _lcd.print(value, len );
+}
+
+void Display::printParameterValue(float value, uint8_t n) {
+
+    uint8_t len=0;
+    uint8_t blank=1;
+
+    if (value<10){
+        len=2;
+        blank=0;
+    }
+    else if (value<100){
+        len=1;
+        blank=0;
+    }
+    if (blank){
+        _lcd.print(" ");
+    }
+    _lcd.print(value, len );
 }
 
 void Display::safeParams() {
@@ -152,7 +170,7 @@ void Display::printStaticText() {
         incrementToPos(i);
         _lcd.setCursor(_cursorCol, _cursorRow);
         _lcd.print(_allUserParameters[(int)_mode->parameters[i]].lcdString);
-        printParameterValue(_allUserParameters[(int)_mode->parameters[i]].getValue());
+        printValue(_allUserParameters[(int) _mode->parameters[i]].getValue());
     }
 }
 
@@ -161,7 +179,7 @@ void Display::printUserParamValues() {
         incrementToPos(i);
         _lcd.setCursor(_cursorCol, _cursorRow);
         _lcd.print(_allUserParameters[(int)_mode->parameters[i]].lcdString);
-        printParameterValue(_allUserParameters[(int)_mode->parameters[i]].getDisplayValue());
+        printValue(_allUserParameters[(int) _mode->parameters[i]].getDisplayValue());
     }
 }
 
@@ -178,13 +196,54 @@ void Display::setMode(const VentilationMode *mode) {
 
 void Display::refreshDisplay() {
     switch (_userInput->getInputState()){
-        case User_Input::ENTER_EDIT:
+        case User_Input::EDIT_VENTILATION_MODE:
             break;
 
+        case User_Input::VIEW_SETTINGS:
+            printAllViewMode();
+            break;
+
+        case User_Input::ENTER_EDIT:
+            _lcd.clear();
+            _lcd.setCursor(0,0);
+            break;
+
+        case User_Input::EDIT_SETTINGS:
+            printAllEditMode();
+            break;
+
+        case User_Input::SAVE_SETTINGS:
+            _lcd.clear();
+            break;
     }
 
 }
 
+
+
 void Display::printAllEditMode() {
-    
+    for (int i=0; i < (_mode->nParams); i++){
+        uint8_t nCols=4;
+        _cursorCol = i*5;
+        _cursorRow = 1;
+        _lcd.setCursor(_cursorCol, _cursorRow);
+        _lcd.print(_allUserParameters[(int)_mode->parameters[i]].lcdString);
+        _lcd.setCursor(_cursorCol, _cursorRow+1);
+        printValue(_allUserParameters[(int) _mode->parameters[i]].getValue());
+        _lcd.setCursor(_cursorCol, _cursorRow+2);
+        //_lcd.print("(");
+        printValue(_allUserParameters[(int) _mode->parameters[i]].getDisplayValue());
+    }
+}
+
+void Display::printAllViewMode() {
+    for (int i=0; i < (_mode->nParams); i++){
+        uint8_t nCols=4;
+        _cursorCol = i*5;
+        _cursorRow = 1;
+        _lcd.setCursor(_cursorCol, _cursorRow+1);
+        _lcd.print(_allUserParameters[(int)_mode->parameters[i]].lcdString);
+        _lcd.setCursor(_cursorCol, _cursorRow+2);
+        printValue(_allUserParameters[(int) _mode->parameters[i]].getValue());
+    }
 }

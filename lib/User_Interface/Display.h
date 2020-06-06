@@ -32,8 +32,9 @@ public:
 
     void updateDisplay();
     void refreshDisplay();
-    void printParameterValue(float value);
+    void printValue(float value);
     void displayParameterValue();
+    void printParameterValue(float value, uint8_t n);
 
     uint8_t getParameterIndex();
     void safeParams();
@@ -42,6 +43,7 @@ public:
     void incrementToPos(uint8_t i);
     void printUserParamValues();
     void printAllEditMode();
+    void printAllViewMode();
 
     void setMode(const VentilationMode *mode);
 
