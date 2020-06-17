@@ -15,7 +15,7 @@ public:
     virtual ~Sensor(){}
     virtual bool readSensor() = 0;
     enum state_t {OK=0, TIME_OUT, FAULTY, DISCONNECTED};
-    virtual bool begin(){};
+    virtual bool begin(){return true;};
 
     state_t getState() const {
         return _state;

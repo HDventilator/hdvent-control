@@ -7,6 +7,8 @@
 #include "Arduino.h"
 #include "SensorWrapper.h"
 
+const int TCAADDR = 0x70;
+void tcaselect(uint8_t i);
 
 class Honeywell_SSC: public Sensor
 {
@@ -25,12 +27,14 @@ public:
     const sensor_values_t &getDataMax() const;
     const sensor_values_t &getData() const;
 
+
 private:
     sensor_values_t  _data;
     sensor_values_t _dataMin;
     sensor_values_t _dataMax;
 
     float transferFunction(uint16_t data);
+    uint8_t _tca_id;
 
     float _outputMin;
     float _outputMax;

@@ -85,12 +85,39 @@ void setup()
 
     // initial state for state machine
     ventilationState = IDLE;
+    //flowSensor.begin();
+    Wire.begin();
+
+
 
 }
 
 
-void loop(){
+// standard Arduino setup()
+void scan_i2c()
+{
+    Serial.println("\nTCAScanner ready!");
 
+    for (uint8_t t=0; t<8; t++) {
+        tcaselect(t);
+        Serial.print("TCA Port #"); Serial.println(t);
+
+        for (uint8_t addr = 0; addr<=127; addr++) {
+            if (addr == TCAADDR) continue;
+
+            uint8_t data;
+            if (! twi_writeTo(addr, &data, 0, 1, 1)) {
+                Serial.print("Found I2C 0x");  Serial.println(addr,HEX);
+            }
+        }
+    }
+    Serial.println("\ndone");
+}
+
+void loop(){
+    //scan_i2c();
+
+    serialWritePackage(&packetSerial, diagnosticParameters.flow.getPackageStruct());
     cycleTime = stopwatch.mainLoop.getElapsedTime();
     stopwatch.mainLoop.start();
 
@@ -101,15 +128,18 @@ void loop(){
     ventilationStateMachine(ventilationState);
     display.refreshDisplay();
     serialDebug();
+
+
     //display.printAllViewMode();
 
 
 }
 void serialDebug(){
     //Serial.println(allUserParams[(int)UP::T_IN].getValue());
-    Serial.print("Stepper pos   ");Serial.println(stepperMonitor.getData().relativePosition);
-    Serial.print("home?   "); Serial.println(isHome);
-    Serial.print("ventilationState:  ");Serial.println(ventilationState);
+   // Serial.println(diagnosticParameters.flow.getValue());
+    //Serial.print("Stepper pos   ");Serial.println(stepperMonitor.getData().relativePosition);
+    //Serial.print("home?   "); Serial.println(isHome);
+    //Serial.print("ventilationState:  ");Serial.println(ventilationState);
     //Serial.print("busy?   ");            Serial.println(Stepper.busyCheck());
     //Serial.print("stopwatch inspiration:");Serial.println(stopwatch.inspiration.getElapsedTime());
     //Serial.print("User Input state:");Serial.println(userInput.getInputState());
@@ -119,7 +149,7 @@ void serialDebug(){
     //Serial.print("runVentilation   ");Serial.println(runVentilation);
     //Serial.print("StepperState    "); Serial.println(Stepper.getStatus());
     //Serial.println((int)Stepper.getStatus(), HEX); // print STATUS register
-    Serial.print("opticalHomeSensor:  ");Serial.println(opticalHomeSensor.getData().isBlocked);
+    //Serial.print("opticalHomeSensor:  ");Serial.println(opticalHomeSensor.getData().isBlocked);
 
 }
 
@@ -148,13 +178,14 @@ void readUserInput(){
 
 void readSensors(){
     // read pressure Sensors
-    diagnosticParameters.airwayPressure.setValue(pressureSensor.getData().pressure);
+    //diagnosticParameters.airwayPressure.setValue(pressureSensor.getData().pressure);
+    flowSensor.readSensor();
     diagnosticParameters.flow.setValue(flowSensor.getData().pressure);
-
+/*
     float pressureChange = (pressureSensor.getData().pressure - oldPressure)/cycleTime*1000;
     diagnosticParameters.pressureChange.setValue(pressureChange);
     oldPressure = pressureSensor.getData().pressure;
-
+*/
     // read position sensors
     stepperMonitor.readSensor();
     angleSensor.readSensor();

@@ -24,7 +24,11 @@
 #include <Optical_Sensor.h>
 #include <Stepper_Monitor.h>
 #include <User_Input.h>
-
+#include <Wire.h>
+#include <Serial_Protocol.h>
+extern "C" {
+#include "utility/twi.h"  // from Wire library, so we can do bus scanning
+}
 /* ***********************
  * Constant definitions
  * ***********************
@@ -69,7 +73,7 @@ bool getStatusFlag(int r, int n);
 
 void checkHomeSensors(bool& isHome);
 void readSensors();
-
+void scan_i2c();
 
 bool tripleVoteHome(bool optical, bool angle, bool stepper);
 int getPosition(int tolerance=1*STEP_DIVIDER);
@@ -89,7 +93,7 @@ void moveStepper(int steps,  int speed, int dir);
  * Sensors
  */
 Honeywell_SSC pressureSensor(0x48,0,-150,150,0.1*16383,0.9*16383);
-Honeywell_SSC flowSensor(0x68,0,0,4000,-1,1);
+Honeywell_SSC flowSensor(0x28,1,-16,16,0.1*16383,0.9*16383);
 Angle_Sensor angleSensor(PIN_RPS_OUT, STEPS_FS_FULL_TURN*STEP_DIVIDER, 360, 0, 1024, 10);
 Optical_Sensor opticalHomeSensor(PIN_OPTICAL_SWITCH_HOME);
 Stepper_Monitor stepperMonitor(&Stepper, STEP_DIVIDER*5);
@@ -144,7 +148,7 @@ PID pressureControlPID();
 
 VentilationController controller(OL_CMV, diagnosticParameters.airwayPressure,diagnosticParameters.flow);
 LiquidCrystal lcd(PIN_LCD_RS, PIN_LCD_RW, PIN_LCD_EN, PIN_LCD_D4, PIN_LCD_D5, PIN_LCD_D6, PIN_LCD_D7);
-
+PacketSerial packetSerial;
 uint8_t potiPins[4] = {PIN_POTI_AD, PIN_POTI_IE, PIN_POTI_TV, PIN_POTI_RR};
 User_Input userInput(allUserParams, &mode, &saveUserParams);
 Display display(lcd, allUserParams, &mode, &userInput);

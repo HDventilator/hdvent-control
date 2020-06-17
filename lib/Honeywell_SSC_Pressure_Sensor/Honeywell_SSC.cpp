@@ -7,6 +7,15 @@
 #include <Wire.h>
 #include "SensorWrapper.h"
 #include "angleSensor.h"
+
+void tcaselect(uint8_t i) {
+    if (i > 7) return;
+
+    Wire.beginTransmission(TCAADDR);
+    Wire.write(1 << i);
+    Wire.endTransmission();
+}
+
 Honeywell_SSC::Honeywell_SSC(int i2cAddress, int sensorID, float pressureMin, float pressureMax, float outputMin,
                              float outputMax) {
 
@@ -14,6 +23,7 @@ Honeywell_SSC::Honeywell_SSC(int i2cAddress, int sensorID, float pressureMin, fl
     _outputMax = outputMax;
     _pressureMax = pressureMax;
     _pressureMin = pressureMin;
+    _tca_id = sensorID;
     setSensorId(sensorID);
     setI2CAddress(i2cAddress);
 }
@@ -33,9 +43,10 @@ float Honeywell_SSC::transferFunction(uint16_t data) {
 
 bool Honeywell_SSC::readSensor()
 {
+    tcaselect(_tca_id);
     int i2c_address = getI2CAddress();
     Wire.requestFrom(i2c_address, 4);
-    while(Wire.available() == 0);
+    //while(Wire.available() == 0);
 
     byte a     = Wire.read(); // first received byte stored here ....Example bytes one: 00011001 10000000
     byte b     = Wire.read(); // second received byte stored here ....Example bytes two: 11100111 00000000
