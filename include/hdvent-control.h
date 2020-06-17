@@ -79,7 +79,7 @@ void toggleEnableEncoder();
 void readUserInput();
 void serialDebug();
 void setKVals(uint8_t dir);
-
+void moveStepper(int steps,  int speed, int dir);
 /* *****************************
  * Global Variables
  * *****************************

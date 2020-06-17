@@ -77,7 +77,7 @@ void setup()
     lcd.home();
 
     // adjust sensor state if connected/disconnected
-    opticalHomeSensor.setState(Sensor::DISCONNECTED);
+    opticalHomeSensor.setState(Sensor::OK);
     angleSensor.setState(Sensor::DISCONNECTED);
 
     // stepper cannot know absolute position on startup
@@ -85,10 +85,12 @@ void setup()
 
     // initial state for state machine
     ventilationState = IDLE;
+
 }
 
 
 void loop(){
+
     cycleTime = stopwatch.mainLoop.getElapsedTime();
     stopwatch.mainLoop.start();
 
@@ -101,12 +103,13 @@ void loop(){
     serialDebug();
     //display.printAllViewMode();
 
+
 }
 void serialDebug(){
     //Serial.println(allUserParams[(int)UP::T_IN].getValue());
-    //Serial.print("Stepper pos   ");Serial.println(stepperMonitor.getData().relativePosition);
-    //Serial.print("home?   "); Serial.println(isHome);
-    //Serial.print("ventilationState:  ");Serial.println(ventilationState);
+    Serial.print("Stepper pos   ");Serial.println(stepperMonitor.getData().relativePosition);
+    Serial.print("home?   "); Serial.println(isHome);
+    Serial.print("ventilationState:  ");Serial.println(ventilationState);
     //Serial.print("busy?   ");            Serial.println(Stepper.busyCheck());
     //Serial.print("stopwatch inspiration:");Serial.println(stopwatch.inspiration.getElapsedTime());
     //Serial.print("User Input state:");Serial.println(userInput.getInputState());
@@ -116,6 +119,7 @@ void serialDebug(){
     //Serial.print("runVentilation   ");Serial.println(runVentilation);
     //Serial.print("StepperState    "); Serial.println(Stepper.getStatus());
     //Serial.println((int)Stepper.getStatus(), HEX); // print STATUS register
+    Serial.print("opticalHomeSensor:  ");Serial.println(opticalHomeSensor.getData().isBlocked);
 
 }
 
@@ -229,21 +233,24 @@ VentilationState ventilationStateMachine( VentilationState &state){
 
             // In open loop mode, issue single Motor command to move to specified position
             if (mode.controlMode==ControlMode::VN){
-                float steps = allUserParams[(int)UP::COMPRESSED_VOLUME_RATIO].getValue() / 100 * STEPS_FULL_RANGE;
+                float steps= allUserParams[(int)UP::COMPRESSED_VOLUME_RATIO].getValue() / 100 * STEPS_FULL_RANGE;
+                Serial.print("Move steps:"); Serial.println(steps);
                 int speed = calculateSpeed(ACC_IN, DEC_IN, allUserParams[(int)UP::T_IN].getValue(), steps);
                 Stepper.setMaxSpeed(speed);
-                Stepper.move(DIR_IN, steps*STEP_DIVIDER);
+                Serial.print("speed:  "); Serial.println(speed);
+                //Stepper.move(DIR_IN, 4000);
+                moveStepper(steps* STEP_DIVIDER, speed, DIR_IN);
             }
             // start the setpoint generation for the controller
             else{
                 controller.startRamp(1000, 100);
             }
-
             state =MOVING_IN;
             break;
 
         case MOVING_IN:
             if (mode.controlMode!=ControlMode::VN) {
+                Serial.println('controlled mode');
                 // set stepper speed to calculated value
                 Stepper.run(DIR_IN, controller.calcSpeed());
             }
@@ -429,8 +436,6 @@ bool tripleVoteHome(bool optical, bool angle, bool stepper) {
             // TODO optical: home, angle: home, stepper: not home
             // probable causes: step loss moving out
             // actions: set isHome=true, null Stepper
-            Stepper.hardStop();
-            Stepper.resetPos();
             break;
         case 0B101:
             // TODO optical: home, angle: not home, stepper: home
@@ -450,7 +455,7 @@ bool tripleVoteHome(bool optical, bool angle, bool stepper) {
 //! light barrier
 //!
 void toggleIsHome(){
-    Stepper.hardStop();
+    //Stepper.hardStop();
 }
 
 
@@ -482,6 +487,29 @@ void moveStepper(int steps, int speed, int acc, int dec, int dir) {
     Stepper.setMaxSpeed(speed);
     Stepper.setAcc(acc);
     Stepper.setDec(dec);
+    Stepper.move(dir, steps);
+}
+
+void moveStepper(int steps,  int speed, int dir) {
+    if (dir==DIR_EX){
+        Stepper.setRunKVAL(RUN_KVAL_EX);
+        Stepper.setAccKVAL(ACC_KVAL_EX);
+        Stepper.setDecKVAL(DEC_KVAL_EX);
+        Stepper.setHoldKVAL(HOLD_KVAL_EX);
+        Stepper.setMaxSpeed(speed);
+        Stepper.setAcc(ACC_EX);
+        Stepper.setDec(DEC_EX);
+    }
+    else {
+        Stepper.setRunKVAL(RUN_KVAL_IN);
+        Stepper.setAccKVAL(ACC_KVAL_IN);
+        Stepper.setDecKVAL(DEC_KVAL_IN);
+        Stepper.setHoldKVAL(HOLD_KVAL_IN);
+        Stepper.setMaxSpeed(speed);
+        Stepper.setAcc(ACC_IN);
+        Stepper.setDec(DEC_IN);
+    }
+
     Stepper.move(dir, steps);
 }
 
