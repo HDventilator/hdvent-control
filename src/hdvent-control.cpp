@@ -87,6 +87,10 @@ void setup()
     ventilationState = IDLE;
     //flowSensor.begin();
     Wire.begin();
+    //Serial3.begin(115200);
+    cobsSerial.setStream(&Serial3);
+    //cobsSerial.begin(115200);
+    Serial3.begin(115200);
 
 
 
@@ -117,7 +121,8 @@ void scan_i2c()
 void loop(){
     //scan_i2c();
 
-    serialWritePackage(&packetSerial, diagnosticParameters.flow.getPackageStruct());
+    serialWritePackage(&cobsSerial, diagnosticParameters.flow.getPackageStruct());
+    serialWritePackage(&cobsSerial, diagnosticParameters.airwayPressure.getPackageStruct());
     cycleTime = stopwatch.mainLoop.getElapsedTime();
     stopwatch.mainLoop.start();
 
@@ -178,8 +183,10 @@ void readUserInput(){
 
 void readSensors(){
     // read pressure Sensors
-    //diagnosticParameters.airwayPressure.setValue(pressureSensor.getData().pressure);
+    pressureSensor.readSensor();
+    diagnosticParameters.airwayPressure.setValue(pressureSensor.getData().pressure);
     flowSensor.readSensor();
+
     diagnosticParameters.flow.setValue(flowSensor.getData().pressure);
 /*
     float pressureChange = (pressureSensor.getData().pressure - oldPressure)/cycleTime*1000;
@@ -265,10 +272,10 @@ VentilationState ventilationStateMachine( VentilationState &state){
             // In open loop mode, issue single Motor command to move to specified position
             if (mode.controlMode==ControlMode::VN){
                 float steps= allUserParams[(int)UP::COMPRESSED_VOLUME_RATIO].getValue() / 100 * STEPS_FULL_RANGE;
-                Serial.print("Move steps:"); Serial.println(steps);
+                //Serial.print("Move steps:"); Serial.println(steps);
                 int speed = calculateSpeed(ACC_IN, DEC_IN, allUserParams[(int)UP::T_IN].getValue(), steps);
                 Stepper.setMaxSpeed(speed);
-                Serial.print("speed:  "); Serial.println(speed);
+                //Serial.print("speed:  "); Serial.println(speed);
                 //Stepper.move(DIR_IN, 4000);
                 moveStepper(steps* STEP_DIVIDER, speed, DIR_IN);
             }

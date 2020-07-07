@@ -43,5 +43,17 @@ private:
 
 };
 
+class SSC_100MD4A3: public Honeywell_SSC
+{
+public:
+    SSC_100MD4A3(int sensorID):Honeywell_SSC(0x48, sensorID, -100, 100, 0.1*16383, 0.9*16383) {}
+};
+
+class SSC_016MD2A5: public Honeywell_SSC
+{
+public:
+    SSC_016MD2A5(int sensorID):Honeywell_SSC(0x28, sensorID, -16, 16, 0.1*16383, 0.9*16383) {}
+};
+
 #endif
 
