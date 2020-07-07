@@ -123,12 +123,16 @@ void loop(){
 
     serialWritePackage(&cobsSerial, diagnosticParameters.flow.getPackageStruct());
     serialWritePackage(&cobsSerial, diagnosticParameters.airwayPressure.getPackageStruct());
+    serialWritePackage(&cobsSerial, diagnosticParameters.volume.getPackageStruct());
+
+    // record cycle time
     cycleTime = stopwatch.mainLoop.getElapsedTime();
     stopwatch.mainLoop.start();
 
     readUserInput();
     readSensors();
     checkHomeSensors(isHome);
+    runMachineDiagnostics();
 
     ventilationStateMachine(ventilationState);
     display.refreshDisplay();
@@ -136,9 +140,19 @@ void loop(){
 
 
     //display.printAllViewMode();
+}
 
+void runMachineDiagnostics(){
+    // program cycle time
+    machineDiagnostics.cycle_time.setValue(cycleTime);
+    serialWritePackage(&cobsSerial, machineDiagnostics.cycle_time.getPackageStruct());
+    delay(1);
+    // ventilation state
+    machineDiagnostics.ventilationState.setValue((int)ventilationState);
+    serialWritePackage(&cobsSerial, machineDiagnostics.ventilationState.getPackageStruct());
 
 }
+
 void serialDebug(){
     //Serial.println(allUserParams[(int)UP::T_IN].getValue());
    // Serial.println(diagnosticParameters.flow.getValue());
@@ -179,6 +193,14 @@ void readUserInput(){
         allUserParams[(int)UP::T_IN].setMax((t_in_max));
 
     }
+
+    //if (userInput.getInputState() == User_Input::VIEW){
+    if (true){
+        for ( int i=0;  i<(mode.nParams); i++)
+        {
+            serialWritePackage(&cobsSerial, allUserParams[(int)mode.parameters[i]].getValuePackage());
+        }
+    }
 }
 
 void readSensors(){
@@ -188,6 +210,17 @@ void readSensors(){
     flowSensor.readSensor();
 
     diagnosticParameters.flow.setValue(flowSensor.getData().pressure);
+
+    // integrate flow for volume
+    if ((ventilationState == START_IN)||(ventilationState == IDLE)){
+        diagnosticParameters.volume.setValue(0);
+    }
+    else {
+        float newVolume = diagnosticParameters.volume.getValue() + diagnosticParameters.flow.getValue()*cycleTime;
+        diagnosticParameters.volume.setValue(newVolume);
+    }
+
+
 /*
     float pressureChange = (pressureSensor.getData().pressure - oldPressure)/cycleTime*1000;
     diagnosticParameters.pressureChange.setValue(pressureChange);

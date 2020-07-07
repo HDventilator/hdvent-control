@@ -84,6 +84,8 @@ void readUserInput();
 void serialDebug();
 void setKVals(uint8_t dir);
 void moveStepper(int steps,  int speed, int dir);
+void runMachineDiagnostics();
+
 /* *****************************
  * Global Variables
  * *****************************
@@ -109,7 +111,7 @@ User_Parameter allUserParams[(int) UP::LAST_PARAM_LABEL];
 struct diagnosticParameters_t {
     Diagnostic_Parameter peep;
     Diagnostic_Parameter tidalVolume=Diagnostic_Parameter(0,0,0,"TVOL");
-    Diagnostic_Parameter Volume=Diagnostic_Parameter(0,0,0,"VOLU");
+    Diagnostic_Parameter volume=Diagnostic_Parameter(0,0,0,"VOLU");
     Diagnostic_Parameter flow=Diagnostic_Parameter(0,0,0,"FLOW");
     Diagnostic_Parameter airwayPressure = Diagnostic_Parameter(0,0,0,"P_AW");;
     Diagnostic_Parameter respiratoryRate;
@@ -118,6 +120,11 @@ struct diagnosticParameters_t {
     Diagnostic_Parameter minuteVolume;
     Diagnostic_Parameter pressureChange; //millibar per second
 } diagnosticParameters;
+
+struct machineDiagnostics_t {
+    Diagnostic_Parameter cycle_time=Diagnostic_Parameter(0,0,0,"Tcyc");
+    Diagnostic_Parameter ventilationState=Diagnostic_Parameter(0,0,0,"Svent");
+} machineDiagnostics;
 
 struct stopwatches_t{
     Stopwatch holdingIn;
