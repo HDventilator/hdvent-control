@@ -7,7 +7,7 @@
 #include <Arduino.h>
 #include "../Serial_Protocol/Serial_Protocol.h"
 
-const char DIAGNOSTIC_PARAMETER_ID_PREFIX[] = {"dp"};
+const char DIAGNOSTIC_PARAMETER_ID_PREFIX[] = {"DM"};
 
 class Diagnostic_Parameter {
 public:

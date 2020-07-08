@@ -67,7 +67,7 @@ void setup()
     allUserParams[(int) UP::PRESSURE_TRIGGER_THRESHOLD] = User_Parameter(5, 5, 50, "Pthr", 0, 1024, true); //  millibar per second
     allUserParams[(int) UP::FLOW_TRIGGER_THRESHOLD] = User_Parameter(20, 5, 50, "Fthr", 0, 1024, true); //  milliliters per second
     allUserParams[(int) UP::ANGLE] = User_Parameter(0, 0, 1, "angl", 0, 1024, true); //  milliliters per second
-    allUserParams[(int) UP::COMPRESSED_VOLUME_RATIO] = User_Parameter(100, 0, 100, "Vol%", 0, 1024, true); //  milliliters per second
+    allUserParams[(int) UP::COMPRESSED_VOLUME_RATIO] = User_Parameter(100, 0, 100, "Volu", 0, 1024, true); //  milliliters per second
 
     ConfigureStepperDriver();
     pressureSensor.begin();
@@ -91,6 +91,8 @@ void setup()
     cobsSerial.setStream(&Serial3);
     //cobsSerial.begin(115200);
     Serial3.begin(115200);
+
+    stopwatch.sinceIdle.start();
 
 
 
@@ -124,6 +126,8 @@ void loop(){
     serialWritePackage(&cobsSerial, diagnosticParameters.flow.getPackageStruct());
     serialWritePackage(&cobsSerial, diagnosticParameters.airwayPressure.getPackageStruct());
     serialWritePackage(&cobsSerial, diagnosticParameters.volume.getPackageStruct());
+    serialWritePackage(&cobsSerial, diagnosticParameters.minuteVolume.getPackageStruct());
+    serialWritePackage(&cobsSerial, diagnosticParameters.tidalVolume.getPackageStruct());
 
     // record cycle time
     cycleTime = stopwatch.mainLoop.getElapsedTime();
@@ -209,15 +213,31 @@ void readSensors(){
     diagnosticParameters.airwayPressure.setValue(pressureSensor.getData().pressure);
     flowSensor.readSensor();
 
-    diagnosticParameters.flow.setValue(flowSensor.getData().pressure);
+    diagnosticParameters.flow.setValue(flowSensor.getData().pressure * PRESSURE_FLOW_CONVERSION);
 
     // integrate flow for volume
     if ((ventilationState == START_IN)||(ventilationState == IDLE)){
         diagnosticParameters.volume.setValue(0);
     }
     else {
-        float newVolume = diagnosticParameters.volume.getValue() + diagnosticParameters.flow.getValue()*cycleTime;
+        float newVolume = diagnosticParameters.volume.getValue() + diagnosticParameters.flow.getValue()*(float)cycleTime/1000;
         diagnosticParameters.volume.setValue(newVolume);
+    }
+
+    // calculate tidal volume and minute volume
+    if (ventilationState == END_IN) {
+        unsigned long timestamp=stopwatch.sinceIdle.getElapsedTime();
+        diagnosticParameters.tidalVolume.setValue(diagnosticParameters.volume.getValue());
+        diagnosticParameters.minuteVolume.enqueue(diagnosticParameters.volume.getValue()/1000, timestamp);
+
+        if (timestamp>60000){
+            timestamp = timestamp-60000;
+        }
+        else {
+            timestamp =0;
+        }
+        diagnosticParameters.minuteVolume.sumFromTimestamp(timestamp);
+        Serial.print("elapsed time:"); Serial.println(timestamp);
     }
 
 
@@ -274,8 +294,10 @@ VentilationState ventilationStateMachine( VentilationState &state){
             break;
 
         case IDLE: // executed at startup
+            stopwatch.sinceIdle.reset();
             if (runVentilation){
                 if (isHome){
+                    stopwatch.sinceIdle.start();
                     state = START_IN;
                 }
                 else {
