@@ -128,6 +128,7 @@ void loop(){
     serialWritePackage(&cobsSerial, diagnosticParameters.volume.getPackageStruct());
     serialWritePackage(&cobsSerial, diagnosticParameters.minuteVolume.getPackageStruct());
     serialWritePackage(&cobsSerial, diagnosticParameters.tidalVolume.getPackageStruct());
+    serialWritePackage(&cobsSerial, diagnosticParameters.peep.getPackageStruct());
 
     // record cycle time
     cycleTime = stopwatch.mainLoop.getElapsedTime();
@@ -203,6 +204,8 @@ void readUserInput(){
         for ( int i=0;  i<(mode.nParams); i++)
         {
             serialWritePackage(&cobsSerial, allUserParams[(int)mode.parameters[i]].getValuePackage());
+            serialWritePackage(&cobsSerial, allUserParams[(int)mode.parameters[i]].getMinPackage());
+            serialWritePackage(&cobsSerial, allUserParams[(int)mode.parameters[i]].getMaxPackage());
         }
     }
 }
@@ -240,6 +243,11 @@ void readSensors(){
         Serial.print("elapsed time:"); Serial.println(timestamp);
     }
 
+    if (ventilationState == HOLDING_IN){
+        if (stopwatch.holdingIn.getElapsedTime()>50){
+            diagnosticParameters.peep.setValue(pressureSensor.getData().pressure);
+        }
+    }
 
 /*
     float pressureChange = (pressureSensor.getData().pressure - oldPressure)/cycleTime*1000;

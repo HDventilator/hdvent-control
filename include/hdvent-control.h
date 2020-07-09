@@ -52,7 +52,7 @@ float calculateSpeed(int acc, int dec, float t, int steps);
 enum VentilationState {START_IN=0, MOVING_IN=1, HOLDING_IN=2, START_EX=3, MOVING_EX=4, HOLDING_EX=5, STARTUP=6, END_IN=7, END_EX=8, HOMING_EX=9, IDLE=10, START_HOMING=11};
 
 
-float const PRESSURE_FLOW_CONVERSION = 400; // ml*s^-1 / mbar
+float const PRESSURE_FLOW_CONVERSION = 600; // ml*s^-1 / mbar
 /* **********************
  * Function declarations
  * **********************
@@ -110,7 +110,7 @@ unsigned int stepsInterval = 300;
 User_Parameter allUserParams[(int) UP::LAST_PARAM_LABEL];
 
 struct diagnosticParameters_t {
-    Diagnostic_Parameter peep;
+    Diagnostic_Parameter peep=Diagnostic_Parameter(0,0,0,"peep");
     Diagnostic_Parameter tidalVolume=Diagnostic_Parameter(0,0,0,"tvol");
     Diagnostic_Parameter volume=Diagnostic_Parameter(0,0,0,"cvol");
     Diagnostic_Parameter flow=Diagnostic_Parameter(0,0,0,"flow");

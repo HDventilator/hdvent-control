@@ -9,7 +9,7 @@
 
 const char USER_PARAMETER_VALUE_ID_PREFIX[] = "Pv";
 const char USER_PARAMETER_MIN_ID_PREFIX[] = "P_";
-const char USER_PARAMETER_MAX_ID_PREFIX[] = "P^";
+const char USER_PARAMETER_MAX_ID_PREFIX[] = "PM";
 const char USER_PARAMETER_DISPLAY_ID_PREFIX[] = "DM";
 
 class User_Parameter {
