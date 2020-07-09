@@ -67,7 +67,7 @@ bool isBusy();
 
 void moveStepper(int steps, int speed, int acc, int dec, int dir);
 void runStepper(int speed, int acc, int dec, int dir);
-
+void writeDiagnosticParameters();
 VentilationState ventilationStateMachine(VentilationState &state);
 int readStatusRegister();
 bool getStatusFlag(int r, int n);

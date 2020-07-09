@@ -122,13 +122,7 @@ void scan_i2c()
 
 void loop(){
     //scan_i2c();
-
-    serialWritePackage(&cobsSerial, diagnosticParameters.flow.getPackageStruct());
-    serialWritePackage(&cobsSerial, diagnosticParameters.airwayPressure.getPackageStruct());
-    serialWritePackage(&cobsSerial, diagnosticParameters.volume.getPackageStruct());
-    serialWritePackage(&cobsSerial, diagnosticParameters.minuteVolume.getPackageStruct());
-    serialWritePackage(&cobsSerial, diagnosticParameters.tidalVolume.getPackageStruct());
-    serialWritePackage(&cobsSerial, diagnosticParameters.peep.getPackageStruct());
+    writeDiagnosticParameters();
 
     // record cycle time
     cycleTime = stopwatch.mainLoop.getElapsedTime();
@@ -141,10 +135,15 @@ void loop(){
 
     ventilationStateMachine(ventilationState);
     display.refreshDisplay();
-    serialDebug();
-
-
-    //display.printAllViewMode();
+    //serialDebug();
+}
+void writeDiagnosticParameters(){
+    serialWritePackage(&cobsSerial, diagnosticParameters.flow.getPackageStruct());
+    serialWritePackage(&cobsSerial, diagnosticParameters.airwayPressure.getPackageStruct());
+    serialWritePackage(&cobsSerial, diagnosticParameters.volume.getPackageStruct());
+    serialWritePackage(&cobsSerial, diagnosticParameters.minuteVolume.getPackageStruct());
+    serialWritePackage(&cobsSerial, diagnosticParameters.tidalVolume.getPackageStruct());
+    serialWritePackage(&cobsSerial, diagnosticParameters.peep.getPackageStruct());
 }
 
 void runMachineDiagnostics(){
