@@ -93,8 +93,6 @@ void setup()
 
     stopwatch.sinceIdle.start();
 
-
-
 }
 
 
@@ -122,7 +120,7 @@ void scan_i2c()
 void loop(){
     //scan_i2c();
     writeDiagnosticParameters();
-    
+
     // record cycle time
     cycleTime = stopwatch.mainLoop.getElapsedTime();
     stopwatch.mainLoop.start();
