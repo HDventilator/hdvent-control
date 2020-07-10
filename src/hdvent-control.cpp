@@ -54,11 +54,10 @@ void setup()
     float respiratory_rate = 20;
     float respiratory_rate_max = 60/(t_in_min+t_ex_min);
     float respiratory_rate_min = 5;
-    allUserParams[(int) UP::RESPIRATORY_RATE] = User_Parameter(respiratory_rate, respiratory_rate_min, respiratory_rate_max, "freq", 0, 1024, true); //  breaths per minute
-
     // slowest in movement is bounded by fastest possible out movement and fastest respiratory rate
     float t_in_max = 60/respiratory_rate - t_ex_min;
 
+    allUserParams[(int) UP::RESPIRATORY_RATE] = User_Parameter(respiratory_rate, respiratory_rate_min, respiratory_rate_max, "freq", 0, 1024, true); //  breaths per minute
     allUserParams[(int) UP::T_IN] = User_Parameter(2, t_in_min, t_in_max,"T_in", 0, 1024, true); // Inspiration time
     allUserParams[(int) UP::TIDAL_VOLUME] = User_Parameter(250, 0, 650, "VTid", 0, 1024, true); // milliliters
     allUserParams[(int) UP::INSPIRATORY_PRESSURE] = User_Parameter(20, 5, 50, "P_aw", 0, 1024, true); //  millibar
@@ -123,7 +122,7 @@ void scan_i2c()
 void loop(){
     //scan_i2c();
     writeDiagnosticParameters();
-
+    
     // record cycle time
     cycleTime = stopwatch.mainLoop.getElapsedTime();
     stopwatch.mainLoop.start();
@@ -185,7 +184,7 @@ void readUserInput(){
     // read all four potis and update params
     for ( int i=0;  i<(mode.nParams); i++)
     {
-        allUserParams[(int)mode.parameters[i]].loadValue(analogRead(potiPins[i]));
+        controller.userParams[i].loadValue(analogRead(potiPins[i]));
     }
 
     userInput.update();
@@ -202,9 +201,9 @@ void readUserInput(){
     if (true){
         for ( int i=0;  i<(mode.nParams); i++)
         {
-            serialWritePackage(&cobsSerial, allUserParams[(int)mode.parameters[i]].getValuePackage());
-            serialWritePackage(&cobsSerial, allUserParams[(int)mode.parameters[i]].getMinPackage());
-            serialWritePackage(&cobsSerial, allUserParams[(int)mode.parameters[i]].getMaxPackage());
+            serialWritePackage(&cobsSerial, controller.userParams[i].getValuePackage());
+            serialWritePackage(&cobsSerial, controller.userParams[i].getMinPackage());
+            serialWritePackage(&cobsSerial, controller.userParams[i].getMaxPackage());
         }
     }
 }

@@ -27,6 +27,7 @@
 #include <Wire.h>
 #include <Serial_Protocol.h>
 #include <Aggregated_Parameter.h>
+#include <Warning.h>
 extern "C" {
 #include "utility/twi.h"  // from Wire library, so we can do bus scanning
 }
@@ -155,7 +156,8 @@ Sensor::state_t anglePositionState = Sensor::OK;
 float motorSpeed;
 PID pressureControlPID();
 
-VentilationController controller(OL_CMV, diagnosticParameters.airwayPressure,diagnosticParameters.flow);
+VentilationController controller(OL_CMV, diagnosticParameters.airwayPressure, diagnosticParameters.flow,
+                                 allUserParams);
 LiquidCrystal lcd(PIN_LCD_RS, PIN_LCD_RW, PIN_LCD_EN, PIN_LCD_D4, PIN_LCD_D5, PIN_LCD_D6, PIN_LCD_D7);
 PacketSerial cobsSerial;
 uint8_t potiPins[4] = {PIN_POTI_AD, PIN_POTI_IE, PIN_POTI_TV, PIN_POTI_RR};

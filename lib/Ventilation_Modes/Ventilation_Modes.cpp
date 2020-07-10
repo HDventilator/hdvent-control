@@ -13,7 +13,8 @@ VentilationMode::VentilationMode(ControlMode control, UP userSetParametersSelect
                                  trigger_func_t expirationTriggersSelection[], int nExpirationTriggers,
                                  char *identifier)
 {
-    fillArray(parameters, (int)UP::LAST_PARAM_LABEL, userSetParametersSelection, nUserSetParameters, UP::BLANK);
+    //fillArray(parameters, (int)UP::LAST_PARAM_LABEL, userSetParametersSelection, nUserSetParameters, UP::BLANK);
+    parameters = userSetParametersSelection;
     fillArray(inspirationTriggers, NUMBER_TRIGGERS, inspirationTriggersSelection, nInspirationTriggers, &alwaysFalseTrigger);
     fillArray(expirationTriggers, NUMBER_TRIGGERS, expirationTriggersSelection, nExpirationTriggers, &alwaysFalseTrigger);
     controlMode = control;

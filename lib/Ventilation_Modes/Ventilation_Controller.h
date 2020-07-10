@@ -10,19 +10,26 @@
 #include <Diagnostic_Parameter.h>
 #include "Ventilation_Modes.h"
 #include "PID_v1.h"
+#include <Subset.h>
+#include "User_Parameter.h"
+
 typedef float (*input_func_t)();
 
 class VentilationController {
 public:
-    VentilationController(VentilationMode mode, Diagnostic_Parameter &pressure, Diagnostic_Parameter &flow);
+    VentilationController(VentilationMode mode, Diagnostic_Parameter &pressure, Diagnostic_Parameter &flow,
+                          User_Parameter * allUserParams);
     bool expirationTrigger();
     bool inspirationTrigger();
     float calcSpeed();
     float calcSetPoint();
     void startRamp(float slope, float level);
+    Subset<User_Parameter, UP> userParams;
+    VentilationMode _mode;
 
 private:
-    VentilationMode _mode;
+
+
     PID _pid;
     bool _bypass;
     double _pidIn;

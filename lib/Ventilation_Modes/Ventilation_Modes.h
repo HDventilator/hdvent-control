@@ -24,19 +24,7 @@ enum struct UP {
     ANGLE,
     LAST_PARAM_LABEL=12
 };
-/*
-struct diagnosticParameters_t {
-    Diagnostic_Parameter peep;
-    Diagnostic_Parameter tidalVolume;
-    Diagnostic_Parameter flow;
-    Diagnostic_Parameter airwayPressure;
-    Diagnostic_Parameter respiratoryRate;
-    Diagnostic_Parameter plateauPressure;
-    Diagnostic_Parameter meanPressure;
-    Diagnostic_Parameter minuteVolume;
-    Diagnostic_Parameter pressureChange; //millibar per second
-};
-*/
+
 typedef bool (*trigger_func_t)();
 
 struct Triggers{
@@ -81,7 +69,7 @@ struct VentilationMode {
                     trigger_func_t expirationTriggersSelection[], int nExpirationTriggers,
                     char *identifier);
 
-    UP parameters[(int)UP::LAST_PARAM_LABEL];
+    UP* parameters;
     trigger_func_t expirationTriggers[NUMBER_TRIGGERS];
     trigger_func_t inspirationTriggers[NUMBER_TRIGGERS];
     ControlMode controlMode;
@@ -89,11 +77,12 @@ struct VentilationMode {
     uint8_t nParams;
     package_struct_4char_t _package;
 
+
 };
 
-const VentilationMode VC_CMV = VentilationMode(
+const VentilationMode VC_CMV(
         ControlMode::VC,
-        (UP[]) {
+        (UP[]){
                 UP::RESPIRATORY_RATE,
                 UP::TIDAL_VOLUME,
                 UP::T_IN,
@@ -101,7 +90,7 @@ const VentilationMode VC_CMV = VentilationMode(
         (trigger_func_t[]) {Triggers::respiratoryRate}, 1,
         (trigger_func_t[]) {Triggers::inspirationTime}, 1, nullptr);
 
-const VentilationMode OL_CMV = VentilationMode(
+const VentilationMode OL_CMV (
         ControlMode::VN,
         (UP[]) {
                 UP::RESPIRATORY_RATE,
@@ -110,7 +99,7 @@ const VentilationMode OL_CMV = VentilationMode(
         (trigger_func_t[]) {Triggers::respiratoryRate}, 1,
         (trigger_func_t[]) {Triggers::inspirationTime}, 1, nullptr);
 
-const VentilationMode PC_CMV = VentilationMode(
+const VentilationMode PC_CMV (
         ControlMode::VN,
         (UP[]) {
                 UP::INSPIRATORY_PRESSURE,
