@@ -187,7 +187,7 @@ void Display::incrementToPos(uint8_t i) {
     uint8_t nRows=3;
 
     _cursorRow = i%nRows + 1;
-    _cursorCol = i/nRows * 10;
+    _cursorCol = 0;// i/nRows * 10;
 }
 
 void Display::setMode(const VentilationMode *mode) {
@@ -220,7 +220,6 @@ void Display::refreshDisplay() {
             _lcd.clear();
             printAllViewMode();
     }
-
 }
 
 

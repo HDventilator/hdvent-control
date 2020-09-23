@@ -134,6 +134,8 @@ void loop(){
     display.refreshDisplay();
     //serialDebug();
 }
+
+
 void writeDiagnosticParameters(){
     serialWritePackage(&cobsSerial, diagnosticParameters.flow.getPackageStruct());
     serialWritePackage(&cobsSerial, diagnosticParameters.airwayPressure.getPackageStruct());
@@ -212,7 +214,7 @@ void readSensors(){
     diagnosticParameters.airwayPressure.setValue(pressureSensor.getData().pressure);
     flowSensor.readSensor();
 
-    diagnosticParameters.flow.setValue(flowSensor.getData().pressure * PRESSURE_FLOW_CONVERSION);
+    diagnosticParameters.flow.setValue((flowSensor.getData().pressure-PRESSURE_FLOW_CONVERSION_OFFSET) * PRESSURE_FLOW_CONVERSION);
 
     // integrate flow for volume
     if ((ventilationState == START_IN)||(ventilationState == IDLE)){

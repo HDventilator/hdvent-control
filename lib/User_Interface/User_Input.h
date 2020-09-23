@@ -18,15 +18,13 @@ public:
     User_Input(User_Parameter *allUserParameters, VentilationMode *mode, bool *do_save);
     enum input_state_t {EDIT_SETTINGS, VIEW_SETTINGS, SAVE_SETTINGS, ENTER_EDIT, EDIT_VENTILATION_MODE, ENTER_VIEW_SETTINGS};
     void update();
-private:
-    input_state_t _inputState;
-public:
     input_state_t getInputState() const;
     Stopwatch _stopwatch;
 
 private:
     User_Parameter* _allUserParameters;
     VentilationMode* _mode;
+    input_state_t _inputState;
     bool* _do_save;
 
 };

@@ -29,6 +29,6 @@ int const STEP_DIVIDER_REGISTER = STEP_FS_128;
 int const STEP_DIVIDER = 128;
 
 unsigned int const STEPS_FULL_TURN = 200;
-unsigned int const STEPS_FULL_RANGE = 54;
+unsigned int const STEPS_FULL_RANGE = 60;
 
 #endif //HDVENT_CONTROL_MOTOR_SETTINGS_H
