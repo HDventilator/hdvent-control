@@ -4,13 +4,52 @@
 #include <hdvent-control.h>
 
 
+void turnEncoderInterruptRoutine(){
+    encoder.sense = digitalRead(PIN_ENCO_A) == HIGH == digitalRead(PIN_ENCO_B);
+    encoder.wasTurned=true;
+}
+
+
+void buttonEncoderInterruptRoutine(){
+    delay(1);
+    if (digitalRead(PIN_ENCO_BTN)==HIGH){
+        encoder.pressingTime.start();
+    }
+    if (digitalRead(PIN_ENCO_BTN)==LOW) {
+        unsigned long elapsed = encoder.pressingTime.stop();
+        if (elapsed > 2000) {
+            encoder.longPressDetected = true;
+        } else if (elapsed > 30) {
+            encoder.shortPressDetected = true;
+        }
+    }
+}
+
+
+
+/*
+int buttonCounter=0;
+int doubleCounter=0;
+int _incrementer;
+*/
+
+
+
+
 void setup()
 {
     Serial.begin(115200);
 
     // Prepare pins
+    pinMode(PIN_ENCO_A,INPUT);
+    pinMode(PIN_ENCO_B,INPUT);
+    pinMode(PIN_ENCO_BTN,INPUT);
     pinMode(nSTBY_nRESET_PIN, OUTPUT);
     pinMode(nCS_PIN, OUTPUT);
+
+
+    attachInterrupt(digitalPinToInterrupt(PIN_ENCO_BTN), buttonEncoderInterruptRoutine, CHANGE);
+    attachInterrupt (digitalPinToInterrupt(PIN_ENCO_A),turnEncoderInterruptRoutine,FALLING);
 
     // SPI pins
     pinMode(MOSI, OUTPUT);
@@ -92,6 +131,8 @@ void setup()
     Serial3.begin(115200);
 
     stopwatch.sinceIdle.start();
+
+    display.printStaticText();
 
 }
 

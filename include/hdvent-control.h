@@ -28,9 +28,13 @@
 #include <Serial_Protocol.h>
 #include <Aggregated_Parameter.h>
 #include <Warning.h>
+#include <Encoder.h>
+
 extern "C" {
 #include "utility/twi.h"  // from Wire library, so we can do bus scanning
 }
+
+
 /* ***********************
  * Constant definitions
  * ***********************
@@ -139,6 +143,8 @@ struct stopwatches_t{
     Stopwatch sinceIdle;
 } stopwatch;
 
+
+
 float pathRatio=1;
 
 VentilationMode mode= OL_CMV ;
@@ -163,6 +169,6 @@ LiquidCrystal lcd(PIN_LCD_RS, PIN_LCD_RW, PIN_LCD_EN, PIN_LCD_D4, PIN_LCD_D5, PI
 PacketSerial cobsSerial;
 uint8_t potiPins[4] = {PIN_POTI_AD, PIN_POTI_IE, PIN_POTI_TV, PIN_POTI_RR};
 User_Input userInput(allUserParams, &mode, &saveUserParams);
-Display display(lcd, allUserParams, &mode, &userInput);
-
+Encoder encoder;
+Display display(lcd, allUserParams, &VC_CMV, &encoder._increment, &encoder._increment, &encoder.shortPressDetected, &encoder.longPressDetected, &userInput);
 #endif //HDVENT_CONTROL_HDVENT_CONTROL_H

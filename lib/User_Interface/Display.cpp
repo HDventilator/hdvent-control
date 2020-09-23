@@ -39,7 +39,6 @@ Display::Display(LiquidCrystal &lcd, User_Parameter *allUserParameters, const Ve
     for (int8_t i=0; i<_mode->nParams;i++){
         printValue(_allUserParameters[(int) _mode->parameters[i]].getValue());
     }
-
 }
 
 Display::Display(LiquidCrystal &lcd, User_Parameter *allUserParameters, VentilationMode *mode,
