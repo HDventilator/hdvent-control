@@ -131,7 +131,7 @@ void loop(){
     runMachineDiagnostics();
 
     ventilationStateMachine(ventilationState);
-    display.refreshDisplay();
+    display.updateDisplay();
     //serialDebug();
 }
 
