@@ -7,14 +7,14 @@
 
 // Motor settings
 // motor curve for volume control operation
-uint8_t const RUN_KVAL_IN = 80;
-uint8_t const ACC_KVAL_IN = 80;
-uint8_t const DEC_KVAL_IN = 80;
-uint8_t const HOLD_KVAL_IN = 80;
-uint8_t const RUN_KVAL_EX = 80;
-uint8_t const ACC_KVAL_EX = 80;
-uint8_t const DEC_KVAL_EX = 80;
-uint8_t const HOLD_KVAL_EX = 80;
+uint8_t const RUN_KVAL_IN = 120;
+uint8_t const ACC_KVAL_IN = 120;
+uint8_t const DEC_KVAL_IN = 120;
+uint8_t const HOLD_KVAL_IN = 120;
+uint8_t const RUN_KVAL_EX = 120;
+uint8_t const ACC_KVAL_EX = 120;
+uint8_t const DEC_KVAL_EX = 120;
+uint8_t const HOLD_KVAL_EX = 120;
 
 
 float const ACC_IN = 300; // steps/s/s

@@ -27,42 +27,35 @@ Display::Display(LiquidCrystal &lcd, User_Parameter *allUserParameters, const Ve
     _valueIncrementer = valueIncrementer;
     _toggleMenuState = toggleMenuState;
     _toggleEditState = toggleEditState;
-    markerIncrementer = cursorIncrementer;
+    _markerIncrementer = cursorIncrementer;
     _valueIncrementer= valueIncrementer;
-    _editState = VIEW_ONLY;
+    _editState = NAVIGATE;
     _markerPositionMax =3;
     _markerPositionMin = 0;
     _userInput = userInput;
     lcd.clear();
     printStaticText();
+    lcd.home();
     lcd.cursor();
     for (int8_t i=0; i<_mode->nParams;i++){
         printValue(_allUserParameters[(int) _mode->parameters[i]].getValue());
     }
 }
 
-Display::Display(LiquidCrystal &lcd, User_Parameter *allUserParameters, VentilationMode *mode,
-                 User_Input *userInput) : _lcd(12, 11, 10, 9, 8, 7) {
-    _lcd = lcd;
-    _lcd.begin(20, 4);
-    _mode = mode;
-    _allUserParameters = allUserParameters;
-    _userInput = userInput;
-}
 
-void Display::updateDisplay() {
+void Display::update() {
     switch(_editState){
         case VIEW_ONLY:{
             moveMarker();
             if (*_toggleEditState){
                 _editState=EDIT_ENTRY;
                 *_toggleEditState=false;
-                _lcd.cursor();
-
             }
+
             break;
         }
         case NAVIGATE:
+            Serial.println(*_markerIncrementer);
             moveMarker();
             if (*_toggleEditState){
                 loadParams();
@@ -76,12 +69,13 @@ void Display::updateDisplay() {
             break;
 
         case EDIT_ENTRY: {
-
             _activeParamIndex = _index;
             _parametersMemory[_activeParamIndex]+=
                     (float) *_valueIncrementer * _allUserParameters[(int)_mode->parameters[_activeParamIndex]].increment;
             Serial.println(_parametersMemory[_activeParamIndex]);
-            printValue(_parametersMemory[_activeParamIndex]);
+            indexToParamValuePosition(_index, _cursorRow, _cursorCol);
+            _lcd.setCursor(_cursorCol, _cursorRow);
+            printParameterValue(_parametersMemory[_activeParamIndex]);
             *_valueIncrementer=0;
 
             if (*_toggleEditState) {
@@ -98,17 +92,15 @@ void Display::updateDisplay() {
             break;
         }
     }
-
     *_toggleEditState=false;
 }
 
 
 void Display::moveMarker() {
 // calc new position
-    _index += *markerIncrementer;
+    _index = *_markerIncrementer;
     _index = _index%_mode->nParams;
-    *markerIncrementer=0;
-    incrementToPos(_index);
+    indexToParamTextPosition(_index, _cursorRow, _cursorCol);
     _lcd.setCursor(_cursorCol, _cursorRow);
 }
 
@@ -131,7 +123,7 @@ void Display::printValue(float value) {
      _lcd.print(value, len );
 }
 
-void Display::printParameterValue(float value, uint8_t n) {
+void Display::printParameterValue(float value) {
 
     uint8_t len=0;
     uint8_t blank=1;
@@ -166,27 +158,34 @@ void Display::loadParams() {
 
 void Display::printStaticText() {
     for (int i=0; i < (_mode->nParams); i++){
-        incrementToPos(i);
+        indexToParamTextPosition(i, _cursorRow, _cursorCol);
         _lcd.setCursor(_cursorCol, _cursorRow);
         _lcd.print(_allUserParameters[(int)_mode->parameters[i]].lcdString);
+        indexToParamValuePosition(i, _cursorRow, _cursorCol);
+        _lcd.setCursor(_cursorCol, _cursorRow);
         printValue(_allUserParameters[(int) _mode->parameters[i]].getValue());
     }
 }
 
 void Display::printUserParamValues() {
     for (int i=0; i < (_mode->nParams); i++){
-        incrementToPos(i);
+        indexToParamTextPosition(i, _cursorRow, _cursorCol);
         _lcd.setCursor(_cursorCol, _cursorRow);
         _lcd.print(_allUserParameters[(int)_mode->parameters[i]].lcdString);
         printValue(_allUserParameters[(int) _mode->parameters[i]].getDialValue());
     }
 }
 
-void Display::incrementToPos(uint8_t i) {
+void Display::indexToParamTextPosition(uint8_t i, uint8_t &row, uint8_t &col) {
     uint8_t nRows=3;
+    row = i%nRows + 1;
+    col = 0;// i/nRows * 10;
+}
 
-    _cursorRow = i%nRows + 1;
-    _cursorCol = 0;// i/nRows * 10;
+void Display::indexToParamValuePosition(uint8_t i, uint8_t &row, uint8_t &col) {
+    uint8_t nRows=3;
+    row = i%nRows + 1;
+    col = 5;// i/nRows * 10;
 }
 
 void Display::setMode(const VentilationMode *mode) {

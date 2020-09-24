@@ -169,6 +169,6 @@ LiquidCrystal lcd(PIN_LCD_RS, PIN_LCD_RW, PIN_LCD_EN, PIN_LCD_D4, PIN_LCD_D5, PI
 PacketSerial cobsSerial;
 uint8_t potiPins[4] = {PIN_POTI_AD, PIN_POTI_IE, PIN_POTI_TV, PIN_POTI_RR};
 User_Input userInput(allUserParams, &mode, &saveUserParams);
-Encoder encoder;
-Display display(lcd, allUserParams, &VC_CMV, &encoder._increment, &encoder._increment, &encoder.shortPressDetected, &encoder.longPressDetected, &userInput);
+Encoder encoder(PIN_ENCO_A, PIN_ENCO_B);
+Display display(lcd, allUserParams, &VC_CMV, &encoder._position, &encoder._position, &encoder.shortPressDetected, &encoder.longPressDetected, &userInput);
 #endif //HDVENT_CONTROL_HDVENT_CONTROL_H

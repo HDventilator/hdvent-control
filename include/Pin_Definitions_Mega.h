@@ -67,6 +67,8 @@ int const PIN_LCD_D5 = 34;
 int const PIN_LCD_D6 = 36;
 int const PIN_LCD_D7 = 38;
 
+int const PIN_LED_GREEN = 49;
+int const PIN_LED_ORANGE = 48;
 
 
 #endif //HDVENT_CONTROL_PIN_DEFINITIONS_H

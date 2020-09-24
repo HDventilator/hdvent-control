@@ -7,17 +7,29 @@
 
 #include <Stopwatch.h>
 
-struct Encoder{
+class Encoder{
+public:
+    Encoder(int pinA, int pinB);
     bool wasTurned=false;
     bool shortPressDetected=false;
     bool sense=false;
     bool wasPressed=true;
-    int _increment=0;
     Stopwatch pressingTime;
     bool longPressDetected=false;
     void incrementEncoder();
+    void service();
+    void reset();
+    int getPosition() const;
+    int _position;
+
+private:
+
+    int _pinA;
+    int _pinB;
+
+    bool _aLast;
+    bool _bLast;
 
 };
-
 
 #endif //HDVENT_CONTROL_ENCODER_H

@@ -4,37 +4,9 @@
 #include <hdvent-control.h>
 
 
-void turnEncoderInterruptRoutine(){
-    encoder.sense = digitalRead(PIN_ENCO_A) == HIGH == digitalRead(PIN_ENCO_B);
-    encoder.wasTurned=true;
-}
-
-
 void buttonEncoderInterruptRoutine(){
-    delay(1);
-    if (digitalRead(PIN_ENCO_BTN)==HIGH){
-        encoder.pressingTime.start();
-    }
-    if (digitalRead(PIN_ENCO_BTN)==LOW) {
-        unsigned long elapsed = encoder.pressingTime.stop();
-        if (elapsed > 2000) {
-            encoder.longPressDetected = true;
-        } else if (elapsed > 30) {
-            encoder.shortPressDetected = true;
-        }
-    }
+    encoder.shortPressDetected = digitalRead(PIN_ENCO_BTN);
 }
-
-
-
-/*
-int buttonCounter=0;
-int doubleCounter=0;
-int _incrementer;
-*/
-
-
-
 
 void setup()
 {
@@ -44,12 +16,13 @@ void setup()
     pinMode(PIN_ENCO_A,INPUT);
     pinMode(PIN_ENCO_B,INPUT);
     pinMode(PIN_ENCO_BTN,INPUT);
+
+
     pinMode(nSTBY_nRESET_PIN, OUTPUT);
     pinMode(nCS_PIN, OUTPUT);
 
 
     attachInterrupt(digitalPinToInterrupt(PIN_ENCO_BTN), buttonEncoderInterruptRoutine, CHANGE);
-    attachInterrupt (digitalPinToInterrupt(PIN_ENCO_A),turnEncoderInterruptRoutine,FALLING);
 
     // SPI pins
     pinMode(MOSI, OUTPUT);
@@ -74,9 +47,6 @@ void setup()
 
     pinMode(PIN_OPTICAL_SWITCH_HOME, INPUT_PULLUP);
     attachInterrupt(digitalPinToInterrupt(PIN_OPTICAL_SWITCH_HOME), toggleIsHome, RISING);
-    attachInterrupt(digitalPinToInterrupt(PIN_ENCO_BTN), toggleEnableEncoder, RISING);
-
-
 
     // Start SPI
     SPI.begin();
@@ -160,20 +130,33 @@ void scan_i2c()
 
 void loop(){
     //scan_i2c();
-    writeDiagnosticParameters();
+    //writeDiagnosticParameters();
 
     // record cycle time
     cycleTime = stopwatch.mainLoop.getElapsedTime();
     stopwatch.mainLoop.start();
 
-    readUserInput();
-    readSensors();
-    checkHomeSensors(isHome);
-    runMachineDiagnostics();
+    //readUserInput();
+    //readSensors();
+    //checkHomeSensors(isHome);
+    //runMachineDiagnostics();
+    //Stepper.move(0,100*STEP_DIVIDER);
 
-    ventilationStateMachine(ventilationState);
-    display.updateDisplay();
+
+    //ventilationStateMachine(ventilationState);
+
+    encoder.service();
+    display.update();
     //serialDebug();
+/*
+    digitalWrite(PIN_LED_GREEN, HIGH);
+    digitalWrite(PIN_LED_ORANGE, LOW);
+    delay(300);
+    digitalWrite(PIN_LED_GREEN, LOW);
+    digitalWrite(PIN_LED_ORANGE, HIGH);
+    delay(300);
+    */
+
 }
 
 
@@ -198,6 +181,48 @@ void runMachineDiagnostics(){
 }
 
 void serialDebug(){
+//Serial.println(cycleTime);
+    /*for (int i=0; i < (display._mode->nParams); i++){
+    lcd.setCursor(1,i);
+    lcd.print(display._allUserParameters[(int)display._mode->parameters[i]].lcdString);
+}*/
+    //display.printStaticText();
+    /*
+     * if (!digitalRead(PIN_EDIT_MODE)){    Serial.println("Button1 pressed");}
+     * if (!digitalRead(PIN_ALARM_MUTE)){    Serial.println("Button2 pressed");}
+     * if (!digitalRead(PIN_OPTICAL_SWITCH_END)){    Serial.println("Button3 pressed");}
+     */
+
+    //Serial.println(encoder.getPosition());
+    if (encoder.shortPressDetected){
+        Serial.println("short Press");
+        encoder.shortPressDetected=false;
+    }
+    if (encoder.wasTurned){
+        Serial.println("was turned");
+        encoder.wasTurned=false;
+    }
+    //Serial.print(digitalRead(PIN_ENCO_B));
+    /*
+    if (encoder.longPressDetected){
+        Serial.println("long Press");
+        encoder.longPressDetected=false;
+    }
+*/
+    /*
+    if (*display._toggleEditState){
+        Serial.println("short Press");
+        //*display._toggleEditState=false;
+    }
+    if (*display._toggleMenuState){
+        Serial.println("long Press");
+        //*display._toggleMenuState=false;
+    }
+
+
+    display.update();
+    Serial.println(display._editState);
+*/
     //Serial.println(allUserParams[(int)UP::T_IN].getValue());
    // Serial.println(diagnosticParameters.flow.getValue());
     //Serial.print("Stepper pos   ");Serial.println(stepperMonitor.getData().relativePosition);
@@ -466,10 +491,6 @@ bool Triggers::angleReached() {
     return (float) getPosition() > allUserParams[(int)UP::ANGLE].getValue() * STEPS_FULL_TURN * STEP_DIVIDER;
 }
 
-void toggleEnableEncoder(){
-    void(0);
-    //TODO toggle global var, when encoder button is pressed
-}
 
 
 int getPosition(int tolerance){

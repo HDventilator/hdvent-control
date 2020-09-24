@@ -30,21 +30,21 @@ public:
     enum editState_t {EDIT_ENTRY, NAVIGATE, VIEW_ONLY};
     enum menuState_t {EDIT_SETTINGS, VIEW};
 
-    void updateDisplay();
+    void update();
     void refreshDisplay();
     void printValue(float value);
     void displayParameterValue();
-    void printParameterValue(float value, uint8_t n);
+    void printParameterValue(float value);
 
     uint8_t getParameterIndex();
     void safeParams();
     void loadParams();
     void printStaticText();
-    void incrementToPos(uint8_t i);
+    void indexToParamTextPosition(uint8_t i, uint8_t &row, uint8_t &col);
     void printUserParamValues();
     void printAllEditMode();
     void printAllViewMode();
-
+    void indexToParamValuePosition(uint8_t i, uint8_t &row, uint8_t &col);
     void setMode(const VentilationMode *mode);
 
     float _parametersMemory[4];
@@ -58,7 +58,7 @@ private:
      uint8_t  _index;
      uint8_t _cursorRow;
      uint8_t _cursorCol;
-    int *markerIncrementer;
+    int *_markerIncrementer;
     int *_valueIncrementer;
     bool *_toggleEditState;
     bool *_toggleMenuState;
