@@ -26,7 +26,7 @@ public:
             int *valueIncrementer, bool *toggleEditState, bool *toggleMenuState, User_Input *userInput,
             diagnosticParameters_t *diagnosticParameters);
 
-    enum editState_t {EDIT_ENTRY, NAVIGATE, VIEW_ONLY};
+    enum editState_t {EDIT_PARAMETER, EDIT_ALARM, NAVIGATE, VIEW_ONLY};
     enum menuState_t {EDIT_SETTINGS, VIEW};
 
     void setCursor(uint8_t col, uint8_t row);

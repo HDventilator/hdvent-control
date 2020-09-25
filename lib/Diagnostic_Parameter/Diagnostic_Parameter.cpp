@@ -21,13 +21,35 @@ Diagnostic_Parameter::Diagnostic_Parameter(float initialValue, float minAlarm, f
     lcdString = "none";
 }
 
-Diagnostic_Parameter::Diagnostic_Parameter(char *identifier, char string[], AlarmSetting hiAlarmSet, AlarmSetting loAlarmSet){
+
+Diagnostic_Parameter::Diagnostic_Parameter(char *identifier, char *string,
+                                           Diagnostic_Parameter::AlarmSetting hiAlarmSet,
+                                           Diagnostic_Parameter::AlarmSetting loAlarmSet, float minAlarm,
+                                           float maxAlarm) {
     _hiAlarmSet=INACTIVE;//_hiAlarmSet;
     _loAlarmSet=INACTIVE;//_loAlarmSet;
-        lcdString=string;
-        _identifier=identifier;
-
+    lcdString=string;
+    _identifier=identifier;
+    _increment=(maxAlarm-minAlarm)/40;
     _value =0;
+}
+
+Diagnostic_Parameter::Diagnostic_Parameter(char *identifier, char *string, float minAlarm, float maxAlarm) {
+    _hiAlarmSet=INACTIVE;//_hiAlarmSet;
+    _loAlarmSet=INACTIVE;//_loAlarmSet;
+    lcdString=string;
+    _identifier=identifier;
+    _increment=(maxAlarm-minAlarm)/40;
+    _value =0;
+}
+
+Diagnostic_Parameter::Diagnostic_Parameter(char *identifier, char *string) {
+    _hiAlarmSet=PERMITTED;//_hiAlarmSet;
+    _loAlarmSet=PERMITTED;//_loAlarmSet;
+    lcdString=string;
+    _identifier=identifier;
+    _value =0;
+
 }
 
 /*
@@ -42,23 +64,7 @@ _identifier(identifier)
 */
 
 
-float Diagnostic_Parameter::getMaxAlarm() const {
-    return _hiAlarm;
-}
 
-float Diagnostic_Parameter::getMinAlarm() const {
-    return _loAlarm;
-}
-
-void Diagnostic_Parameter::setMaxAlarm(float maxAlarm) {
-    _hiAlarm = maxAlarm;
-    _hiAlarmSet = ACTIVE;
-}
-
-void Diagnostic_Parameter::setMinAlarm(float minAlarm) {
-    _loAlarm = minAlarm;
-    _loAlarmSet = ACTIVE;
-}
 
 float Diagnostic_Parameter::getValue() const {
     return _value;
@@ -113,5 +119,35 @@ Diagnostic_Parameter::AlarmSetting Diagnostic_Parameter::getHiAlarmSet() const {
 Diagnostic_Parameter::AlarmSetting Diagnostic_Parameter::getLoAlarmSet() const {
     return _loAlarmSet;
 }
+
+void Diagnostic_Parameter::setHiAlarmSet(Diagnostic_Parameter::AlarmSetting hiAlarmSet) {
+    _hiAlarmSet = hiAlarmSet;
+}
+
+void Diagnostic_Parameter::setLoAlarmSet(Diagnostic_Parameter::AlarmSetting loAlarmSet) {
+    _loAlarmSet = loAlarmSet;
+}
+
+float Diagnostic_Parameter::getMinAlarm() const {
+    return _minAlarm;
+}
+
+void Diagnostic_Parameter::setMinAlarm(float minAlarm) {
+    _minAlarm = minAlarm;
+}
+
+float Diagnostic_Parameter::getMaxAlarm() const {
+    return _maxAlarm;
+}
+
+void Diagnostic_Parameter::setMaxAlarm(float maxAlarm) {
+    _maxAlarm = maxAlarm;
+}
+
+float Diagnostic_Parameter::getIncrement() const {
+    return _increment;
+}
+
+
 
 

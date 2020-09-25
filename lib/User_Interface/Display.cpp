@@ -57,7 +57,7 @@ void Display::update() {
         case VIEW_ONLY:{
             moveMarker();
             if (*_toggleEditState){
-                _editState=EDIT_ENTRY;
+                _editState=EDIT_PARAMETER;
                 *_toggleEditState=false;
             }
 
@@ -69,7 +69,7 @@ void Display::update() {
             if (*_toggleEditState){
                 loadParams();
                 loadThresholds();
-                _editState=EDIT_ENTRY;
+                _editState=EDIT_PARAMETER;
                 *_toggleEditState=false;
             }
             else if (*_toggleMenuState){
@@ -78,7 +78,7 @@ void Display::update() {
             }
             break;
 
-        case EDIT_ENTRY: {
+        case EDIT_PARAMETER: {
             _activeParamIndex = _index;
             _parametersMemory[_activeParamIndex]+=
                     (float) *_valueIncrementer * _allUserParameters[(int)_mode->parameters[_activeParamIndex]].increment;
@@ -90,6 +90,7 @@ void Display::update() {
 
             if (*_toggleEditState) {
                 _editState = NAVIGATE;
+                *_markerIncrementer = _index;
                 *_toggleEditState=false;
 
             }
@@ -100,6 +101,13 @@ void Display::update() {
                 //_lcd.noCursor();
             }
             break;
+
+            case EDIT_ALARM:
+                uint8_t alarmIndex = _index - _mode->nParams;
+                _diagnosticParameters->arr[alarmIndex].setLoAlarmSet(Diagnostic_Parameter::ACTIVE);
+
+
+                break;
         }
     }
     *_toggleEditState=false;
@@ -216,7 +224,6 @@ void Display::printStaticText() {
             }
 
             _lcd.print(" Hi ");
-
             switch (diagnosticParameter.getHiAlarmSet()){
                 case Diagnostic_Parameter::ACTIVE:
                     printValue(diagnosticParameter.getMaxAlarm());

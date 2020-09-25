@@ -16,46 +16,50 @@ public:
     enum Alarm {TOO_LOW, OK, TOO_HIGH};
     enum AlarmSetting {ACTIVE, INACTIVE, PERMITTED};
     Diagnostic_Parameter(float initialValue, float minAlarm, float maxAlarm, char *identifier, char string[]);
-    Diagnostic_Parameter(char *identifier, char string[], AlarmSetting hiAlarmSet, AlarmSetting loAlarmSet);
+    Diagnostic_Parameter(char *identifier, char string[], AlarmSetting hiAlarmSet, AlarmSetting loAlarmSet, float minAlarm, float maxAlarm);
     Diagnostic_Parameter(float initialValue, float minAlarm, float maxAlarm, char *identifier);
+    Diagnostic_Parameter(char *identifier, char string[],  float minAlarm, float maxAlarm);
+    Diagnostic_Parameter(char *identifier, char string[]);
 
+
+    float getMinAlarm() const;
+
+    void setMinAlarm(float minAlarm);
 
     float getMaxAlarm() const;
 
-    float getMinAlarm() const;
+    void setMaxAlarm(float maxAlarm);
 
     float getValue() const;
 
     void setValue(float value);
-
-    void setMaxAlarm(float maxAlarm);
-
-    void setMinAlarm(float minAlarm);
-
 
     Alarm checkAlarm();
     char* lcdString;
 
     package_struct_float_t getPackageStruct();
 
+    void setHiAlarmSet(AlarmSetting hiAlarmSet);
+
+    void setLoAlarmSet(AlarmSetting loAlarmSet);
+
+    AlarmSetting getHiAlarmSet() const;
+    AlarmSetting getLoAlarmSet() const;
+    char *getIdentifier() const;
+
+    float getIncrement() const;
 
 private:
+    float _increment;
+    float _minAlarm;
+    float _maxAlarm;
+    AlarmSetting _loAlarmSet;
     float _value;
     AlarmSetting _hiAlarmSet;
-public:
-    AlarmSetting getHiAlarmSet() const;
-
-private:
-    AlarmSetting _loAlarmSet;
-public:
-    AlarmSetting getLoAlarmSet() const;
-
-private:
     float _hiAlarm;
     float _loAlarm;
     char* _identifier;
-public:
-    char *getIdentifier() const;
+
 };
 
 typedef union  {
