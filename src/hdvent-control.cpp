@@ -147,7 +147,7 @@ void loop(){
 
     encoder.service();
     display.update();
-    //serialDebug();
+    serialDebug();
 /*
     digitalWrite(PIN_LED_GREEN, HIGH);
     digitalWrite(PIN_LED_ORANGE, LOW);
@@ -161,12 +161,11 @@ void loop(){
 
 
 void writeDiagnosticParameters(){
-    serialWritePackage(&cobsSerial, diagnosticParameters.flow.getPackageStruct());
-    serialWritePackage(&cobsSerial, diagnosticParameters.airwayPressure.getPackageStruct());
-    serialWritePackage(&cobsSerial, diagnosticParameters.volume.getPackageStruct());
-    serialWritePackage(&cobsSerial, diagnosticParameters.minuteVolume.getPackageStruct());
-    serialWritePackage(&cobsSerial, diagnosticParameters.tidalVolume.getPackageStruct());
-    serialWritePackage(&cobsSerial, diagnosticParameters.peep.getPackageStruct());
+    serialWritePackage(&cobsSerial, diagnosticParameters.s.flow.getPackageStruct());
+    serialWritePackage(&cobsSerial, diagnosticParameters.s.airwayPressure.getPackageStruct());
+    serialWritePackage(&cobsSerial, diagnosticParameters.s.volume.getPackageStruct());
+    serialWritePackage(&cobsSerial, diagnosticParameters.s.tidalVolume.getPackageStruct());
+    serialWritePackage(&cobsSerial, diagnosticParameters.s.peep.getPackageStruct());
 }
 
 void runMachineDiagnostics(){
@@ -194,6 +193,7 @@ void serialDebug(){
      */
 
     //Serial.println(encoder.getPosition());
+    /*
     if (encoder.shortPressDetected){
         Serial.println("short Press");
         encoder.shortPressDetected=false;
@@ -202,6 +202,8 @@ void serialDebug(){
         Serial.println("was turned");
         encoder.wasTurned=false;
     }
+     */
+    //Serial.println(diagnosticParameters.arr[0].lcdString);
     //Serial.print(digitalRead(PIN_ENCO_B));
     /*
     if (encoder.longPressDetected){
@@ -224,7 +226,7 @@ void serialDebug(){
     Serial.println(display._editState);
 */
     //Serial.println(allUserParams[(int)UP::T_IN].getValue());
-   // Serial.println(diagnosticParameters.flow.getValue());
+   // Serial.println(diagnosticParameters.s.flow.getValue());
     //Serial.print("Stepper pos   ");Serial.println(stepperMonitor.getData().relativePosition);
     //Serial.print("home?   "); Serial.println(isHome);
     //Serial.print("ventilationState:  ");Serial.println(ventilationState);
@@ -277,25 +279,25 @@ void readUserInput(){
 void readSensors(){
     // read pressure Sensors
     pressureSensor.readSensor();
-    diagnosticParameters.airwayPressure.setValue(pressureSensor.getData().pressure);
+    diagnosticParameters.s.airwayPressure.setValue(pressureSensor.getData().pressure);
     flowSensor.readSensor();
 
-    diagnosticParameters.flow.setValue((flowSensor.getData().pressure-PRESSURE_FLOW_CONVERSION_OFFSET) * PRESSURE_FLOW_CONVERSION);
+    diagnosticParameters.s.flow.setValue((flowSensor.getData().pressure-PRESSURE_FLOW_CONVERSION_OFFSET) * PRESSURE_FLOW_CONVERSION);
 
     // integrate flow for volume
     if ((ventilationState == START_IN)||(ventilationState == IDLE)){
-        diagnosticParameters.volume.setValue(0);
+        diagnosticParameters.s.volume.setValue(0);
     }
     else {
-        float newVolume = diagnosticParameters.volume.getValue() + diagnosticParameters.flow.getValue()*(float)cycleTime/1000;
-        diagnosticParameters.volume.setValue(newVolume);
+        float newVolume = diagnosticParameters.s.volume.getValue() + diagnosticParameters.s.flow.getValue()*(float)cycleTime/1000;
+        diagnosticParameters.s.volume.setValue(newVolume);
     }
 
     // calculate tidal volume and minute volume
     if (ventilationState == END_IN) {
         unsigned long timestamp=stopwatch.sinceIdle.getElapsedTime();
-        diagnosticParameters.tidalVolume.setValue(diagnosticParameters.volume.getValue());
-        diagnosticParameters.minuteVolume.enqueue(diagnosticParameters.volume.getValue()/1000, timestamp);
+        diagnosticParameters.s.tidalVolume.setValue(diagnosticParameters.s.volume.getValue());
+        //diagnosticParameters.s.minuteVolume.enqueue(diagnosticParameters.s.volume.getValue()/1000, timestamp);
 
         if (timestamp>60000){
             timestamp = timestamp-60000;
@@ -303,19 +305,19 @@ void readSensors(){
         else {
             timestamp =0;
         }
-        diagnosticParameters.minuteVolume.sumFromTimestamp(timestamp);
+        //diagnosticParameters.s.minuteVolume.sumFromTimestamp(timestamp);
         Serial.print("elapsed time:"); Serial.println(timestamp);
     }
 
     if (ventilationState == HOLDING_IN){
         if (stopwatch.holdingIn.getElapsedTime()>50){
-            diagnosticParameters.peep.setValue(pressureSensor.getData().pressure);
+            diagnosticParameters.s.peep.setValue(pressureSensor.getData().pressure);
         }
     }
 
 /*
     float pressureChange = (pressureSensor.getData().pressure - oldPressure)/cycleTime*1000;
-    diagnosticParameters.pressureChange.setValue(pressureChange);
+    diagnosticParameters.s.pressureChange.setValue(pressureChange);
     oldPressure = pressureSensor.getData().pressure;
 */
     // read position sensors
@@ -447,7 +449,7 @@ VentilationState ventilationStateMachine( VentilationState &state){
         case MOVING_EX:
             // record PEEP pressure shortly after start of expiration phase
             if (stopwatch.expiration.getElapsedTime() > 50){
-                diagnosticParameters.peep.setValue(pressureSensor.getData().pressure);
+                diagnosticParameters.s.peep.setValue(pressureSensor.getData().pressure);
             }
             // Stepper has reached home position
             if (isHome) {
@@ -480,11 +482,11 @@ bool Triggers::inspirationTime() {
 }
 
 bool Triggers::pressureDrop() {
-    return (- diagnosticParameters.pressureChange.getValue() > allUserParams[(int)UP::PRESSURE_TRIGGER_THRESHOLD].getValue());
+    return (- diagnosticParameters.s.pressureChange.getValue() > allUserParams[(int)UP::PRESSURE_TRIGGER_THRESHOLD].getValue());
 }
 
 bool Triggers::flowIncrease() {
-    return diagnosticParameters.flow.getValue() > allUserParams[(int)UP::FLOW_TRIGGER_THRESHOLD].getValue();
+    return diagnosticParameters.s.flow.getValue() > allUserParams[(int)UP::FLOW_TRIGGER_THRESHOLD].getValue();
 }
 
 bool Triggers::angleReached() {

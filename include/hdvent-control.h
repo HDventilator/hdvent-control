@@ -115,18 +115,13 @@ unsigned int stepsInterval = 300;
 // user-set parameters
 User_Parameter allUserParams[(int) UP::LAST_PARAM_LABEL];
 
-struct diagnosticParameters_t {
-    Diagnostic_Parameter peep=Diagnostic_Parameter(0,0,0,"peep");
-    Diagnostic_Parameter tidalVolume=Diagnostic_Parameter(0,0,0,"tvol");
-    Diagnostic_Parameter volume=Diagnostic_Parameter(0,0,0,"cvol");
-    Diagnostic_Parameter flow=Diagnostic_Parameter(0,0,0,"flow");
-    Diagnostic_Parameter airwayPressure = Diagnostic_Parameter(0,0,0,"pins");;
-    Diagnostic_Parameter respiratoryRate;
-    Diagnostic_Parameter plateauPressure;
-    Diagnostic_Parameter meanPressure;
-    Diagnostic_Parameter pressureChange; //millibar per second
-    Aggregated_Parameter minuteVolume= Aggregated_Parameter(0, 0, 0, "mvol", 60);
-} diagnosticParameters;
+diagnosticParameters_t diagnosticParameters =
+        { Diagnostic_Parameter("peep", "PEEP", Diagnostic_Parameter::INACTIVE, Diagnostic_Parameter::INACTIVE),
+        Diagnostic_Parameter("tvol","Tvol", Diagnostic_Parameter::INACTIVE, Diagnostic_Parameter::INACTIVE),
+       Diagnostic_Parameter("cvol","Cvol", Diagnostic_Parameter::INACTIVE, Diagnostic_Parameter::INACTIVE),
+        Diagnostic_Parameter("flow","Flow", Diagnostic_Parameter::INACTIVE, Diagnostic_Parameter::INACTIVE),
+         Diagnostic_Parameter("pins","Pins", Diagnostic_Parameter::INACTIVE, Diagnostic_Parameter::INACTIVE)
+        };
 
 struct machineDiagnostics_t {
     Diagnostic_Parameter cycle_time=Diagnostic_Parameter(0,0,0,"tcyc");
@@ -163,12 +158,13 @@ Sensor::state_t anglePositionState = Sensor::OK;
 float motorSpeed;
 PID pressureControlPID();
 
-VentilationController controller(OL_CMV, diagnosticParameters.airwayPressure, diagnosticParameters.flow,
+VentilationController controller(OL_CMV, diagnosticParameters.s.airwayPressure, diagnosticParameters.s.flow,
                                  allUserParams);
 LiquidCrystal lcd(PIN_LCD_RS, PIN_LCD_RW, PIN_LCD_EN, PIN_LCD_D4, PIN_LCD_D5, PIN_LCD_D6, PIN_LCD_D7);
 PacketSerial cobsSerial;
 uint8_t potiPins[4] = {PIN_POTI_AD, PIN_POTI_IE, PIN_POTI_TV, PIN_POTI_RR};
 User_Input userInput(allUserParams, &mode, &saveUserParams);
 Encoder encoder(PIN_ENCO_A, PIN_ENCO_B);
-Display display(lcd, allUserParams, &VC_CMV, &encoder._position, &encoder._position, &encoder.shortPressDetected, &encoder.longPressDetected, &userInput);
+Display display(lcd, allUserParams, &OL_CMV, &encoder._position, &encoder._position, &encoder.shortPressDetected,
+                &encoder.longPressDetected, &userInput, &diagnosticParameters);
 #endif //HDVENT_CONTROL_HDVENT_CONTROL_H
