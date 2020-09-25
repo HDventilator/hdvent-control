@@ -204,7 +204,7 @@ void Display::printStaticText() {
             _lcd.print(" Lo ");
             switch (diagnosticParameter.getLoAlarmSet()){
                 case Diagnostic_Parameter::ACTIVE:
-                    printValue(_diagnosticParameter.getMinAlarm());
+                    printValue(diagnosticParameter.getMinAlarm());
                     break;
                 case Diagnostic_Parameter::INACTIVE:
                     for (int i=0; i<4; i++){
@@ -219,7 +219,7 @@ void Display::printStaticText() {
 
             switch (diagnosticParameter.getHiAlarmSet()){
                 case Diagnostic_Parameter::ACTIVE:
-                    printValue(_diagnosticParameters.getMaxAlarm());
+                    printValue(diagnosticParameter.getMaxAlarm());
                     break;
                 case Diagnostic_Parameter::INACTIVE:
                     for (int i=0; i<4; i++){
