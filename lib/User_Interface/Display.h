@@ -60,6 +60,7 @@ private:
     uint8_t _activeParamIndex;
     uint8_t _activeAlarmIndex;
     uint8_t _scrollingOffset;
+    float _alarmValue;
     editState_t _editState;
     menuState_t _menuState;
      uint8_t  _index;

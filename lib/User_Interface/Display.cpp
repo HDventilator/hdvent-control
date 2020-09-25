@@ -66,11 +66,18 @@ void Display::update() {
         case NAVIGATE:
             //Serial.println(*_markerIncrementer);
             moveMarker();
-            if (*_toggleEditState){
-                loadParams();
-                loadThresholds();
-                _editState=EDIT_PARAMETER;
-                *_toggleEditState=false;
+            if (*_toggleEditState) {
+                if (_index < _mode->nParams) {
+                    loadParams();
+                    loadThresholds();
+                    _editState = EDIT_PARAMETER;
+                    *_toggleEditState = false;
+                }
+                else {
+                    *_valueIncrementer =0;
+                    _editState = EDIT_ALARM;
+                    *_toggleEditState = false;
+                }
             }
             else if (*_toggleMenuState){
                 _editState=VIEW_ONLY;
@@ -102,12 +109,28 @@ void Display::update() {
             }
             break;
 
-            case EDIT_ALARM:
-                uint8_t alarmIndex = _index - _mode->nParams;
+        case EDIT_ALARM:
+            uint8_t alarmIndex = (_index - _mode->nParams) / 2;
+            _alarmValue = _alarmValue + (float) *_valueIncrementer * _diagnosticParameters->arr[alarmIndex].getIncrement();
+
+            *_valueIncrementer =0;
+            if ((_index - _mode->nParams)%2) {
                 _diagnosticParameters->arr[alarmIndex].setLoAlarmSet(Diagnostic_Parameter::ACTIVE);
+            }
+            else {
+                _diagnosticParameters->arr[alarmIndex].setHiAlarmSet(Diagnostic_Parameter::ACTIVE);
+            }
+            indexToAlarmValuePosition(_index, _cursorRow, _cursorCol);
+            setCursor(_cursorCol, _cursorRow);
+            printValue(_alarmValue);
 
-
-                break;
+            if (*_toggleEditState) {
+                _diagnosticParameters->arr[alarmIndex].setValue(_alarmValue);
+                _editState = NAVIGATE;
+                *_markerIncrementer = _index;
+                *_toggleEditState=false;
+            }
+            break;
         }
     }
     *_toggleEditState=false;
@@ -254,15 +277,15 @@ void Display::indexToParamValuePosition(uint8_t i, uint8_t &row, uint8_t &col) {
 }
 
 void Display::indexToAlarmValuePosition(uint8_t i, uint8_t &row, uint8_t &col) {
-    row =i;
+    uint8_t offset = _mode->nParams;
+    row = (i-offset)/2+offset;
     if (i % 2) {
         /* i is odd */
-        col=5;
+        col=8;
     }
     else {
-        col=14;
+        col=16;
     }
-    col = 5;// i/nRows * 10;
 }
 
 
@@ -276,10 +299,10 @@ void Display::indexToCursorPosition(uint8_t i, uint8_t &col, uint8_t &row) {
         row = (i-offset)/2+offset;
         if (i % 2) {
             /* i is odd */
-            col=14;
+            col=5;
         }
         else {
-            col=5;
+            col=13;
         }
     }
 }

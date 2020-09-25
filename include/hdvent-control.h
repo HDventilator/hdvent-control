@@ -116,11 +116,11 @@ unsigned int stepsInterval = 300;
 User_Parameter allUserParams[(int) UP::LAST_PARAM_LABEL];
 
 diagnosticParameters_t diagnosticParameters =
-        { Diagnostic_Parameter("peep", "PEEP", Diagnostic_Parameter::INACTIVE, Diagnostic_Parameter::INACTIVE,0,60),
-        Diagnostic_Parameter("tvol","Tvol", Diagnostic_Parameter::INACTIVE, Diagnostic_Parameter::INACTIVE, 0,500),
-       Diagnostic_Parameter("cvol","Cvol", Diagnostic_Parameter::INACTIVE, Diagnostic_Parameter::INACTIVE, 0,200),
-        Diagnostic_Parameter("flow","Flow", Diagnostic_Parameter::INACTIVE, Diagnostic_Parameter::INACTIVE, 0,20),
-         Diagnostic_Parameter("pins","Pins", Diagnostic_Parameter::INACTIVE, Diagnostic_Parameter::INACTIVE, 0,30)
+        { Diagnostic_Parameter("peep", "PEEP", 0,60),
+        Diagnostic_Parameter("tvol","Tvol",  0,500),
+       Diagnostic_Parameter("cvol","Cvol",  0,200),
+        Diagnostic_Parameter("flow","Flow",  0,20),
+         Diagnostic_Parameter("pins","Pins", 0,30)
         };
 
 struct machineDiagnostics_t {
