@@ -64,7 +64,6 @@ void Display::update() {
             break;
         }
         case NAVIGATE:
-            //Serial.println(*_markerIncrementer);
             moveMarker();
             if (*_toggleEditState) {
                 if (_index < _mode->nParams) {
@@ -89,7 +88,7 @@ void Display::update() {
             _activeParamIndex = _index;
             _parametersMemory[_activeParamIndex]+=
                     (float) *_valueIncrementer * _allUserParameters[(int)_mode->parameters[_activeParamIndex]].increment;
-            //Serial.println(_parametersMemory[_activeParamIndex]);
+
             indexToParamValuePosition(_index, _cursorRow, _cursorCol);
             setCursor(_cursorCol, _cursorRow);
             printValue(_parametersMemory[_activeParamIndex]);
@@ -102,7 +101,6 @@ void Display::update() {
 
             }
             else if (*_toggleMenuState) {
-                //Serial.println("from edit to view_only");
                 _editState = VIEW_ONLY;
                 *_toggleMenuState=false;
                 //_lcd.noCursor();
@@ -110,23 +108,50 @@ void Display::update() {
             break;
 
         case EDIT_ALARM:
-            uint8_t alarmIndex = (_index - _mode->nParams) / 2;
+            uint8_t alarmIndex = (_index - _mode->nParams ) / 2;
             _alarmValue = _alarmValue + (float) *_valueIncrementer * _diagnosticParameters->arr[alarmIndex].getIncrement();
-
-            *_valueIncrementer =0;
-            if ((_index - _mode->nParams)%2) {
-                _diagnosticParameters->arr[alarmIndex].setLoAlarmSet(Diagnostic_Parameter::ACTIVE);
-            }
-            else {
-                _diagnosticParameters->arr[alarmIndex].setHiAlarmSet(Diagnostic_Parameter::ACTIVE);
-            }
             indexToAlarmValuePosition(_index, _cursorRow, _cursorCol);
             setCursor(_cursorCol, _cursorRow);
-            printValue(_alarmValue);
+
+            *_valueIncrementer =0;
+            Serial.print("alarm Index:\t"); Serial.println(alarmIndex);
+            Serial.print("index:\t"); Serial.println(_index);
+
+            if (!((_index - _mode->nParams)%2)) {
+                if (_alarmValue < _diagnosticParameters->arr[alarmIndex].getMinAlarm()){
+                    _diagnosticParameters->arr[alarmIndex].setLoAlarmSet(Diagnostic_Parameter::INACTIVE);
+                    _alarmValue = _diagnosticParameters->arr[alarmIndex].getMinAlarm();
+                    printInactiveAlarm();
+                }
+                else {
+                    _diagnosticParameters->arr[alarmIndex].setLoAlarmSet(Diagnostic_Parameter::ACTIVE);
+                    printValue(_alarmValue);
+                }
+
+            }
+            else {
+                if (_alarmValue > _diagnosticParameters->arr[alarmIndex].getMaxAlarm()){
+                    _diagnosticParameters->arr[alarmIndex].setHiAlarmSet(Diagnostic_Parameter::INACTIVE);
+                    _alarmValue = _diagnosticParameters->arr[alarmIndex].getMaxAlarm();
+                    printInactiveAlarm();
+                }
+                else {
+                    _diagnosticParameters->arr[alarmIndex].setHiAlarmSet(Diagnostic_Parameter::ACTIVE);
+                    printValue(_alarmValue);
+                }
+            }
+
 
             if (*_toggleEditState) {
-                _diagnosticParameters->arr[alarmIndex].setValue(_alarmValue);
+                if (!((_index - _mode->nParams)%2)) {
+                    _diagnosticParameters->arr[alarmIndex].setLoAlarm(_alarmValue);
+                    Serial.println("set lo alarm");
+                } else{
+                    _diagnosticParameters->arr[alarmIndex].setHiAlarm(_alarmValue);
+                    Serial.println("set hi alarm");
+                }
                 _editState = NAVIGATE;
+                _alarmValue =0;
                 *_markerIncrementer = _index;
                 *_toggleEditState=false;
             }
@@ -144,8 +169,7 @@ void Display::moveMarker() {
     *_markerIncrementer = min(*_markerIncrementer, (_mode->nParams+N_DIAGNOSTIC_PARAMETERS*2 -1));
     *_markerIncrementer = max(*_markerIncrementer, 0);
     _index = *_markerIncrementer;
-    //Serial.println(_index);
-    //Serial.print("topRowIndex:\t");Serial.println(_topRowIndex);
+
     indexToCursorPosition(_index, _cursorCol, _cursorRow);
 
     if (_cursorRow > _topRowIndex+ 3){
@@ -158,7 +182,7 @@ void Display::moveMarker() {
         _lcd.clear();
         printStaticText();
     }
-    setCursor(_cursorCol, _cursorRow-_topRowIndex);
+    setCursor(_cursorCol, _cursorRow);
 }
 
 void Display::printValue(float value) {
@@ -204,7 +228,7 @@ void Display::loadThresholds() {
 }
 
 void Display::setCursor(uint8_t col, uint8_t row) {
-    //row = row - _topRowIndex;
+    row = row - _topRowIndex;
     _lcd.setCursor(col, row);
 }
 
@@ -213,34 +237,30 @@ void Display::printStaticText() {
     for (int i=0; i < (_mode->nParams); i++){
         indexToTextPosition(i, _cursorCol, _cursorRow);
         if (_topRowIndex <= _cursorRow && _cursorRow< _topRowIndex+4) {
-            setCursor(_cursorCol, _cursorRow-_topRowIndex);
+            setCursor(_cursorCol, _cursorRow);
             _lcd.print(_allUserParameters[(int)_mode->parameters[i]].lcdString);
         }
         indexToParamValuePosition(i, _cursorRow, _cursorCol);
         if (_topRowIndex <= _cursorRow && _cursorRow< _topRowIndex+4) {
-            setCursor(_cursorCol, _cursorRow-_topRowIndex);
+            setCursor(_cursorCol, _cursorRow);
             printValue(_allUserParameters[(int) _mode->parameters[i]].getValue());
         }
     }
 
     for (int i=0; i < N_DIAGNOSTIC_PARAMETERS; i++){
-        //Serial.print(_diagnosticParameters->arr[i].lcdString);
         indexToTextPosition(i, _cursorCol, _cursorRow);
         _cursorRow = _cursorRow + _mode->nParams;
         if (_topRowIndex <= _cursorRow && _cursorRow< _topRowIndex+4) {
             Diagnostic_Parameter diagnosticParameter = _diagnosticParameters->arr[i];
-            setCursor(_cursorCol, _cursorRow-_topRowIndex);
-            Serial.println(diagnosticParameter.getLoAlarmSet());
+            setCursor(_cursorCol, _cursorRow);
             _lcd.print(diagnosticParameter.lcdString);
             _lcd.print(" Lo ");
             switch (diagnosticParameter.getLoAlarmSet()){
                 case Diagnostic_Parameter::ACTIVE:
-                    printValue(diagnosticParameter.getMinAlarm());
+                    printValue(diagnosticParameter.getLoAlarm());
                     break;
                 case Diagnostic_Parameter::INACTIVE:
-                    for (int i=0; i<4; i++){
-                        _lcd.print((char)0);
-                    }
+                    printInactiveAlarm();
                     break;
                 default:
                     break;
@@ -249,12 +269,10 @@ void Display::printStaticText() {
             _lcd.print(" Hi ");
             switch (diagnosticParameter.getHiAlarmSet()){
                 case Diagnostic_Parameter::ACTIVE:
-                    printValue(diagnosticParameter.getMaxAlarm());
+                    printValue(diagnosticParameter.getHiAlarm());
                     break;
                 case Diagnostic_Parameter::INACTIVE:
-                    for (int i=0; i<4; i++){
-                        _lcd.print((char)0);
-                    }
+                    printInactiveAlarm();
                     break;
                 default:
                     break;
@@ -305,5 +323,13 @@ void Display::indexToCursorPosition(uint8_t i, uint8_t &col, uint8_t &row) {
             col=13;
         }
     }
+}
+
+void Display::printInactiveAlarm() {
+    for (int i=0; i<4; i++){
+        _lcd.print((char)0);
+    }
+
+
 }
 

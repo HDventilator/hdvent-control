@@ -22,6 +22,7 @@ public:
     Diagnostic_Parameter(char *identifier, char string[]);
 
 
+
     float getMinAlarm() const;
 
     void setMinAlarm(float minAlarm);
@@ -33,6 +34,14 @@ public:
     float getValue() const;
 
     void setValue(float value);
+
+    void setHiAlarm(float hiAlarm);
+
+    void setLoAlarm(float loAlarm);
+
+    float getHiAlarm() const;
+
+    float getLoAlarm() const;
 
     Alarm checkAlarm();
     char* lcdString;

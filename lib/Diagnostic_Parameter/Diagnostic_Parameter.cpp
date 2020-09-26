@@ -37,6 +37,8 @@ Diagnostic_Parameter::Diagnostic_Parameter(char *identifier, char *string,
 Diagnostic_Parameter::Diagnostic_Parameter(char *identifier, char *string, float minAlarm, float maxAlarm) {
     _hiAlarmSet=INACTIVE;//_hiAlarmSet;
     _loAlarmSet=INACTIVE;//_loAlarmSet;
+    _minAlarm = minAlarm;
+    _maxAlarm = maxAlarm;
     lcdString=string;
     _identifier=identifier;
     _increment=(maxAlarm-minAlarm)/40;
@@ -146,6 +148,22 @@ void Diagnostic_Parameter::setMaxAlarm(float maxAlarm) {
 
 float Diagnostic_Parameter::getIncrement() const {
     return _increment;
+}
+
+void Diagnostic_Parameter::setHiAlarm(float hiAlarm) {
+    _hiAlarm = hiAlarm;
+}
+
+void Diagnostic_Parameter::setLoAlarm(float loAlarm) {
+    _loAlarm = loAlarm;
+}
+
+float Diagnostic_Parameter::getHiAlarm() const {
+    return _hiAlarm;
+}
+
+float Diagnostic_Parameter::getLoAlarm() const {
+    return _loAlarm;
 }
 
 

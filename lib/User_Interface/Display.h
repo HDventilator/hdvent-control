@@ -36,7 +36,7 @@ public:
     void printValue(float value);
     void displayParameterValue();
     void printParameterValue(float value);
-
+    void printInactiveAlarm();
     uint8_t getParameterIndex();
     void safeParams();
     void loadParams();
