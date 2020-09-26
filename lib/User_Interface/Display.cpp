@@ -75,6 +75,14 @@ void Display::update() {
                 else {
                     *_valueIncrementer =0;
                     _editState = EDIT_ALARM;
+                    uint8_t alarmIndex = (_index - _mode->nParams ) / 2;
+                    if (!((_index - _mode->nParams)%2)) {
+                        _alarmValue = _diagnosticParameters->arr[alarmIndex].getLoAlarm();
+                    } else{
+                        _alarmValue = _diagnosticParameters->arr[alarmIndex].getHiAlarm();
+                    }
+
+
                     *_toggleEditState = false;
                 }
             }
