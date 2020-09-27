@@ -128,11 +128,12 @@ void Display::update() {
             if (!((_index - _mode->nParams)%2)) {
                 if (_alarmValue < _diagnosticParameters->arr[alarmIndex].getMinAlarm()){
                     _diagnosticParameters->arr[alarmIndex].setLoAlarmSet(Diagnostic_Parameter::INACTIVE);
-                    _alarmValue = _diagnosticParameters->arr[alarmIndex].getMinAlarm();
+                    _alarmValue = _diagnosticParameters->arr[alarmIndex].getMinAlarm()-_diagnosticParameters->arr[alarmIndex].getIncrement();
                     printInactiveAlarm();
                 }
                 else {
                     _diagnosticParameters->arr[alarmIndex].setLoAlarmSet(Diagnostic_Parameter::ACTIVE);
+                    _alarmValue = min(_alarmValue, _diagnosticParameters->arr[alarmIndex].getMaxAlarm());
                     printValue(_alarmValue);
                 }
 
@@ -140,11 +141,12 @@ void Display::update() {
             else {
                 if (_alarmValue > _diagnosticParameters->arr[alarmIndex].getMaxAlarm()){
                     _diagnosticParameters->arr[alarmIndex].setHiAlarmSet(Diagnostic_Parameter::INACTIVE);
-                    _alarmValue = _diagnosticParameters->arr[alarmIndex].getMaxAlarm();
+                    _alarmValue = _diagnosticParameters->arr[alarmIndex].getMaxAlarm()+_diagnosticParameters->arr[alarmIndex].getIncrement();
                     printInactiveAlarm();
                 }
                 else {
                     _diagnosticParameters->arr[alarmIndex].setHiAlarmSet(Diagnostic_Parameter::ACTIVE);
+                    _alarmValue = max(_alarmValue, _diagnosticParameters->arr[alarmIndex].getMinAlarm());
                     printValue(_alarmValue);
                 }
             }

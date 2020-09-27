@@ -135,7 +135,9 @@ void loop(){
     // record cycle time
     cycleTime = stopwatch.mainLoop.getElapsedTime();
     stopwatch.mainLoop.start();
-
+    if (!digitalRead(PIN_ALARM_MUTE)){
+    buzzer.turnOn();}
+    buzzer.service();
     //readUserInput();
     //readSensors();
     //checkHomeSensors(isHome);
@@ -145,17 +147,18 @@ void loop(){
 
     //ventilationStateMachine(ventilationState);
 
+
     encoder.service();
     display.update();
     serialDebug();
-/*
+
     digitalWrite(PIN_LED_GREEN, HIGH);
     digitalWrite(PIN_LED_ORANGE, LOW);
     delay(300);
     digitalWrite(PIN_LED_GREEN, LOW);
     digitalWrite(PIN_LED_ORANGE, HIGH);
     delay(300);
-    */
+
 
 }
 

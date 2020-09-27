@@ -29,6 +29,7 @@
 #include <Aggregated_Parameter.h>
 #include <Warning.h>
 #include <Encoder.h>
+#include <Buzzer.h>
 
 extern "C" {
 #include "utility/twi.h"  // from Wire library, so we can do bus scanning
@@ -167,4 +168,6 @@ User_Input userInput(allUserParams, &mode, &saveUserParams);
 Encoder encoder(PIN_ENCO_A, PIN_ENCO_B);
 Display display(lcd, allUserParams, &OL_CMV, &encoder._position, &encoder._position, &encoder.shortPressDetected,
                 &encoder.longPressDetected, &userInput, &diagnosticParameters);
+
+Buzzer buzzer(PIN_ALARM_ENABLE, 500, 1000);
 #endif //HDVENT_CONTROL_HDVENT_CONTROL_H
