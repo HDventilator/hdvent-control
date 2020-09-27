@@ -14,7 +14,7 @@ public:
     Diagnostic_Parameter();
 
     enum Alarm {TOO_LOW, OK, TOO_HIGH};
-    enum AlarmSetting {ACTIVE, INACTIVE, PERMITTED};
+    enum AlarmSetting {ACTIVE, INACTIVE, DISABLED};
     Diagnostic_Parameter(float initialValue, float minAlarm, float maxAlarm, char *identifier, char string[]);
     Diagnostic_Parameter(char *identifier, char string[], AlarmSetting hiAlarmSet, AlarmSetting loAlarmSet, float minAlarm, float maxAlarm);
     Diagnostic_Parameter(float initialValue, float minAlarm, float maxAlarm, char *identifier);
@@ -56,6 +56,7 @@ public:
     AlarmSetting getLoAlarmSet() const;
     char *getIdentifier() const;
 
+
     float getIncrement() const;
 
 private:
@@ -77,5 +78,6 @@ typedef union  {
         //Aggregated_Parameter minuteVolume= Aggregated_Parameter(0, 0, 0, "mvol", 60);
     } s;
     Diagnostic_Parameter arr[9];} diagnosticParameters_t;
+
 
 #endif //HDVENT_CONTROL_DIAGNOSTIC_PARAMETER_H

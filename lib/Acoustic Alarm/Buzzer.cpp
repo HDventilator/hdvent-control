@@ -40,6 +40,7 @@ void Buzzer::turnOn() {
     _isHigh = true;
     _on = true;
 }
+
 void Buzzer::turnOff() {
     _on = false;
 }

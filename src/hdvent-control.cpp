@@ -152,14 +152,6 @@ void loop(){
     display.update();
     serialDebug();
 
-    digitalWrite(PIN_LED_GREEN, HIGH);
-    digitalWrite(PIN_LED_ORANGE, LOW);
-    delay(300);
-    digitalWrite(PIN_LED_GREEN, LOW);
-    digitalWrite(PIN_LED_ORANGE, HIGH);
-    delay(300);
-
-
 }
 
 

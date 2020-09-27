@@ -46,8 +46,8 @@ Diagnostic_Parameter::Diagnostic_Parameter(char *identifier, char *string, float
 }
 
 Diagnostic_Parameter::Diagnostic_Parameter(char *identifier, char *string) {
-    _hiAlarmSet=PERMITTED;//_hiAlarmSet;
-    _loAlarmSet=PERMITTED;//_loAlarmSet;
+    _hiAlarmSet=DISABLED;//_hiAlarmSet;
+    _loAlarmSet=DISABLED;//_loAlarmSet;
     lcdString=string;
     _identifier=identifier;
     _value =0;

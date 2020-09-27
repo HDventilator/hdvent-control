@@ -52,18 +52,20 @@ public:
     void loadThresholds();
     void indexToAlarmValuePosition(uint8_t i, uint8_t &row, uint8_t &col);
     void indexToAlarmTextPosition(uint8_t i, uint8_t &row, uint8_t &col);
+    void updateIndexes();
 private:
     uint8_t _valueColumnPos=5;
     const VentilationMode *_mode;
     uint8_t _topRowIndex;
     uint8_t columnValues;
-    uint8_t _activeParamIndex;
-    uint8_t _activeAlarmIndex;
+    uint8_t _paramIndex;
+    //Diagnostic_Parameter &_currentAlarm;
     uint8_t _scrollingOffset;
     float _alarmValue;
     editState_t _editState;
     menuState_t _menuState;
-     uint8_t  _index;
+     uint8_t  _navigationIndex;
+     uint8_t _alarmIndex;
      uint8_t _cursorRow;
      uint8_t _cursorCol;
     int *_markerIncrementer;
@@ -73,6 +75,7 @@ private:
     User_Input *_userInput;
     uint8_t  _markerPositionMax;
    uint8_t _markerPositionMin;
+   uint8_t _allowedAlarmIndexes[N_DIAGNOSTIC_PARAMETERS];
    void moveMarker();
    LiquidCrystal _lcd;
    User_Parameter* _allUserParameters;
