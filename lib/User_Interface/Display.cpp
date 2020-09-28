@@ -47,6 +47,17 @@ Display::Display(LiquidCrystal &lcd, User_Parameter *allUserParameters, const Ve
     for (int8_t i=0; i<_mode->nParams;i++){
         printValue(_allUserParameters[(int) _mode->parameters[i]].getValue());
     }
+    uint8_t j =0;
+    for (int i=0; i<nDiagnosticParameters; i++) {
+        if ((diagnosticParameters->arr[i].getHiAlarmSet() != Diagnostic_Parameter::DISABLED) ||
+                (diagnosticParameters->arr[i].getLoAlarmSet() != Diagnostic_Parameter::DISABLED)){
+            _allowedAlarmIndexes[j] = i;
+            Serial.println(diagnosticParameters->arr[i].lcdString);
+            j++;
+        }
+    }
+    nActiveDiagnosticParameters =j;
+
 }
 
 
@@ -175,8 +186,8 @@ void Display::update() {
 void Display::moveMarker() {
 // calc new position
 
-    //_navigationIndex = _navigationIndex%(_mode->nParams+N_DIAGNOSTIC_PARAMETERS);
-    *_markerIncrementer = min(*_markerIncrementer, (_mode->nParams+N_DIAGNOSTIC_PARAMETERS*2 -1));
+    //_navigationIndex = _navigationIndex%(_mode->nParams+nDiagnosticParameters);
+    *_markerIncrementer = min(*_markerIncrementer, (_mode->nParams + nActiveDiagnosticParameters * 2 - 1));
     *_markerIncrementer = max(*_markerIncrementer, 0);
     _navigationIndex = *_markerIncrementer;
 
@@ -231,7 +242,7 @@ void Display::loadParams() {
 
 void Display::loadThresholds() {
     // save user parameters momentarily
-    for (int i; i<N_DIAGNOSTIC_PARAMETERS; i++){
+    for (int i; i < nActiveDiagnosticParameters; i++){
         _thresholdsMemoryLower[i]=_diagnosticParameters->arr[i].getMinAlarm();
         _thresholdsMemoryUpper[i]=_diagnosticParameters->arr[i].getMaxAlarm();
     }
@@ -257,14 +268,15 @@ void Display::printStaticText() {
         }
     }
 
-    for (int i=0; i < N_DIAGNOSTIC_PARAMETERS; i++){
-        indexToTextPosition(i, _cursorCol, _cursorRow);
+    for (int j=0; j < nActiveDiagnosticParameters; j++){
+        uint8_t i = _allowedAlarmIndexes[j];
+        indexToTextPosition(j, _cursorCol, _cursorRow);
         _cursorRow = _cursorRow + _mode->nParams;
-        Serial.print(i); Serial.print(":\t");
+        //Serial.print(i); Serial.print(":\t");
         if (_topRowIndex <= _cursorRow && _cursorRow< _topRowIndex+4) {
             Diagnostic_Parameter diagnosticParameter = _diagnosticParameters->arr[i];
             setCursor(_cursorCol, _cursorRow);
-            Serial.println(_cursorRow);
+            //Serial.println(_cursorRow);
             _lcd.print(diagnosticParameter.lcdString);
             _lcd.print(" Lo ");
             switch (diagnosticParameter.getLoAlarmSet()){
@@ -345,6 +357,7 @@ void Display::printInactiveAlarm() {
 
 void Display::updateIndexes() {
     _alarmIndex = (_navigationIndex - _mode->nParams ) / 2;
+    _alarmIndex = _allowedAlarmIndexes[_alarmIndex];
     _paramIndex = _navigationIndex;
 }
 

@@ -117,7 +117,7 @@ unsigned int stepsInterval = 300;
 User_Parameter allUserParams[(int) UP::LAST_PARAM_LABEL];
 
 diagnosticParameters_t diagnosticParameters =
-        { Diagnostic_Parameter("peep", "PEEP", 0,60),
+        { Diagnostic_Parameter("peep", "PEEP"),
         Diagnostic_Parameter("tvol","Tvol",  0,500),
        Diagnostic_Parameter("cvol","Cvol",  0,200),
         Diagnostic_Parameter("flow","Flow",  0,20),

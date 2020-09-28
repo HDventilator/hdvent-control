@@ -16,10 +16,12 @@ float roundNumber(float a, uint8_t n){
     a = a*pow10[n];
     a = round(a);
     a = a/pow10[n];
+
     return a;
 }
 */
-const uint8_t N_DIAGNOSTIC_PARAMETERS=4;
+const uint8_t nDiagnosticParameters=4;
+
 class Display {
 public:
     Display(LiquidCrystal &lcd, User_Parameter *allUserParameters, const VentilationMode *mode, int *cursorIncrementer,
@@ -53,6 +55,7 @@ public:
     void indexToAlarmValuePosition(uint8_t i, uint8_t &row, uint8_t &col);
     void indexToAlarmTextPosition(uint8_t i, uint8_t &row, uint8_t &col);
     void updateIndexes();
+    uint8_t nActiveDiagnosticParameters;
 private:
     uint8_t _valueColumnPos=5;
     const VentilationMode *_mode;
@@ -75,13 +78,14 @@ private:
     User_Input *_userInput;
     uint8_t  _markerPositionMax;
    uint8_t _markerPositionMin;
-   uint8_t _allowedAlarmIndexes[N_DIAGNOSTIC_PARAMETERS];
+
+   uint8_t _allowedAlarmIndexes[nDiagnosticParameters];
    void moveMarker();
    LiquidCrystal _lcd;
    User_Parameter* _allUserParameters;
     diagnosticParameters_t* _diagnosticParameters;
-   float _thresholdsMemoryUpper[N_DIAGNOSTIC_PARAMETERS];
-   float _thresholdsMemoryLower[N_DIAGNOSTIC_PARAMETERS];
+   float _thresholdsMemoryUpper[nDiagnosticParameters];
+   float _thresholdsMemoryLower[nDiagnosticParameters];
 
 };
 
