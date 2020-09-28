@@ -60,6 +60,7 @@ public:
     float getIncrement() const;
 
 private:
+
     float _increment;
     float _minAlarm;
     float _maxAlarm;

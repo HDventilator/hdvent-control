@@ -175,13 +175,14 @@ void runMachineDiagnostics(){
 }
 
 void serialDebug(){
+    /*
     int i=0;
     for (Diagnostic_Parameter p: diagnosticParameters.arr){
         i++;
         if (i>10){break;}
         Serial.print(p.lcdString);Serial.print("\tLo: ");Serial.print(p.getLoAlarm());
         Serial.print("\tHi: ");Serial.println(p.getHiAlarm());
-    }
+    }*/
     //Serial.print("nParams:");Serial.println(display.nActiveDiagnosticParameters);
 
 

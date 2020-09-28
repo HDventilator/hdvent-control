@@ -57,13 +57,11 @@ public:
     void updateIndexes();
     uint8_t nActiveDiagnosticParameters;
 private:
-    uint8_t _valueColumnPos=5;
+    uint8_t  _header;
+    uint8_t _nRows;
     const VentilationMode *_mode;
     uint8_t _topRowIndex;
-    uint8_t columnValues;
     uint8_t _paramIndex;
-    //Diagnostic_Parameter &_currentAlarm;
-    uint8_t _scrollingOffset;
     float _alarmValue;
     editState_t _editState;
     menuState_t _menuState;
@@ -76,8 +74,6 @@ private:
     bool *_toggleEditState;
     bool *_toggleMenuState;
     User_Input *_userInput;
-    uint8_t  _markerPositionMax;
-   uint8_t _markerPositionMin;
 
    uint8_t _allowedAlarmIndexes[nDiagnosticParameters];
    void moveMarker();

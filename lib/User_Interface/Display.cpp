@@ -25,7 +25,7 @@ Display::Display(LiquidCrystal &lcd, User_Parameter *allUserParameters, const Ve
             B00000
     };*/
     lcd.createChar(0, FULL);
-
+    _header =1;
     _mode = mode;
     _topRowIndex =0;
     _allUserParameters = allUserParameters;
@@ -36,10 +36,8 @@ Display::Display(LiquidCrystal &lcd, User_Parameter *allUserParameters, const Ve
     _markerIncrementer = cursorIncrementer;
     _valueIncrementer= valueIncrementer;
     _editState = NAVIGATE;
-    _markerPositionMax =3;
-    _markerPositionMin = 0;
-    _scrollingOffset =0;
     _userInput = userInput;
+    _nRows=4-_header;
     lcd.clear();
     printStaticText();
     lcd.home();
@@ -193,8 +191,8 @@ void Display::moveMarker() {
 
     indexToCursorPosition(_navigationIndex, _cursorCol, _cursorRow);
 
-    if (_cursorRow > _topRowIndex+ 3){
-        _topRowIndex = _cursorRow - 3;
+    if (_cursorRow > _topRowIndex+ _nRows - 1){
+        _topRowIndex = _cursorRow - _nRows +1 ;
         _lcd.clear();
         printStaticText();
     }
@@ -249,7 +247,7 @@ void Display::loadThresholds() {
 }
 
 void Display::setCursor(uint8_t col, uint8_t row) {
-    row = row - _topRowIndex;
+    row = row - _topRowIndex+_header;
     _lcd.setCursor(col, row);
 }
 
@@ -273,7 +271,7 @@ void Display::printStaticText() {
         indexToTextPosition(j, _cursorCol, _cursorRow);
         _cursorRow = _cursorRow + _mode->nParams;
         //Serial.print(i); Serial.print(":\t");
-        if (_topRowIndex <= _cursorRow && _cursorRow< _topRowIndex+4) {
+        if (_topRowIndex-_header <= _cursorRow && _cursorRow< _topRowIndex+_nRows) {
             Diagnostic_Parameter diagnosticParameter = _diagnosticParameters->arr[i];
             setCursor(_cursorCol, _cursorRow);
             //Serial.println(_cursorRow);
