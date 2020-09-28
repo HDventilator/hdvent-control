@@ -13,18 +13,32 @@ Display::Display(LiquidCrystal &lcd, User_Parameter *allUserParameters, const Ve
                  diagnosticParameters_t *diagnosticParameters) : _lcd(12, 11, 10, 9, 8, 7)                                                                 {
     _lcd = lcd;
     _lcd.begin(20, 4);
-    byte FULL[8] = {0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff};
-    /*byte CURSOR_SYMBOL[8] = {
+    byte SYMBOL_SCROLL_DOWN[8] = {
             B00000,
-            B00100,
-            B00110,
-            B11111,
-            B00110,
-            B00100,
             B00000,
-            B00000
-    };*/
-    lcd.createChar(0, FULL);
+            B00000,
+            B00000,
+            B00000,
+            B10001,
+            B01010,
+            B00100
+    };
+    byte SYMBOL_SCROLL_UPDOWN[8] = {
+            B00100,
+            B01010,
+            B10001,
+            B00000,
+            B00000,
+            B10001,
+            B01010,
+            B00100
+
+    };
+    byte SYMBOL_FULL[8] = {0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff};
+    lcd.createChar(0, SYMBOL_FULL);
+    lcd.createChar(1, SYMBOL_SCROLL_DOWN);
+    lcd.createChar(2, SYMBOL_SCROLL_UPDOWN);
+    //lcd.createChar(1, SYMBOL_SCROLL_DOWN);
     _header =1;
     _mode = mode;
     _topRowIndex =0;
@@ -190,8 +204,7 @@ void Display::moveMarker() {
     _navigationIndex = *_markerIncrementer;
 
     indexToCursorPosition(_navigationIndex, _cursorCol, _cursorRow);
-
-    if (_cursorRow > _topRowIndex+ _nRows - 1){
+        if (_cursorRow > _topRowIndex+ _nRows - 1){
         _topRowIndex = _cursorRow - _nRows +1 ;
         _lcd.clear();
         printStaticText();
@@ -253,6 +266,8 @@ void Display::setCursor(uint8_t col, uint8_t row) {
 
 
 void Display::printStaticText() {
+    printScrollIndicator();
+
     for (int i=0; i < (_mode->nParams); i++){
         indexToTextPosition(i, _cursorCol, _cursorRow);
         if (_topRowIndex <= _cursorRow && _cursorRow< _topRowIndex+4) {
@@ -357,6 +372,22 @@ void Display::updateIndexes() {
     _alarmIndex = (_navigationIndex - _mode->nParams ) / 2;
     _alarmIndex = _allowedAlarmIndexes[_alarmIndex];
     _paramIndex = _navigationIndex;
+}
+
+void Display::printScrollIndicator() {
+    if (_topRowIndex>0) {
+        if (_topRowIndex < nActiveDiagnosticParameters + _mode->nParams - _nRows) {
+            _lcd.setCursor(19, 0);
+            _lcd.write(2);
+        } else {
+            _lcd.setCursor(19, 0);
+            _lcd.write(B1011110);
+        }
+    } else if (_topRowIndex < nActiveDiagnosticParameters + _mode->nParams - _nRows){
+        _lcd.setCursor(19, 0);
+        _lcd.write(1);
+    }
+
 }
 
 

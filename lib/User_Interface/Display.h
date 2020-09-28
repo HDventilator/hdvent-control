@@ -20,6 +20,7 @@ float roundNumber(float a, uint8_t n){
     return a;
 }
 */
+
 const uint8_t nDiagnosticParameters=4;
 
 class Display {
@@ -56,7 +57,9 @@ public:
     void indexToAlarmTextPosition(uint8_t i, uint8_t &row, uint8_t &col);
     void updateIndexes();
     uint8_t nActiveDiagnosticParameters;
+    void printScrollIndicator();
 private:
+
     uint8_t  _header;
     uint8_t _nRows;
     const VentilationMode *_mode;

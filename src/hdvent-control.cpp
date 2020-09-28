@@ -150,6 +150,7 @@ void loop(){
 
     encoder.service();
     display.update();
+
     serialDebug();
 
 }
