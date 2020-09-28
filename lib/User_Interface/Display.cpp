@@ -86,7 +86,7 @@ void Display::update() {
                 else {
                     *_valueIncrementer =0;
                     _editState = EDIT_ALARM;
-                    _alarmIndex = (_navigationIndex - _mode->nParams ) / 2;
+                    //_alarmIndex = (_navigationIndex - _mode->nParams ) / 2;
                     Diagnostic_Parameter&param = _diagnosticParameters->arr[_alarmIndex] ;
 
                     if (!((_navigationIndex - _mode->nParams) % 2)) {

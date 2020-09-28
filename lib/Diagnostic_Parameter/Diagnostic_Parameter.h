@@ -77,7 +77,10 @@ typedef union  {
         Diagnostic_Parameter peep, tidalVolume, volume, flow, airwayPressure, respiratoryRate, plateauPressure, meanPressure, pressureChange;
         //Aggregated_Parameter minuteVolume= Aggregated_Parameter(0, 0, 0, "mvol", 60);
     } s;
-    Diagnostic_Parameter arr[9];} diagnosticParameters_t;
+    Diagnostic_Parameter arr[9];
+    Diagnostic_Parameter& operator[](int idx)       { return arr[idx]; }
+    const Diagnostic_Parameter& operator[](int idx)      const  { return arr[idx]; }
+} diagnosticParameters_t;
 
 
 #endif //HDVENT_CONTROL_DIAGNOSTIC_PARAMETER_H
