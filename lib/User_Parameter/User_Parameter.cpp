@@ -102,3 +102,12 @@ void User_Parameter::setMin(float min) {
 void User_Parameter::setMax(float max) {
     _max = max;
 }
+
+void User_Parameter::setDialValue(float dialValue) {
+    _dialValue = dialValue;
+}
+
+void User_Parameter::resetDialValue() {
+    _dialValue = _value;
+
+}

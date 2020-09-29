@@ -29,6 +29,8 @@ public:
     package_struct_float_t getMaxPackage();
     package_struct_float_t getDialValuePackage();
 
+    void setDialValue(float dialValue);
+    void resetDialValue();
     bool hasChanged() const;
     void setMin(float min);
     void setMax(float max);

@@ -149,7 +149,7 @@ void loop(){
 
 
     encoder.service();
-    display.update();
+    display.update(confirmButton.getSingleDebouncedPress(), cancelButton.getSingleDebouncedPress());
 
     serialDebug();
 

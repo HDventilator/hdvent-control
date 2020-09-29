@@ -30,6 +30,7 @@
 #include <Warning.h>
 #include <Encoder.h>
 #include <Buzzer.h>
+#include <Pushbutton.h>
 
 extern "C" {
 #include "utility/twi.h"  // from Wire library, so we can do bus scanning
@@ -166,8 +167,12 @@ PacketSerial cobsSerial;
 uint8_t potiPins[4] = {PIN_POTI_AD, PIN_POTI_IE, PIN_POTI_TV, PIN_POTI_RR};
 User_Input userInput(allUserParams, &mode, &saveUserParams);
 Encoder encoder(PIN_ENCO_A, PIN_ENCO_B);
+Pushbutton confirmButton(PIN_EDIT_MODE);
+Pushbutton cancelButton(PIN_OPTICAL_SWITCH_END);
+
 Display display(lcd, allUserParams, &OL_CMV, &encoder._position, &encoder._position, &encoder.shortPressDetected,
-                &encoder.longPressDetected, &userInput, &diagnosticParameters);
+                 &userInput, &diagnosticParameters);
 
 Buzzer buzzer(PIN_ALARM_ENABLE, 500, 1000);
+
 #endif //HDVENT_CONTROL_HDVENT_CONTROL_H

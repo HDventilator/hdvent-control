@@ -9,7 +9,7 @@
 
 Display::Display(LiquidCrystal &lcd, User_Parameter *allUserParameters, const VentilationMode *mode,
                  int *cursorIncrementer,
-                 int *valueIncrementer, bool *toggleEditState, bool *toggleMenuState, User_Input *userInput,
+                 int *valueIncrementer, bool *toggleEditState,  User_Input *userInput,
                  diagnosticParameters_t *diagnosticParameters) : _lcd(12, 11, 10, 9, 8, 7)                                                                 {
     _lcd = lcd;
     _lcd.begin(20, 4);
@@ -45,9 +45,9 @@ Display::Display(LiquidCrystal &lcd, User_Parameter *allUserParameters, const Ve
     _allUserParameters = allUserParameters;
     _diagnosticParameters = diagnosticParameters;
     _valueIncrementer = valueIncrementer;
-    _toggleMenuState = toggleMenuState;
     _toggleEditState = toggleEditState;
     _markerIncrementer = cursorIncrementer;
+    _menuState = VIEW;
     _valueIncrementer= valueIncrementer;
     _editState = NAVIGATE;
     _userInput = userInput;
@@ -73,19 +73,31 @@ Display::Display(LiquidCrystal &lcd, User_Parameter *allUserParameters, const Ve
 }
 
 
-void Display::update() {
+void Display::update(bool confirm, bool cancel) {
     _lcd.cursor();
     updateIndexes();
-    switch(_editState){
-        case VIEW_ONLY:{
-            moveMarker();
-            if (*_toggleEditState){
-                _editState=EDIT_PARAMETER;
-                *_toggleEditState=false;
+    switch(_menuState){
+        case UNSAVED_SETTINGS:
+            if (confirm){
+                safeParams();
+                _menuState = VIEW;
+                _editState = NAVIGATE;
             }
-
+            else if (cancel){
+                resetParams();
+                _editState = NAVIGATE;
+                _menuState = VIEW;
+                printStaticText();
+            }
             break;
-        }
+
+        case VIEW:
+            break;
+        default:
+            break;
+    }
+
+    switch(_editState){
         case NAVIGATE:
             moveMarker();
             if (*_toggleEditState) {
@@ -109,16 +121,14 @@ void Display::update() {
                     *_toggleEditState = false;
                 }
             }
-            else if (*_toggleMenuState){
-                _editState=VIEW_ONLY;
-                *_toggleMenuState=false;
-            }
             break;
 
         case EDIT_PARAMETER: {
+            _menuState = UNSAVED_SETTINGS;
 
             _parametersMemory[_paramIndex]+=
                     (float) *_valueIncrementer * _allUserParameters[(int)_mode->parameters[_paramIndex]].increment;
+            _allUserParameters[(int)_mode->parameters[_paramIndex]].setDialValue(_parametersMemory[_paramIndex]);
 
             indexToParamValuePosition(_navigationIndex, _cursorRow, _cursorCol);
             setCursor(_cursorCol, _cursorRow);
@@ -130,11 +140,6 @@ void Display::update() {
                 *_markerIncrementer = _navigationIndex;
                 *_toggleEditState=false;
 
-            }
-            else if (*_toggleMenuState) {
-                _editState = VIEW_ONLY;
-                *_toggleMenuState=false;
-                //_lcd.noCursor();
             }
             break;
 
@@ -190,6 +195,8 @@ void Display::update() {
             }
             break;
         }
+        default:
+            break;
     }
     *_toggleEditState=false;
 }
@@ -277,7 +284,7 @@ void Display::printStaticText() {
         indexToParamValuePosition(i, _cursorRow, _cursorCol);
         if (_topRowIndex <= _cursorRow && _cursorRow< _topRowIndex+4) {
             setCursor(_cursorCol, _cursorRow);
-            printValue(_allUserParameters[(int) _mode->parameters[i]].getValue());
+            printValue(_allUserParameters[(int) _mode->parameters[i]].getDialValue());
         }
     }
 
@@ -343,7 +350,6 @@ void Display::indexToAlarmValuePosition(uint8_t i, uint8_t &row, uint8_t &col) {
     }
 }
 
-
 void Display::indexToCursorPosition(uint8_t i, uint8_t &col, uint8_t &row) {
     uint8_t offset = _mode->nParams;
     if (_navigationIndex < offset) {
@@ -388,6 +394,12 @@ void Display::printScrollIndicator() {
         _lcd.write(1);
     }
 
+}
+
+void Display::resetParams() {
+    for (int i; i<(_mode->nParams); i++){
+        _allUserParameters[(int)_mode->parameters[i]].resetDialValue();
+    }
 }
 
 

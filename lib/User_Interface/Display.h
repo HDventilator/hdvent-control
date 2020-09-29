@@ -26,14 +26,14 @@ const uint8_t nDiagnosticParameters=4;
 class Display {
 public:
     Display(LiquidCrystal &lcd, User_Parameter *allUserParameters, const VentilationMode *mode, int *cursorIncrementer,
-            int *valueIncrementer, bool *toggleEditState, bool *toggleMenuState, User_Input *userInput,
+            int *valueIncrementer, bool *toggleEditState, User_Input *userInput,
             diagnosticParameters_t *diagnosticParameters);
 
-    enum editState_t {EDIT_PARAMETER, EDIT_ALARM, NAVIGATE, VIEW_ONLY};
-    enum menuState_t {EDIT_SETTINGS, VIEW};
+    enum editState_t {EDIT_PARAMETER, EDIT_ALARM, NAVIGATE};
+    enum menuState_t {UNSAVED_SETTINGS, VIEW};
 
     void setCursor(uint8_t col, uint8_t row);
-    void update();
+    void update(bool confirm, bool cancel);
     void indexToCursorPosition(uint8_t i, uint8_t &col, uint8_t &row);
     void refreshDisplay();
     void printValue(float value);
@@ -42,6 +42,7 @@ public:
     void printInactiveAlarm();
     uint8_t getParameterIndex();
     void safeParams();
+    void resetParams();
     void loadParams();
     void printStaticText();
     void indexToTextPosition(uint8_t i, uint8_t &col, uint8_t &row);
@@ -75,7 +76,6 @@ private:
     int *_markerIncrementer;
     int *_valueIncrementer;
     bool *_toggleEditState;
-    bool *_toggleMenuState;
     User_Input *_userInput;
 
    uint8_t _allowedAlarmIndexes[nDiagnosticParameters];
@@ -85,7 +85,7 @@ private:
     diagnosticParameters_t* _diagnosticParameters;
    float _thresholdsMemoryUpper[nDiagnosticParameters];
    float _thresholdsMemoryLower[nDiagnosticParameters];
-
+   Stopwatch stopwatch;
 };
 
 
