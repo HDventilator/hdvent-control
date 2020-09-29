@@ -66,6 +66,7 @@ float const PRESSURE_FLOW_CONVERSION_OFFSET = 0.017;
  * Function declarations
  * **********************
  */
+void checkAlarms();
 
 byte spi_test();
 void ConfigureStepperDriver();
@@ -170,6 +171,7 @@ User_Input userInput(allUserParams, &mode, &saveUserParams);
 Encoder encoder(PIN_ENCO_A, PIN_ENCO_B);
 Pushbutton confirmButton(PIN_EDIT_MODE);
 Pushbutton cancelButton(PIN_OPTICAL_SWITCH_END);
+Pushbutton alarmOverwrite(PIN_ALARM_MUTE);
 
 Display display(lcd, allUserParams, &OL_CMV, &encoder._position, &encoder._position, &encoder.shortPressDetected,
                 &userInput, &diagnosticParameters);

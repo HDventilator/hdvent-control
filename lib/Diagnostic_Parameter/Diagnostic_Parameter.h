@@ -20,7 +20,7 @@ public:
     Diagnostic_Parameter(float initialValue, float minAlarm, float maxAlarm, char *identifier);
     Diagnostic_Parameter(char *identifier, char string[],  float minAlarm, float maxAlarm);
     Diagnostic_Parameter(char *identifier, char string[]);
-
+    void checkAlarm();
 
 
     float getMinAlarm() const;
@@ -38,12 +38,12 @@ public:
     void setHiAlarm(float hiAlarm);
 
     void setLoAlarm(float loAlarm);
-
+    void resetPersistentAlarm();
     float getHiAlarm() const;
 
     float getLoAlarm() const;
 
-    Alarm checkAlarm();
+    Alarm getState();
     char* lcdString;
 
     package_struct_float_t getPackageStruct();
@@ -56,17 +56,19 @@ public:
     AlarmSetting getLoAlarmSet() const;
     char *getIdentifier() const;
 
+    Alarm getPersistentState() const;
 
     float getIncrement() const;
 
 private:
-
+    Alarm _state=Alarm::OK;
+    Alarm _persistentState = Alarm::OK;
     float _increment;
     float _minAlarm;
     float _maxAlarm;
-    AlarmSetting _loAlarmSet;
+    AlarmSetting _loAlarmSet=DISABLED;
     float _value;
-    AlarmSetting _hiAlarmSet;
+    AlarmSetting _hiAlarmSet=DISABLED;
     float _hiAlarm;
     float _loAlarm;
     char* _identifier;

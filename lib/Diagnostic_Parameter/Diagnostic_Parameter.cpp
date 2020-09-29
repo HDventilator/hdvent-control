@@ -72,20 +72,13 @@ float Diagnostic_Parameter::getValue() const {
     return _value;
 }
 
-Diagnostic_Parameter::Alarm Diagnostic_Parameter::checkAlarm(){
-    if (_value > _hiAlarm){
-        return TOO_HIGH;
-    }
-    else if (_value < _loAlarm){
-        return TOO_LOW;
-    }
-    else {
-        return OK;
-    }
+Diagnostic_Parameter::Alarm Diagnostic_Parameter::getState(){
+    return _state;
 }
 
 void Diagnostic_Parameter::setValue(float value) {
     _value = value;
+    checkAlarm();
 }
 
 package_struct_float_t Diagnostic_Parameter::getPackageStruct() {
@@ -106,7 +99,7 @@ package_struct_float_t Diagnostic_Parameter::getPackageStruct() {
 }
 
 
-char *Diagnostic_Parameter::getIdentifier() const {
+char* Diagnostic_Parameter::getIdentifier() const {
     return _identifier;
 }
 
@@ -152,10 +145,12 @@ float Diagnostic_Parameter::getIncrement() const {
 
 void Diagnostic_Parameter::setHiAlarm(float hiAlarm) {
     _hiAlarm = hiAlarm;
+    checkAlarm();
 }
 
 void Diagnostic_Parameter::setLoAlarm(float loAlarm) {
     _loAlarm = loAlarm;
+    checkAlarm();
 }
 
 float Diagnostic_Parameter::getHiAlarm() const {
@@ -164,6 +159,30 @@ float Diagnostic_Parameter::getHiAlarm() const {
 
 float Diagnostic_Parameter::getLoAlarm() const {
     return _loAlarm;
+}
+
+void Diagnostic_Parameter::resetPersistentAlarm() {
+    _persistentState = Alarm::OK;
+}
+
+void Diagnostic_Parameter::checkAlarm() {
+    //Serial.println("checking...");
+    if ((_loAlarmSet==ACTIVE) && (_value<_loAlarm)){
+        _state = TOO_LOW;
+        _persistentState = _state;
+    }
+    else if ((_hiAlarmSet==ACTIVE) && (_value>_hiAlarm)){
+        //Serial.println("To high");
+        _state = TOO_HIGH;
+        _persistentState = _state;
+    }
+    else {
+        _state = OK;
+    }
+}
+
+Diagnostic_Parameter::Alarm Diagnostic_Parameter::getPersistentState() const {
+    return _persistentState;
 }
 
 

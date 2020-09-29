@@ -16,7 +16,7 @@ public:
 
     bool isOn() const;
 
-    void turnOn();
+    void saveTurnOn();
     void turnOff();
 
 private:

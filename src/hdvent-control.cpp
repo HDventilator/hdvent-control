@@ -103,6 +103,9 @@ void setup()
     stopwatch.sinceIdle.start();
 
     display.printStaticText();
+    for (Diagnostic_Parameter &param : diagnosticParameters.arr){
+        param.setValue(10);
+    }
 
 }
 
@@ -127,6 +130,19 @@ void scan_i2c()
     }
     Serial.println("\ndone");
 }
+bool buzzerState;
+
+void checkBuzzer(){
+    if (alarmOverwrite.getSingleDebouncedPress()){
+        buzzerState = !buzzerState;
+        if (buzzerState){
+            buzzer.saveTurnOn();
+        }
+        else {
+            buzzer.turnOff();
+        }
+    }
+}
 
 void loop(){
     //scan_i2c();
@@ -135,16 +151,24 @@ void loop(){
     // record cycle time
     cycleTime = stopwatch.mainLoop.getElapsedTime();
     stopwatch.mainLoop.start();
-    if (!digitalRead(PIN_ALARM_MUTE)){
-    buzzer.turnOn();}
+
     buzzer.service();
+/*
+    if (diagnosticParameters.s.volume.getPersistentState() != Diagnostic_Parameter::OK) {
+        buzzer.saveTurnOn();
+    }
+    if (alarmOverwrite.getSingleDebouncedPress() && (diagnosticParameters.s.volume.getState())){
+        buzzer.turnOff();
+        diagnosticParameters.s.volume.resetPersistentAlarm();
+        Serial.println(diagnosticParameters.s.volume.getState());
+    }
+*/
+    checkAlarms();
     //readUserInput();
     //readSensors();
     //checkHomeSensors(isHome);
     //runMachineDiagnostics();
     //Stepper.move(0,100*STEP_DIVIDER);
-
-
     //ventilationStateMachine(ventilationState);
 
 
@@ -152,9 +176,20 @@ void loop(){
     display.update(confirmButton.getSingleDebouncedPress(), cancelButton.getSingleDebouncedPress());
 
     serialDebug();
-
 }
 
+void checkAlarms() {
+    Serial.println(diagnosticParameters.s.volume.getState());
+
+    for (Diagnostic_Parameter &param : diagnosticParameters.arr){
+
+        if (param.getState() != Diagnostic_Parameter::OK) {
+            buzzer.saveTurnOn();
+        } else if (alarmOverwrite.getSingleDebouncedPress() && (param.getState() == Diagnostic_Parameter::OK)) {
+            buzzer.turnOff();
+            param.resetPersistentAlarm();
+        }
+}}
 
 void writeDiagnosticParameters(){
     serialWritePackage(&cobsSerial, diagnosticParameters.s.flow.getPackageStruct());

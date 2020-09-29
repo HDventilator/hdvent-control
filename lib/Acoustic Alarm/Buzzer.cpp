@@ -14,7 +14,7 @@ void Buzzer::service() {
     if (_on){
         if (_isHigh) {
             if (_stopwatch.getElapsedTime() > _hiInterval) {
-                noTone(_pin);
+                digitalWrite(_pin, LOW);
                 _stopwatch.start();
                 _isHigh = false;
             }
@@ -33,15 +33,17 @@ bool Buzzer::isOn() const {
     return _on;
 }
 
-void Buzzer::turnOn() {
+void Buzzer::saveTurnOn() {
     //tone(_pin, _frequency);
+    if(!_on){
     digitalWrite(_pin, HIGH);
     _stopwatch.start();
     _isHigh = true;
-    _on = true;
+    _on = true;}
 }
 
 void Buzzer::turnOff() {
     _on = false;
+    digitalWrite(_pin, LOW);
 }
 
