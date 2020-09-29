@@ -29,6 +29,7 @@ VentilationMode::VentilationMode(ControlMode control, UP userSetParametersSelect
         case ControlMode::VN :
             pidParameters = pidParams_VN;
     }
+    lcdString = identifier;
 
 }
 

@@ -76,6 +76,7 @@ struct VentilationMode {
     PID_parameters_t pidParameters;
     uint8_t nParams;
     package_struct_4char_t _package;
+    char * lcdString;
 
 
 };
@@ -97,7 +98,7 @@ const VentilationMode OL_CMV (
                 UP::COMPRESSED_VOLUME_RATIO,
                 UP::T_IN}, 3,
         (trigger_func_t[]) {Triggers::respiratoryRate}, 1,
-        (trigger_func_t[]) {Triggers::inspirationTime}, 1, nullptr);
+        (trigger_func_t[]) {Triggers::inspirationTime}, 1, "OL-CMV");
 
 const VentilationMode PC_CMV (
         ControlMode::VN,

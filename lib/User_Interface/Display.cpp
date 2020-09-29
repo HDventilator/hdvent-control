@@ -49,7 +49,7 @@ Display::Display(LiquidCrystal& lcd, User_Parameter *allUserParameters, const Ve
     _editState = NAVIGATE;
     _userInput = userInput;
     _nRows=4-_header;
-    _timedToggler.set(1000);
+    _timedToggler.set(700);
     lcd.clear();
     printStaticText();
     lcd.home();
@@ -296,6 +296,8 @@ void Display::setCursor(uint8_t col, uint8_t row) {
 
 void Display::printStaticText() {
     printScrollIndicator();
+    _lcd.setCursor(0,0);
+    _lcd.print(_mode->lcdString);
 
     for (int i=0; i < (_mode->nParams); i++){
         indexToTextPosition(i, _cursorCol, _cursorRow);
