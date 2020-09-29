@@ -1,3 +1,10 @@
 .pio
 CMakeListsPrivate.txt
 cmake-build-*/ 
+/lib/pushbutton-arduino-master/.dir-locals.el
+/lib/pushbutton-arduino-master/.gitignore
+/lib/pushbutton-arduino-master/.travis.yml
+/lib/pushbutton-arduino-master/Doxyfile
+/lib/pushbutton-arduino-master/keywords.txt
+/lib/pushbutton-arduino-master/library.properties
+/lib/pushbutton-arduino-master/LICENSE.txt

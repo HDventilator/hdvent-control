@@ -9,6 +9,7 @@
 #include <User_Parameter.h>
 #include <Ventilation_Modes.h>
 #include "User_Input.h"
+#include <TimedToggler.h>
 
 /*
 float roundNumber(float a, uint8_t n){
@@ -22,11 +23,10 @@ float roundNumber(float a, uint8_t n){
 */
 
 const uint8_t nDiagnosticParameters=4;
-
 class Display {
 public:
-    Display(LiquidCrystal &lcd, User_Parameter *allUserParameters, const VentilationMode *mode, int *cursorIncrementer,
-            int *valueIncrementer, bool *toggleEditState, User_Input *userInput,
+    Display(LiquidCrystal &lcd, User_Parameter *allUserParameters, const VentilationMode *mode,
+            int *cursorIncrementer, int *valueIncrementer, bool *toggleEditState, User_Input *userInput,
             diagnosticParameters_t *diagnosticParameters);
 
     enum editState_t {EDIT_PARAMETER, EDIT_ALARM, NAVIGATE};
@@ -45,6 +45,7 @@ public:
     void resetParams();
     void loadParams();
     void printStaticText();
+    void resetCursor();
     void indexToTextPosition(uint8_t i, uint8_t &col, uint8_t &row);
     void printUserParamValues();
     void printAllEditMode();
@@ -58,13 +59,16 @@ public:
     void indexToAlarmTextPosition(uint8_t i, uint8_t &row, uint8_t &col);
     void updateIndexes();
     uint8_t nActiveDiagnosticParameters;
+    void printOKCancel();
     void printScrollIndicator();
+   // void printOKCancel(bool &doShow);
 private:
 
     uint8_t  _header;
     uint8_t _nRows;
     const VentilationMode *_mode;
     uint8_t _topRowIndex;
+    bool _OKBlink;
     uint8_t _paramIndex;
     float _alarmValue;
     editState_t _editState;
@@ -78,14 +82,17 @@ private:
     bool *_toggleEditState;
     User_Input *_userInput;
 
+    TimedToggler _timedToggler;
    uint8_t _allowedAlarmIndexes[nDiagnosticParameters];
    void moveMarker();
-   LiquidCrystal _lcd;
+   LiquidCrystal &_lcd;
    User_Parameter* _allUserParameters;
     diagnosticParameters_t* _diagnosticParameters;
    float _thresholdsMemoryUpper[nDiagnosticParameters];
    float _thresholdsMemoryLower[nDiagnosticParameters];
    Stopwatch stopwatch;
+
+    void printOKCancel(bool doShow);
 };
 
 

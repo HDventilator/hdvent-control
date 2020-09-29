@@ -14,6 +14,7 @@ public:
     unsigned long stop();
     unsigned long getElapsedTime();
     void reset();
+    void safeStart();
     bool isRunning;
 
 private:

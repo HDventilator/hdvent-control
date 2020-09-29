@@ -31,6 +31,7 @@
 #include <Encoder.h>
 #include <Buzzer.h>
 #include <Pushbutton.h>
+#include <StopwatchEvent.h>
 
 extern "C" {
 #include "utility/twi.h"  // from Wire library, so we can do bus scanning
@@ -171,7 +172,7 @@ Pushbutton confirmButton(PIN_EDIT_MODE);
 Pushbutton cancelButton(PIN_OPTICAL_SWITCH_END);
 
 Display display(lcd, allUserParams, &OL_CMV, &encoder._position, &encoder._position, &encoder.shortPressDetected,
-                 &userInput, &diagnosticParameters);
+                &userInput, &diagnosticParameters);
 
 Buzzer buzzer(PIN_ALARM_ENABLE, 500, 1000);
 

@@ -7,11 +7,9 @@
 #include <LiquidCrystal.h>
 #include <User_Input.h>
 
-Display::Display(LiquidCrystal &lcd, User_Parameter *allUserParameters, const VentilationMode *mode,
-                 int *cursorIncrementer,
-                 int *valueIncrementer, bool *toggleEditState,  User_Input *userInput,
-                 diagnosticParameters_t *diagnosticParameters) : _lcd(12, 11, 10, 9, 8, 7)                                                                 {
-    _lcd = lcd;
+Display::Display(LiquidCrystal& lcd, User_Parameter *allUserParameters, const VentilationMode *mode,
+                 int *cursorIncrementer, int *valueIncrementer, bool *toggleEditState, User_Input *userInput,
+                 diagnosticParameters_t *diagnosticParameters) : _lcd(lcd) {
     _lcd.begin(20, 4);
     byte SYMBOL_SCROLL_DOWN[8] = {
             B00000,
@@ -34,8 +32,7 @@ Display::Display(LiquidCrystal &lcd, User_Parameter *allUserParameters, const Ve
             B00100
 
     };
-    byte SYMBOL_FULL[8] = {0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff};
-    lcd.createChar(0, SYMBOL_FULL);
+
     lcd.createChar(1, SYMBOL_SCROLL_DOWN);
     lcd.createChar(2, SYMBOL_SCROLL_UPDOWN);
     //lcd.createChar(1, SYMBOL_SCROLL_DOWN);
@@ -52,6 +49,7 @@ Display::Display(LiquidCrystal &lcd, User_Parameter *allUserParameters, const Ve
     _editState = NAVIGATE;
     _userInput = userInput;
     _nRows=4-_header;
+    _timedToggler.set(1000);
     lcd.clear();
     printStaticText();
     lcd.home();
@@ -72,21 +70,44 @@ Display::Display(LiquidCrystal &lcd, User_Parameter *allUserParameters, const Ve
 
 }
 
+void Display::printOKCancel(bool doShow) {
+    _lcd.setCursor(10,0);
+    if (doShow) {
+        _lcd.print("OK/CANCEL");
+    }
+    else {
+        _lcd.print("         ");
+    }
+    resetCursor();
+}
+
 
 void Display::update(bool confirm, bool cancel) {
     _lcd.cursor();
     updateIndexes();
     switch(_menuState){
         case UNSAVED_SETTINGS:
+            if (_timedToggler.getEvent()){
+                printOKCancel(_timedToggler.getState());
+            }
             if (confirm){
+                if (_timedToggler.getEvent()){
+                    printOKCancel(_timedToggler.getState());
+                }
                 safeParams();
+                printOKCancel(false);
                 _menuState = VIEW;
                 _editState = NAVIGATE;
+                *_markerIncrementer=0;
+
             }
             else if (cancel){
+                printOKCancel(false);
                 resetParams();
                 _editState = NAVIGATE;
                 _menuState = VIEW;
+
+                *_markerIncrementer=0;
                 printStaticText();
             }
             break;
@@ -104,6 +125,7 @@ void Display::update(bool confirm, bool cancel) {
                 if (_navigationIndex < _mode->nParams) {
                     loadParams();
                     loadThresholds();
+                    _menuState = UNSAVED_SETTINGS;
                     _editState = EDIT_PARAMETER;
                     *_toggleEditState = false;
                 }
@@ -124,7 +146,7 @@ void Display::update(bool confirm, bool cancel) {
             break;
 
         case EDIT_PARAMETER: {
-            _menuState = UNSAVED_SETTINGS;
+
 
             _parametersMemory[_paramIndex]+=
                     (float) *_valueIncrementer * _allUserParameters[(int)_mode->parameters[_paramIndex]].increment;
@@ -370,7 +392,8 @@ void Display::indexToCursorPosition(uint8_t i, uint8_t &col, uint8_t &row) {
 
 void Display::printInactiveAlarm() {
     for (int i=0; i<4; i++){
-        _lcd.print((char)0);
+        //_lcd.print((char)0);
+        _lcd.print((char)B11111111);
     }
 }
 
@@ -400,6 +423,10 @@ void Display::resetParams() {
     for (int i; i<(_mode->nParams); i++){
         _allUserParameters[(int)_mode->parameters[i]].resetDialValue();
     }
+}
+
+void Display::resetCursor() {
+    _lcd.setCursor(_cursorCol,_cursorRow);
 }
 
 

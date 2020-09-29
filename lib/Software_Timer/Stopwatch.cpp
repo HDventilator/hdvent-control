@@ -36,3 +36,9 @@ void Stopwatch::reset() {
     isRunning=false;
 
 }
+
+void Stopwatch::safeStart() {
+    if (!isRunning){
+        start();
+    }
+}
