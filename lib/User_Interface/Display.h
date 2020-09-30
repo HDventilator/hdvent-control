@@ -11,17 +11,6 @@
 #include "User_Input.h"
 #include <TimedToggler.h>
 
-/*
-float roundNumber(float a, uint8_t n){
-    static int pow10[5] = {1, 10, 100, 1000, 10000};
-    a = a*pow10[n];
-    a = round(a);
-    a = a/pow10[n];
-
-    return a;
-}
-*/
-
 const uint8_t nDiagnosticParameters=4;
 class Display {
 public:
@@ -59,7 +48,6 @@ private:
 
     uint8_t  _header;
     uint8_t _nRows;
-    const VentilationMode *_mode;
     uint8_t _topRowIndex;
 
     uint8_t _paramIndex;
@@ -70,17 +58,16 @@ private:
      uint8_t _alarmIndex;
      uint8_t _cursorRow;
      uint8_t _cursorCol;
-    int *_markerIncrementer;
-    int *_valueIncrementer;
-    bool *_toggleEditState;
     TimedToggler _timedToggler;
    uint8_t _allowedAlarmIndexes[nDiagnosticParameters];
    void moveMarker();
    LiquidCrystal &_lcd;
    User_Parameter* _allUserParameters;
-    diagnosticParameters_t* _diagnosticParameters;
-   float _thresholdsMemoryUpper[nDiagnosticParameters];
-   float _thresholdsMemoryLower[nDiagnosticParameters];
+    const VentilationMode *_mode;
+    int *_markerIncrementer;
+    int *_valueIncrementer;
+    bool *_toggleEditState;
+   diagnosticParameters_t* _diagnosticParameters;
    Stopwatch stopwatch;
 
     void printOKCancel(bool doShow);

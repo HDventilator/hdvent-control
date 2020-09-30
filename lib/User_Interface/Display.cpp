@@ -9,7 +9,10 @@
 
 Display::Display(LiquidCrystal &lcd, User_Parameter *allUserParameters, const VentilationMode *mode,
                  int *cursorIncrementer,
-                 int *valueIncrementer, bool *toggleEditState, diagnosticParameters_t *diagnosticParameters) : _lcd(lcd) {
+                 int *valueIncrementer, bool *toggleEditState, diagnosticParameters_t *diagnosticParameters) :
+                 _lcd(lcd), _allUserParameters(allUserParameters), _mode(mode), _markerIncrementer(cursorIncrementer),
+                 _valueIncrementer(valueIncrementer), _toggleEditState(toggleEditState), _diagnosticParameters(diagnosticParameters)
+                                                                                                               {
     _lcd.begin(20, 4);
     byte SYMBOL_SCROLL_DOWN[8] = {
             B00000,
@@ -37,15 +40,8 @@ Display::Display(LiquidCrystal &lcd, User_Parameter *allUserParameters, const Ve
     lcd.createChar(2, SYMBOL_SCROLL_UPDOWN);
     //lcd.createChar(1, SYMBOL_SCROLL_DOWN);
     _header =1;
-    _mode = mode;
     _topRowIndex =0;
-    _allUserParameters = allUserParameters;
-    _diagnosticParameters = diagnosticParameters;
-    _valueIncrementer = valueIncrementer;
-    _toggleEditState = toggleEditState;
-    _markerIncrementer = cursorIncrementer;
     _menuState = VIEW;
-    _valueIncrementer= valueIncrementer;
     _editState = NAVIGATE;
     _nRows=4-_header;
     _timedToggler.set(700);
