@@ -28,6 +28,16 @@ byte SYMBOL_SCROLL_UPDOWN[8] = {
 
 };
 
+int string_length(char s[]) {
+    int c = 0;
+
+    while (s[c] != '\0')
+        c++;
+
+    return c;
+}
+
+
 Display::Display(LiquidCrystal &lcd, User_Parameter *allUserParameters, const VentilationMode *mode,
                  int *cursorIncrementer, int *valueIncrementer, diagnosticParameters_t *diagnosticParameters)
                  : _lcd(lcd)
@@ -68,39 +78,54 @@ void Display::printOKCancel(bool doShow) {
     if (doShow) {
         _lcd.print("OK/CANCEL");
     }
-    else {
-        _lcd.print("         ");
+    else {;
     }
     resetCursor();
 }
 
+void Display::blinkText(char* text, uint8_t col, uint8_t row){
+    _lcd.setCursor(col, row);
+    if (_timedToggler.getEvent()){
+        if (_timedToggler.getState()) {
+            _lcd.print(text);
+        }
+        else {
+            for (uint8_t i=0; i<strlen_P(text); i++) {
+                _lcd.print(" ");
+            }
+        }
+    }
+}
 
+void Display::deleteText(char* text, uint8_t col, uint8_t row){
+    _lcd.setCursor(col, row);
+    for (uint8_t i=0; i<strlen_P(text); i++) {
+        _lcd.print(" ");
+    }
+}
 void Display::update(bool confirm, bool cancel, bool toggle) {
     _lcd.cursor();
     updateIndexes();
     switch(_menuState){
         case UNSAVED_SETTINGS:
-            if (_timedToggler.getEvent()){
-                printOKCancel(_timedToggler.getState());
-            }
-            if (confirm){
-                if (_timedToggler.getEvent()){
-                    printOKCancel(_timedToggler.getState());
-                }
-                safeParams();
-                printOKCancel(false);
-                _menuState = VIEW;
-                _editState = NAVIGATE;
-                *_markerIncrementer=0;
+            //if (_timedToggler.getEvent()){
+                //printOKCancel(_timedToggler.getState());
+            //}
+            blinkText("OK/CANCEL", 10,0);
 
-            }
-            else if (cancel){
-                printOKCancel(false);
-                resetParams();
-                _editState = NAVIGATE;
+            if (confirm||cancel){
+               deleteText("OK/CANCEL", 10,0);
                 _menuState = VIEW;
+                _editState = NAVIGATE;
                 *_markerIncrementer=0;
+                printOKCancel(false);
                 printStaticText();
+            }
+            if (cancel){
+                resetParams();
+            }
+            else if (confirm){
+                safeParams();
             }
             break;
 

@@ -44,11 +44,9 @@ public:
     void printScrollIndicator();
 
 private:
-
     uint8_t  _header;
     uint8_t _nRows;
     uint8_t _topRowIndex;
-
     uint8_t _paramIndex;
     float _alarmValue;
     editState_t _editState;
@@ -69,6 +67,10 @@ private:
    Stopwatch stopwatch;
 
     void printOKCancel(bool doShow);
+
+    void blinkText(char *text, uint8_t col, uint8_t row);
+
+    void deleteText(char *text, uint8_t col, uint8_t row);
 };
 
 
