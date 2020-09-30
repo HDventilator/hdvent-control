@@ -29,14 +29,12 @@ byte SYMBOL_SCROLL_UPDOWN[8] = {
 };
 
 Display::Display(LiquidCrystal &lcd, User_Parameter *allUserParameters, const VentilationMode *mode,
-                 int *cursorIncrementer,
-                 int *valueIncrementer, bool *toggleEditState, diagnosticParameters_t *diagnosticParameters)
+                 int *cursorIncrementer, int *valueIncrementer, diagnosticParameters_t *diagnosticParameters)
                  : _lcd(lcd)
                  , _allUserParameters(allUserParameters)
                  , _mode(mode)
                  , _markerIncrementer(cursorIncrementer)
                  , _valueIncrementer(valueIncrementer)
-                 , _toggleEditState(toggleEditState)
                  , _diagnosticParameters(diagnosticParameters)
 {
     _lcd.begin(20, 4);
@@ -77,7 +75,7 @@ void Display::printOKCancel(bool doShow) {
 }
 
 
-void Display::update(bool confirm, bool cancel) {
+void Display::update(bool confirm, bool cancel, bool toggle) {
     _lcd.cursor();
     updateIndexes();
     switch(_menuState){
@@ -115,13 +113,12 @@ void Display::update(bool confirm, bool cancel) {
     switch(_editState){
         case NAVIGATE:
             moveMarker();
-            if (*_toggleEditState) {
+            if (toggle) {
                 if (_navigationIndex < _mode->nParams) {
                     loadParams();
                     //loadThresholds();
                     _menuState = UNSAVED_SETTINGS;
                     _editState = EDIT_PARAMETER;
-                    *_toggleEditState = false;
                 }
                 else {
                     *_valueIncrementer =0;
@@ -134,7 +131,6 @@ void Display::update(bool confirm, bool cancel) {
                     } else{
                         _alarmValue = param.getHiAlarm();
                     }
-                    *_toggleEditState = false;
                 }
             }
             break;
@@ -151,7 +147,7 @@ void Display::update(bool confirm, bool cancel) {
             printValue(_parametersMemory[_paramIndex]);
             *_valueIncrementer=0;
 
-            if (*_toggleEditState) {
+            if (toggle) {
                 _editState = ENTER_NAVIGATE;
             }
             break;
@@ -190,8 +186,7 @@ void Display::update(bool confirm, bool cancel) {
                 }
             }
 
-
-            if (*_toggleEditState) {
+            if (toggle) {
                 if (!((_navigationIndex - _mode->nParams) % 2)) {
                     param.setLoAlarm(_alarmValue);
                     param.setLoAlarmSet(alarmSetting);
@@ -210,14 +205,11 @@ void Display::update(bool confirm, bool cancel) {
             _editState = NAVIGATE;
             _alarmValue =0;
             *_markerIncrementer = _navigationIndex;
-            *_toggleEditState=false;
-
-
             break;
         default:
             break;
     }
-    *_toggleEditState=false;
+
 }
 
 

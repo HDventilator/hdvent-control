@@ -133,7 +133,7 @@ void scan_i2c()
 bool buzzerState;
 
 void checkBuzzer(){
-    if (alarmOverwrite.getSingleDebouncedPress()){
+    if (alarmOverwrite.getPush()){
         buzzerState = !buzzerState;
         if (buzzerState){
             buzzer.saveTurnOn();
@@ -157,7 +157,7 @@ void loop(){
     if (diagnosticParameters.s.volume.getPersistentState() != Diagnostic_Parameter::OK) {
         buzzer.saveTurnOn();
     }
-    if (alarmOverwrite.getSingleDebouncedPress() && (diagnosticParameters.s.volume.getState())){
+    if (alarmOverwrite.getPush() && (diagnosticParameters.s.volume.getState())){
         buzzer.turnOff();
         diagnosticParameters.s.volume.resetPersistentAlarm();
         Serial.println(diagnosticParameters.s.volume.getState());
@@ -173,7 +173,8 @@ void loop(){
 
 
     encoder.service();
-    display.update(confirmButton.getSingleDebouncedPress(), cancelButton.getSingleDebouncedPress());
+    display.update(confirmButton.getPush(), cancelButton.getPush(),
+                   encoderButton.getPush());
 
     serialDebug();
 }
@@ -185,7 +186,7 @@ void checkAlarms() {
 
         if (param.getState() != Diagnostic_Parameter::OK) {
             buzzer.saveTurnOn();
-        } else if (alarmOverwrite.getSingleDebouncedPress() && (param.getState() == Diagnostic_Parameter::OK)) {
+        } else if (alarmOverwrite.getPush() && (param.getState() == Diagnostic_Parameter::OK)) {
             buzzer.turnOff();
             param.resetPersistentAlarm();
         }

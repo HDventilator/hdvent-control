@@ -172,8 +172,9 @@ Encoder encoder(PIN_ENCO_A, PIN_ENCO_B);
 Pushbutton confirmButton(PIN_EDIT_MODE);
 Pushbutton cancelButton(PIN_OPTICAL_SWITCH_END);
 Pushbutton alarmOverwrite(PIN_ALARM_MUTE);
+Pushbutton encoderButton(PIN_ENCO_BTN);
 
-Display display(lcd, allUserParams, &OL_CMV, &encoder._position, &encoder._position, &encoder.shortPressDetected,
+Display display(lcd, allUserParams, &OL_CMV, &encoder._position, &encoder._position,
                 &diagnosticParameters);
 
 Buzzer buzzer(PIN_ALARM_ENABLE, 500, 1000);

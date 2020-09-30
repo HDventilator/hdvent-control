@@ -98,16 +98,16 @@ public:
    * loop.  Each time it is called, it updates a state machine that monitors the
    * state of the button.  When it detects the button changing from the released
    * state to the pressed state, with debouncing, it returns true. */
-  bool getSingleDebouncedPress();
+  bool getPush();
 
   /*! \brief Uses a state machine to return true once after each time it detects the button moving from the pressed state to the released state.
    *
-   * This is just like getSingleDebouncedPress() except it has a separate state
+   * This is just like getPush() except it has a separate state
    * machine and it watches for when the button goes from the pressed state to
    * the released state.
    *
    * There is no strict guarantee that every debounced button press event
-   * returned by getSingleDebouncedPress() will have a corresponding
+   * returned by getPush() will have a corresponding
    * button release event returned by getSingleDebouncedRelease(); the two
    * functions use independent state machines and sample the button at different
    * times. */

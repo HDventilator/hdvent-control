@@ -14,14 +14,14 @@
 const uint8_t nDiagnosticParameters=4;
 class Display {
 public:
-    Display(LiquidCrystal &lcd, User_Parameter *allUserParameters, const VentilationMode *mode, int *cursorIncrementer,
-            int *valueIncrementer, bool *toggleEditState, diagnosticParameters_t *diagnosticParameters);
+    Display(LiquidCrystal &lcd, User_Parameter *allUserParameters, const VentilationMode *mode,
+            int *cursorIncrementer, int *valueIncrementer, diagnosticParameters_t *diagnosticParameters);
 
     enum editState_t {EDIT_PARAMETER, EDIT_ALARM, ENTER_NAVIGATE, NAVIGATE};
     enum menuState_t {UNSAVED_SETTINGS, VIEW};
 
     void setCursor(uint8_t col, uint8_t row);
-    void update(bool confirm, bool cancel);
+    void update(bool confirm, bool cancel, bool toggle);
     void indexToCursorPosition(uint8_t i, uint8_t &col, uint8_t &row);
 
     void printValue(float value);
@@ -65,7 +65,6 @@ private:
     const VentilationMode *_mode;
     int *_markerIncrementer;
     int *_valueIncrementer;
-    bool *_toggleEditState;
    diagnosticParameters_t* _diagnosticParameters;
    Stopwatch stopwatch;
 
