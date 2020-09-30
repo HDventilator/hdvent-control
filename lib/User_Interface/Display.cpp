@@ -101,7 +101,6 @@ void Display::update(bool confirm, bool cancel) {
                 resetParams();
                 _editState = NAVIGATE;
                 _menuState = VIEW;
-
                 *_markerIncrementer=0;
                 printStaticText();
             }
@@ -153,10 +152,7 @@ void Display::update(bool confirm, bool cancel) {
             *_valueIncrementer=0;
 
             if (*_toggleEditState) {
-                _editState = NAVIGATE;
-                *_markerIncrementer = _navigationIndex;
-                *_toggleEditState=false;
-
+                _editState = ENTER_NAVIGATE;
             }
             break;
 
@@ -166,10 +162,7 @@ void Display::update(bool confirm, bool cancel) {
             indexToAlarmValuePosition(_navigationIndex, _cursorRow, _cursorCol);
             setCursor(_cursorCol, _cursorRow);
             *_valueIncrementer =0;
-            /*
-            Serial.print("alarm Index:\t"); Serial.println(_alarmIndex);
-            Serial.print("index:\t"); Serial.println(_navigationIndex);
-*/
+
             Diagnostic_Parameter::AlarmSetting alarmSetting;
             if (!((_navigationIndex - _mode->nParams) % 2)) {
                 if (_alarmValue < param.getMinAlarm()){
@@ -208,14 +201,19 @@ void Display::update(bool confirm, bool cancel) {
                     param.setHiAlarm(_alarmValue);
                     //Serial.println("set hi alarm");
                 }
-                _editState = NAVIGATE;
-                _alarmValue =0;
-                *_markerIncrementer = _navigationIndex;
-                *_toggleEditState=false;
+                _editState = ENTER_NAVIGATE;
             }
             break;
 
         }
+        case ENTER_NAVIGATE:
+            _editState = NAVIGATE;
+            _alarmValue =0;
+            *_markerIncrementer = _navigationIndex;
+            *_toggleEditState=false;
+
+
+            break;
         default:
             break;
     }

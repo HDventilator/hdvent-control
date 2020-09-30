@@ -17,7 +17,7 @@ public:
     Display(LiquidCrystal &lcd, User_Parameter *allUserParameters, const VentilationMode *mode, int *cursorIncrementer,
             int *valueIncrementer, bool *toggleEditState, diagnosticParameters_t *diagnosticParameters);
 
-    enum editState_t {EDIT_PARAMETER, EDIT_ALARM, NAVIGATE};
+    enum editState_t {EDIT_PARAMETER, EDIT_ALARM, ENTER_NAVIGATE, NAVIGATE};
     enum menuState_t {UNSAVED_SETTINGS, VIEW};
 
     void setCursor(uint8_t col, uint8_t row);
