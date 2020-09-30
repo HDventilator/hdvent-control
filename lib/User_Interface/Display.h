@@ -66,8 +66,6 @@ private:
    diagnosticParameters_t* _diagnosticParameters;
    Stopwatch stopwatch;
 
-    void printOKCancel(bool doShow);
-
     void blinkText(char *text, uint8_t col, uint8_t row);
 
     void deleteText(char *text, uint8_t col, uint8_t row);

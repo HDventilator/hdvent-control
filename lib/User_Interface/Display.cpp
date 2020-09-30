@@ -73,19 +73,12 @@ Display::Display(LiquidCrystal &lcd, User_Parameter *allUserParameters, const Ve
     nActiveDiagnosticParameters =j;
 }
 
-void Display::printOKCancel(bool doShow) {
-    _lcd.setCursor(10,0);
-    if (doShow) {
-        _lcd.print("OK/CANCEL");
-    }
-    else {;
-    }
-    resetCursor();
-}
+
 
 void Display::blinkText(char* text, uint8_t col, uint8_t row){
-    _lcd.setCursor(col, row);
+
     if (_timedToggler.getEvent()){
+        _lcd.setCursor(col, row);
         if (_timedToggler.getState()) {
             _lcd.print(text);
         }
@@ -108,9 +101,7 @@ void Display::update(bool confirm, bool cancel, bool toggle) {
     updateIndexes();
     switch(_menuState){
         case UNSAVED_SETTINGS:
-            //if (_timedToggler.getEvent()){
-                //printOKCancel(_timedToggler.getState());
-            //}
+
             blinkText("OK/CANCEL", 10,0);
 
             if (confirm||cancel){
@@ -118,7 +109,6 @@ void Display::update(bool confirm, bool cancel, bool toggle) {
                 _menuState = VIEW;
                 _editState = NAVIGATE;
                 *_markerIncrementer=0;
-                printOKCancel(false);
                 printStaticText();
             }
             if (cancel){
