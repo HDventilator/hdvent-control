@@ -25,9 +25,8 @@ float roundNumber(float a, uint8_t n){
 const uint8_t nDiagnosticParameters=4;
 class Display {
 public:
-    Display(LiquidCrystal &lcd, User_Parameter *allUserParameters, const VentilationMode *mode,
-            int *cursorIncrementer, int *valueIncrementer, bool *toggleEditState, User_Input *userInput,
-            diagnosticParameters_t *diagnosticParameters);
+    Display(LiquidCrystal &lcd, User_Parameter *allUserParameters, const VentilationMode *mode, int *cursorIncrementer,
+            int *valueIncrementer, bool *toggleEditState, diagnosticParameters_t *diagnosticParameters);
 
     enum editState_t {EDIT_PARAMETER, EDIT_ALARM, NAVIGATE};
     enum menuState_t {UNSAVED_SETTINGS, VIEW};
@@ -35,40 +34,34 @@ public:
     void setCursor(uint8_t col, uint8_t row);
     void update(bool confirm, bool cancel);
     void indexToCursorPosition(uint8_t i, uint8_t &col, uint8_t &row);
-    void refreshDisplay();
+
     void printValue(float value);
-    void displayParameterValue();
-    void printParameterValue(float value);
+
     void printInactiveAlarm();
-    uint8_t getParameterIndex();
+
     void safeParams();
     void resetParams();
     void loadParams();
     void printStaticText();
     void resetCursor();
     void indexToTextPosition(uint8_t i, uint8_t &col, uint8_t &row);
-    void printUserParamValues();
-    void printAllEditMode();
-    void printAllViewMode();
     void indexToParamValuePosition(uint8_t i, uint8_t &row, uint8_t &col);
-    void setMode(const VentilationMode *mode);
-    void printAlarmThreshold(Diagnostic_Parameter p);
     float _parametersMemory[4];
-    void loadThresholds();
+
     void indexToAlarmValuePosition(uint8_t i, uint8_t &row, uint8_t &col);
-    void indexToAlarmTextPosition(uint8_t i, uint8_t &row, uint8_t &col);
+
     void updateIndexes();
     uint8_t nActiveDiagnosticParameters;
-    void printOKCancel();
+
     void printScrollIndicator();
-   // void printOKCancel(bool &doShow);
+
 private:
 
     uint8_t  _header;
     uint8_t _nRows;
     const VentilationMode *_mode;
     uint8_t _topRowIndex;
-    bool _OKBlink;
+
     uint8_t _paramIndex;
     float _alarmValue;
     editState_t _editState;
@@ -80,8 +73,6 @@ private:
     int *_markerIncrementer;
     int *_valueIncrementer;
     bool *_toggleEditState;
-    User_Input *_userInput;
-
     TimedToggler _timedToggler;
    uint8_t _allowedAlarmIndexes[nDiagnosticParameters];
    void moveMarker();

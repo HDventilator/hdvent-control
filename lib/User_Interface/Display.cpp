@@ -7,9 +7,9 @@
 #include <LiquidCrystal.h>
 #include <User_Input.h>
 
-Display::Display(LiquidCrystal& lcd, User_Parameter *allUserParameters, const VentilationMode *mode,
-                 int *cursorIncrementer, int *valueIncrementer, bool *toggleEditState, User_Input *userInput,
-                 diagnosticParameters_t *diagnosticParameters) : _lcd(lcd) {
+Display::Display(LiquidCrystal &lcd, User_Parameter *allUserParameters, const VentilationMode *mode,
+                 int *cursorIncrementer,
+                 int *valueIncrementer, bool *toggleEditState, diagnosticParameters_t *diagnosticParameters) : _lcd(lcd) {
     _lcd.begin(20, 4);
     byte SYMBOL_SCROLL_DOWN[8] = {
             B00000,
@@ -47,7 +47,6 @@ Display::Display(LiquidCrystal& lcd, User_Parameter *allUserParameters, const Ve
     _menuState = VIEW;
     _valueIncrementer= valueIncrementer;
     _editState = NAVIGATE;
-    _userInput = userInput;
     _nRows=4-_header;
     _timedToggler.set(700);
     lcd.clear();
@@ -281,14 +280,6 @@ void Display::loadParams() {
     // save user parameters momentarily
     for (int i; i<(_mode->nParams); i++){
         _parametersMemory[i]=_allUserParameters[(int)_mode->parameters[i]].getValue();
-    }
-}
-
-void Display::loadThresholds() {
-    // save user parameters momentarily
-    for (int i; i < nActiveDiagnosticParameters; i++){
-        _thresholdsMemoryLower[i]=_diagnosticParameters->arr[i].getMinAlarm();
-        _thresholdsMemoryUpper[i]=_diagnosticParameters->arr[i].getMaxAlarm();
     }
 }
 
