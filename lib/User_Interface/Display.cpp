@@ -6,39 +6,42 @@
 #include <Arduino.h>
 #include <LiquidCrystal.h>
 #include <User_Input.h>
+byte SYMBOL_SCROLL_DOWN[8] = {
+        B00000,
+        B00000,
+        B00000,
+        B00000,
+        B00000,
+        B10001,
+        B01010,
+        B00100
+};
+byte SYMBOL_SCROLL_UPDOWN[8] = {
+        B00100,
+        B01010,
+        B10001,
+        B00000,
+        B00000,
+        B10001,
+        B01010,
+        B00100
+
+};
 
 Display::Display(LiquidCrystal &lcd, User_Parameter *allUserParameters, const VentilationMode *mode,
                  int *cursorIncrementer,
-                 int *valueIncrementer, bool *toggleEditState, diagnosticParameters_t *diagnosticParameters) :
-                 _lcd(lcd), _allUserParameters(allUserParameters), _mode(mode), _markerIncrementer(cursorIncrementer),
-                 _valueIncrementer(valueIncrementer), _toggleEditState(toggleEditState), _diagnosticParameters(diagnosticParameters)
-                                                                                                               {
+                 int *valueIncrementer, bool *toggleEditState, diagnosticParameters_t *diagnosticParameters)
+                 : _lcd(lcd)
+                 , _allUserParameters(allUserParameters)
+                 , _mode(mode)
+                 , _markerIncrementer(cursorIncrementer)
+                 , _valueIncrementer(valueIncrementer)
+                 , _toggleEditState(toggleEditState)
+                 , _diagnosticParameters(diagnosticParameters)
+{
     _lcd.begin(20, 4);
-    byte SYMBOL_SCROLL_DOWN[8] = {
-            B00000,
-            B00000,
-            B00000,
-            B00000,
-            B00000,
-            B10001,
-            B01010,
-            B00100
-    };
-    byte SYMBOL_SCROLL_UPDOWN[8] = {
-            B00100,
-            B01010,
-            B10001,
-            B00000,
-            B00000,
-            B10001,
-            B01010,
-            B00100
-
-    };
-
     lcd.createChar(1, SYMBOL_SCROLL_DOWN);
     lcd.createChar(2, SYMBOL_SCROLL_UPDOWN);
-    //lcd.createChar(1, SYMBOL_SCROLL_DOWN);
     _header =1;
     _topRowIndex =0;
     _menuState = VIEW;
@@ -49,9 +52,7 @@ Display::Display(LiquidCrystal &lcd, User_Parameter *allUserParameters, const Ve
     printStaticText();
     lcd.home();
     lcd.cursor();
-    for (int8_t i=0; i<_mode->nParams;i++){
-        printValue(_allUserParameters[(int) _mode->parameters[i]].getValue());
-    }
+
     uint8_t j =0;
     for (int i=0; i<nDiagnosticParameters; i++) {
         if ((diagnosticParameters->arr[i].getHiAlarmSet() != Diagnostic_Parameter::DISABLED) ||
@@ -62,7 +63,6 @@ Display::Display(LiquidCrystal &lcd, User_Parameter *allUserParameters, const Ve
         }
     }
     nActiveDiagnosticParameters =j;
-
 }
 
 void Display::printOKCancel(bool doShow) {

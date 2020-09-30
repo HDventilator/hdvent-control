@@ -27,7 +27,6 @@ public:
     void printValue(float value);
 
     void printInactiveAlarm();
-
     void safeParams();
     void resetParams();
     void loadParams();
@@ -35,7 +34,7 @@ public:
     void resetCursor();
     void indexToTextPosition(uint8_t i, uint8_t &col, uint8_t &row);
     void indexToParamValuePosition(uint8_t i, uint8_t &row, uint8_t &col);
-    float _parametersMemory[4];
+    float _parametersMemory[4]{};
 
     void indexToAlarmValuePosition(uint8_t i, uint8_t &row, uint8_t &col);
 
