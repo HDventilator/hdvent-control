@@ -71,10 +71,7 @@ Display::Display(LiquidCrystal &lcd, User_Parameter *allUserParameters, const Ve
     nActiveDiagnosticParameters =j;
 }
 
-
-
 void Display::blinkText(char* text, uint8_t col, uint8_t row){
-
     if (_timedToggler.getEvent()){
         _lcd.setCursor(col, row);
         if (_timedToggler.getState()) {
@@ -223,7 +220,6 @@ void Display::update(bool confirm, bool cancel, bool toggle, int8_t delta) {
         default:
             break;
     }
-
 }
 
 
@@ -406,7 +402,6 @@ void Display::printScrollIndicator() {
         _lcd.setCursor(19, 0);
         _lcd.write(1);
     }
-
 }
 
 void Display::resetParams() {
