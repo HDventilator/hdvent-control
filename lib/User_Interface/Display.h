@@ -21,7 +21,7 @@ public:
     enum menuState_t {UNSAVED_SETTINGS, VIEW};
 
     void setCursor(uint8_t col, uint8_t row);
-    void update(bool confirm, bool cancel, bool toggle);
+    void update(bool confirm, bool cancel, bool toggle, int8_t delta);
     void indexToCursorPosition(uint8_t i, uint8_t &col, uint8_t &row);
 
     void printValue(float value);

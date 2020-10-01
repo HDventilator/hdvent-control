@@ -20,13 +20,14 @@ public:
     void service();
     void reset();
     int getPosition() const;
+    int8_t getDelta();
     int _position;
 
 private:
-
+    int _oldPosition;
     int _pinA;
     int _pinB;
-
+    int8_t _delta;
     bool _aLast;
     bool _bLast;
 

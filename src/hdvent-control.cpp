@@ -173,9 +173,9 @@ void loop(){
     //ventilationStateMachine(ventilationState);
 
 
-    encoder.service();
+    //encoder.service();
     display.update(confirmButton.getSingleDebouncedPress(), cancelButton.getSingleDebouncedPress(),
-                   encoderButton.getSingleDebouncedPress());
+                   encoderButton.getSingleDebouncedPress(), encoder.getDelta());
 
     //serialDebug();
 }

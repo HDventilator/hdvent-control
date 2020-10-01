@@ -96,7 +96,7 @@ void Display::deleteText(char* text, uint8_t col, uint8_t row){
         _lcd.print(" ");
     }
 }
-void Display::update(bool confirm, bool cancel, bool toggle) {
+void Display::update(bool confirm, bool cancel, bool toggle, int8_t delta) {
     _lcd.cursor();
     updateIndexes();
     switch(_menuState){
@@ -133,14 +133,12 @@ void Display::update(bool confirm, bool cancel, bool toggle) {
             moveMarker();
             if (toggle) {
                 if (_navigationIndex < _mode->nParams) {
-
                     _menuState = UNSAVED_SETTINGS;
                     _editState = EDIT_PARAMETER;
                 }
                 else {
                     *_valueIncrementer =0;
                     _editState = EDIT_ALARM;
-                    //_alarmIndex = (_navigationIndex - _mode->nParams ) / 2;
                     Diagnostic_Parameter & param = _diagnosticParameters->arr[_alarmIndex] ;
 
                     if (!((_navigationIndex - _mode->nParams) % 2)) {
@@ -154,15 +152,10 @@ void Display::update(bool confirm, bool cancel, bool toggle) {
 
         case EDIT_PARAMETER:
             _allUserParameters[(int)_mode->parameters[_paramIndex]].setDialValue(
-                    _allUserParameters[(int)_mode->parameters[_paramIndex]].getDialValue() + (float)*_valueIncrementer * _allUserParameters[(int)_mode->parameters[_paramIndex]].increment);
-            if (*_valueIncrementer){
-            Serial.print("new dial value: ");Serial.println(_allUserParameters[(int)_mode->parameters[_paramIndex]].getDialValue());
-            Serial.print("result of: ");Serial.println(*_valueIncrementer * _allUserParameters[(int)_mode->parameters[_paramIndex]].increment);
-            }
+                    _allUserParameters[(int)_mode->parameters[_paramIndex]].getDialValue() + (float)delta * _allUserParameters[(int)_mode->parameters[_paramIndex]].increment);
             indexToParamValuePosition(_navigationIndex, _cursorRow, _cursorCol);
             setCursor(_cursorCol, _cursorRow);
             printValue(_allUserParameters[(int)_mode->parameters[_paramIndex]].getDialValue());
-            *_valueIncrementer=0;
 
             if (toggle) {
                 _editState = ENTER_NAVIGATE;
@@ -171,10 +164,10 @@ void Display::update(bool confirm, bool cancel, bool toggle) {
 
         case EDIT_ALARM: {
             Diagnostic_Parameter & param = _diagnosticParameters->arr[_alarmIndex];
-            _alarmValue = _alarmValue + (float) *_valueIncrementer * param.getIncrement();
+            _alarmValue = _alarmValue + (float) delta * param.getIncrement();
             indexToAlarmValuePosition(_navigationIndex, _cursorRow, _cursorCol);
             setCursor(_cursorCol, _cursorRow);
-            *_valueIncrementer =0;
+
 
             Diagnostic_Parameter::AlarmSetting alarmSetting;
             if (!((_navigationIndex - _mode->nParams) % 2)) {

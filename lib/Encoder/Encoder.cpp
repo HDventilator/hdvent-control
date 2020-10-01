@@ -51,9 +51,11 @@ void Encoder::service() {
 
     if (a == HIGH) {
         _position += B;
+        _delta = B;
     }
     else if (a == LOW) {
         _position -= B;
+        _delta = -B;
     }
 
    /* if (b == HIGH) {
@@ -73,4 +75,9 @@ int Encoder::getPosition() const {
 
 void Encoder::reset() {
     _position=0;
+}
+
+int8_t Encoder::getDelta() {
+    service();
+    return _delta;
 }
