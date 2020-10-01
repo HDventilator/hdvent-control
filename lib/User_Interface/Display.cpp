@@ -426,6 +426,3 @@ void Display::resetParams() {
 void Display::resetCursor() {
     _lcd.setCursor(_cursorCol,_cursorRow);
 }
-
-
-
