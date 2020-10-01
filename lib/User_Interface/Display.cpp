@@ -25,18 +25,7 @@ byte SYMBOL_SCROLL_UPDOWN[8] = {
         B10001,
         B01010,
         B00100
-
 };
-
-int string_length(char s[]) {
-    int c = 0;
-
-    while (s[c] != '\0')
-        c++;
-
-    return c;
-}
-
 
 Display::Display(LiquidCrystal &lcd, User_Parameter *allUserParameters, const VentilationMode *mode,
                  diagnosticParameters_t *diagnosticParameters)
