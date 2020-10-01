@@ -66,7 +66,7 @@ Display::Display(LiquidCrystal &lcd, User_Parameter *allUserParameters, const Ve
         if ((diagnosticParameters->arr[i].getHiAlarmSet() != Diagnostic_Parameter::DISABLED) ||
                 (diagnosticParameters->arr[i].getLoAlarmSet() != Diagnostic_Parameter::DISABLED)){
             _allowedAlarmIndexes[j] = i;
-            Serial.println(diagnosticParameters->arr[i].lcdString);
+            //Serial.println(diagnosticParameters->arr[i].lcdString);
             j++;
         }
     }
@@ -104,18 +104,21 @@ void Display::update(bool confirm, bool cancel, bool toggle) {
 
             blinkText("OK/CANCEL", 10,0);
 
+            if (cancel){
+                Serial.println("cancel");
+                //safeParams();
+                resetParams();
+            }
+            else if (confirm){
+                Serial.println("confirm");
+                safeParams();
+            }
             if (confirm||cancel){
-               deleteText("OK/CANCEL", 10,0);
+                deleteText("OK/CANCEL", 10,0);
                 _menuState = VIEW;
                 _editState = NAVIGATE;
                 *_markerIncrementer=0;
                 printStaticText();
-            }
-            if (cancel){
-                resetParams();
-            }
-            else if (confirm){
-                safeParams();
             }
             break;
 
@@ -130,8 +133,7 @@ void Display::update(bool confirm, bool cancel, bool toggle) {
             moveMarker();
             if (toggle) {
                 if (_navigationIndex < _mode->nParams) {
-                    loadParams();
-                    //loadThresholds();
+
                     _menuState = UNSAVED_SETTINGS;
                     _editState = EDIT_PARAMETER;
                 }
@@ -150,16 +152,16 @@ void Display::update(bool confirm, bool cancel, bool toggle) {
             }
             break;
 
-        case EDIT_PARAMETER: {
-
-
-            _parametersMemory[_paramIndex]+=
-                    (float) *_valueIncrementer * _allUserParameters[(int)_mode->parameters[_paramIndex]].increment;
-            _allUserParameters[(int)_mode->parameters[_paramIndex]].setDialValue(_parametersMemory[_paramIndex]);
-
+        case EDIT_PARAMETER:
+            _allUserParameters[(int)_mode->parameters[_paramIndex]].setDialValue(
+                    _allUserParameters[(int)_mode->parameters[_paramIndex]].getDialValue() + (float)*_valueIncrementer * _allUserParameters[(int)_mode->parameters[_paramIndex]].increment);
+            if (*_valueIncrementer){
+            Serial.print("new dial value: ");Serial.println(_allUserParameters[(int)_mode->parameters[_paramIndex]].getDialValue());
+            Serial.print("result of: ");Serial.println(*_valueIncrementer * _allUserParameters[(int)_mode->parameters[_paramIndex]].increment);
+            }
             indexToParamValuePosition(_navigationIndex, _cursorRow, _cursorCol);
             setCursor(_cursorCol, _cursorRow);
-            printValue(_parametersMemory[_paramIndex]);
+            printValue(_allUserParameters[(int)_mode->parameters[_paramIndex]].getDialValue());
             *_valueIncrementer=0;
 
             if (toggle) {
@@ -167,7 +169,7 @@ void Display::update(bool confirm, bool cancel, bool toggle) {
             }
             break;
 
-        case EDIT_ALARM:
+        case EDIT_ALARM: {
             Diagnostic_Parameter & param = _diagnosticParameters->arr[_alarmIndex];
             _alarmValue = _alarmValue + (float) *_valueIncrementer * param.getIncrement();
             indexToAlarmValuePosition(_navigationIndex, _cursorRow, _cursorCol);
@@ -213,14 +215,14 @@ void Display::update(bool confirm, bool cancel, bool toggle) {
                 }
                 _editState = ENTER_NAVIGATE;
             }
-            break;
+            break;}
 
-        }
         case ENTER_NAVIGATE:
             _editState = NAVIGATE;
             _alarmValue =0;
             *_markerIncrementer = _navigationIndex;
             break;
+
         default:
             break;
     }
@@ -273,14 +275,14 @@ void Display::printValue(float value) {
 void Display::safeParams() {
     // save user parameters momentarily
     for (int i; i<(_mode->nParams); i++){
-        _allUserParameters[(int)_mode->parameters[i]].setValue(_parametersMemory[i]);
+        _allUserParameters[(int)_mode->parameters[i]].saveValue();
     }
 }
 
 void Display::loadParams() {
     // save user parameters momentarily
     for (int i; i<(_mode->nParams); i++){
-        _parametersMemory[i]=_allUserParameters[(int)_mode->parameters[i]].getValue();
+        _allUserParameters[(int)_mode->parameters[i]].resetDialValue();
     }
 }
 
@@ -312,11 +314,9 @@ void Display::printStaticText() {
         uint8_t i = _allowedAlarmIndexes[j];
         indexToTextPosition(j, _cursorCol, _cursorRow);
         _cursorRow = _cursorRow + _mode->nParams;
-        //Serial.print(i); Serial.print(":\t");
         if (_topRowIndex-_header <= _cursorRow && _cursorRow< _topRowIndex+_nRows) {
             Diagnostic_Parameter & diagnosticParameter = _diagnosticParameters->arr[i];
             setCursor(_cursorCol, _cursorRow);
-            //Serial.println(_cursorRow);
             _lcd.print(diagnosticParameter.lcdString);
             _lcd.print(" Lo ");
             switch (diagnosticParameter.getLoAlarmSet()){

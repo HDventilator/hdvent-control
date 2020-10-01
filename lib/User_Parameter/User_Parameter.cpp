@@ -18,6 +18,7 @@ User_Parameter::User_Parameter(float initialValue, float minOutValue, float maxO
     _toleranceInputChange = (_maxIn - _minIn) / 800;
     _invert = invert;
     increment = (_max-_min)/200;
+    resetDialValue();
 
 }
 
@@ -37,7 +38,7 @@ float User_Parameter::transferFunction(float valueIn){
 }
 
 float User_Parameter::getDialValue() {
-    return transferFunction(_oldIn);
+    return _dialValue;
 }
 
 package_struct_float_t User_Parameter::getValuePackage() {
