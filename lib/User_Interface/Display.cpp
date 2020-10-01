@@ -39,12 +39,10 @@ int string_length(char s[]) {
 
 
 Display::Display(LiquidCrystal &lcd, User_Parameter *allUserParameters, const VentilationMode *mode,
-                 int *cursorIncrementer, int *valueIncrementer, diagnosticParameters_t *diagnosticParameters)
+                 diagnosticParameters_t *diagnosticParameters)
                  : _lcd(lcd)
                  , _allUserParameters(allUserParameters)
                  , _mode(mode)
-                 , _markerIncrementer(cursorIncrementer)
-                 , _valueIncrementer(valueIncrementer)
                  , _diagnosticParameters(diagnosticParameters)
 {
     _lcd.begin(20, 4);
@@ -97,11 +95,11 @@ void Display::deleteText(char* text, uint8_t col, uint8_t row){
     }
 }
 void Display::update(bool confirm, bool cancel, bool toggle, int8_t delta) {
+    int8_t navigationDelta = delta;
     _lcd.cursor();
     updateIndexes();
     switch(_menuState){
         case UNSAVED_SETTINGS:
-
             blinkText("OK/CANCEL", 10,0);
 
             if (cancel){
@@ -117,7 +115,7 @@ void Display::update(bool confirm, bool cancel, bool toggle, int8_t delta) {
                 deleteText("OK/CANCEL", 10,0);
                 _menuState = VIEW;
                 _editState = NAVIGATE;
-                *_markerIncrementer=0;
+                _markerIncrementer=0;
                 printStaticText();
             }
             break;
@@ -130,6 +128,13 @@ void Display::update(bool confirm, bool cancel, bool toggle, int8_t delta) {
 
     switch(_editState){
         case NAVIGATE:
+            // calc new position
+            _markerIncrementer = _markerIncrementer + navigationDelta;
+            Serial.println(_markerIncrementer);
+            _markerIncrementer = min(_markerIncrementer, (_mode->nParams + nActiveDiagnosticParameters * 2 - 1));
+            _markerIncrementer = max(_markerIncrementer, 0);
+            _navigationIndex = _markerIncrementer;
+
             moveMarker();
             if (toggle) {
                 if (_navigationIndex < _mode->nParams) {
@@ -137,7 +142,6 @@ void Display::update(bool confirm, bool cancel, bool toggle, int8_t delta) {
                     _editState = EDIT_PARAMETER;
                 }
                 else {
-                    *_valueIncrementer =0;
                     _editState = EDIT_ALARM;
                     Diagnostic_Parameter & param = _diagnosticParameters->arr[_alarmIndex] ;
 
@@ -213,7 +217,7 @@ void Display::update(bool confirm, bool cancel, bool toggle, int8_t delta) {
         case ENTER_NAVIGATE:
             _editState = NAVIGATE;
             _alarmValue =0;
-            *_markerIncrementer = _navigationIndex;
+            _markerIncrementer = _navigationIndex;
             break;
 
         default:
@@ -224,12 +228,7 @@ void Display::update(bool confirm, bool cancel, bool toggle, int8_t delta) {
 
 
 void Display::moveMarker() {
-// calc new position
 
-    //_navigationIndex = _navigationIndex%(_mode->nParams+nDiagnosticParameters);
-    *_markerIncrementer = min(*_markerIncrementer, (_mode->nParams + nActiveDiagnosticParameters * 2 - 1));
-    *_markerIncrementer = max(*_markerIncrementer, 0);
-    _navigationIndex = *_markerIncrementer;
 
     indexToCursorPosition(_navigationIndex, _cursorCol, _cursorRow);
         if (_cursorRow > _topRowIndex+ _nRows - 1){

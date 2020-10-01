@@ -174,8 +174,7 @@ void loop(){
 
 
     //encoder.service();
-    display.update(confirmButton.getSingleDebouncedPress(), cancelButton.getSingleDebouncedPress(),
-                   encoderButton.getSingleDebouncedPress(), encoder.getDelta());
+    display.update(confirmButton.getSingleDebouncedPress(), cancelButton.getSingleDebouncedPress(), encoderButton.getSingleDebouncedPress(), encoder.getDelta());
 
     //serialDebug();
 }
@@ -213,6 +212,13 @@ void runMachineDiagnostics(){
 }
 
 void serialDebug(){
+    /*
+int8_t delta = encoder.getDelta();
+if (delta) {
+    Serial.println(delta);
+}
+ */
+
     /*
     int i=0;
     for (Diagnostic_Parameter p: diagnosticParameters.arr){

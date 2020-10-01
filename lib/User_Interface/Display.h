@@ -15,7 +15,7 @@ const uint8_t nDiagnosticParameters=4;
 class Display {
 public:
     Display(LiquidCrystal &lcd, User_Parameter *allUserParameters, const VentilationMode *mode,
-            int *cursorIncrementer, int *valueIncrementer, diagnosticParameters_t *diagnosticParameters);
+            diagnosticParameters_t *diagnosticParameters);
 
     enum editState_t {EDIT_PARAMETER, EDIT_ALARM, ENTER_NAVIGATE, NAVIGATE};
     enum menuState_t {UNSAVED_SETTINGS, VIEW};
@@ -59,8 +59,8 @@ private:
    LiquidCrystal &_lcd;
    User_Parameter* _allUserParameters;
     const VentilationMode *_mode;
-    int *_markerIncrementer;
-    int *_valueIncrementer;
+    int _markerIncrementer=0;
+
    diagnosticParameters_t* _diagnosticParameters;
    Stopwatch stopwatch;
 

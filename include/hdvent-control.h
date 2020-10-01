@@ -174,7 +174,7 @@ Pushbutton cancelButton(PIN_OPTICAL_SWITCH_END);
 Pushbutton alarmOverwrite(PIN_ALARM_MUTE);
 Pushbutton encoderButton(PIN_ENCO_BTN);
 
-Display display(lcd, allUserParams, &OL_CMV, &encoder._position, &encoder._position,
+Display display(lcd, allUserParams, &OL_CMV,
                 &diagnosticParameters);
 
 Buzzer buzzer(PIN_ALARM_ENABLE, 500, 1000);
