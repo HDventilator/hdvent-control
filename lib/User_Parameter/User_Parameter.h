@@ -50,10 +50,34 @@ private:
     package_struct_float_t _package;
     void _packStruct(float value);
     bool _invert;
-
-
 };
 
+template<uint8_t N>
+class Parameter_Container {
+public:
+    Parameter_Container(User_Parameter *params) : nActive(N), params(params), _activeIndexes(nullptr) {}
+
+    Parameter_Container() {
+
+    }
+
+    User_Parameter & operator[](uint32_t idx)       { return params[idx]; }
+    const User_Parameter& operator[](uint32_t idx)      const  { return params[idx]; }
+    void update(uint8_t activeIndexes, uint8_t n){
+        _activeIndexes = activeIndexes;
+        nActive = n;
+    };
+
+    User_Parameter getFromSubset(int i){
+        return params[_activeIndexes[i]];
+    }
+    uint8_t nActive{};
+    User_Parameter params[N];
+private:
+
+    uint8_t _activeIndexes[N];
+
+};
 
 
 #endif //HDVENT_CONTROL_USER_PARAMETER_H

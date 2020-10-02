@@ -18,7 +18,7 @@ typedef float (*input_func_t)();
 class VentilationController {
 public:
     VentilationController(VentilationMode mode, Diagnostic_Parameter &pressure, Diagnostic_Parameter &flow,
-                          User_Parameter * allUserParams);
+                          User_Parameter* allUserParams);
     bool expirationTrigger();
     bool inspirationTrigger();
     float calcSpeed();

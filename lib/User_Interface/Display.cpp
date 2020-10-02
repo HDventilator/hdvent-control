@@ -27,7 +27,7 @@ byte SYMBOL_SCROLL_UPDOWN[8] = {
         B00100
 };
 
-Display::Display(LiquidCrystal &lcd, User_Parameter *allUserParameters, const VentilationMode *mode,
+Display::Display(LiquidCrystal &lcd, Parameter_Container<N_USER_PARAMETERS> & allUserParameters, const VentilationMode *mode,
                  diagnosticParameters_t *diagnosticParameters)
                  : _lcd(lcd)
                  , _allUserParameters(allUserParameters)
@@ -59,6 +59,8 @@ Display::Display(LiquidCrystal &lcd, User_Parameter *allUserParameters, const Ve
     }
     nActiveDiagnosticParameters =j;
 }
+
+
 
 void Display::blinkText(char* text, uint8_t col, uint8_t row){
     if (_timedToggler.getEvent()){

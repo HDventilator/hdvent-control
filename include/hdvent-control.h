@@ -117,7 +117,8 @@ float speedIn = 50; // steps/s
 unsigned int stepsInterval = 300;
 
 // user-set parameters
-User_Parameter allUserParams[(int) UP::LAST_PARAM_LABEL];
+//User_Parameter allUserParams[(int) UP::LAST_PARAM_LABEL];
+Parameter_Container<(int) UP::LAST_PARAM_LABEL> allUserParams;
 
 diagnosticParameters_t diagnosticParameters =
         { Diagnostic_Parameter("peep", "PEEP"),
@@ -163,11 +164,11 @@ float motorSpeed;
 PID pressureControlPID();
 
 VentilationController controller(OL_CMV, diagnosticParameters.s.airwayPressure, diagnosticParameters.s.flow,
-                                 allUserParams);
+                                 allUserParams.params);
 LiquidCrystal lcd(PIN_LCD_RS, PIN_LCD_RW, PIN_LCD_EN, PIN_LCD_D4, PIN_LCD_D5, PIN_LCD_D6, PIN_LCD_D7);
 PacketSerial cobsSerial;
 uint8_t potiPins[4] = {PIN_POTI_AD, PIN_POTI_IE, PIN_POTI_TV, PIN_POTI_RR};
-User_Input userInput(allUserParams, &mode, &saveUserParams);
+User_Input userInput(allUserParams.params, &mode, &saveUserParams);
 Encoder encoder(PIN_ENCO_A, PIN_ENCO_B);
 Pushbutton confirmButton(PIN_EDIT_MODE);
 Pushbutton cancelButton(PIN_OPTICAL_SWITCH_END);

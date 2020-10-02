@@ -10,12 +10,14 @@
 #include <Ventilation_Modes.h>
 #include "User_Input.h"
 #include <TimedToggler.h>
-
+const uint8_t N_USER_PARAMETERS=12;
 const uint8_t nDiagnosticParameters=4;
 class Display {
 public:
-    Display(LiquidCrystal &lcd, User_Parameter *allUserParameters, const VentilationMode *mode,
+    Display(LiquidCrystal &lcd, Parameter_Container<N_USER_PARAMETERS> &allUserParameters, const VentilationMode *mode,
             diagnosticParameters_t *diagnosticParameters);
+
+    Display(Parameter_Container<N_USER_PARAMETERS> &allUserParameters);
 
     enum editState_t {EDIT_PARAMETER, EDIT_ALARM, ENTER_NAVIGATE, NAVIGATE};
     enum menuState_t {UNSAVED_SETTINGS, VIEW};
@@ -57,7 +59,7 @@ private:
    uint8_t _allowedAlarmIndexes[nDiagnosticParameters];
    void moveMarker();
    LiquidCrystal &_lcd;
-   User_Parameter* _allUserParameters;
+   Parameter_Container<N_USER_PARAMETERS> & _allUserParameters;
     const VentilationMode *_mode;
     int _markerIncrementer=0;
 

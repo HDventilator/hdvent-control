@@ -4,7 +4,7 @@
 
 #include "Ventilation_Controller.h"
 
-VentilationController::VentilationController(VentilationMode mode,Diagnostic_Parameter &pressure,
+VentilationController::VentilationController(VentilationMode mode, Diagnostic_Parameter &pressure,
                                              Diagnostic_Parameter &flow,
                                              User_Parameter* allUserParams)
 : _pid(&_pidIn, &_pidOut, &_pidSetpoint, mode.pidParameters.k_p, mode.pidParameters.k_i, mode.pidParameters.k_d, DIRECT),

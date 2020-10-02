@@ -66,6 +66,7 @@ void setup()
     // slowest in movement is bounded by fastest possible out movement and fastest respiratory rate
     float t_in_max = 60/respiratory_rate - t_ex_min;
 
+
     allUserParams[(int) UP::RESPIRATORY_RATE] = User_Parameter(respiratory_rate, respiratory_rate_min, respiratory_rate_max, "freq", 0, 1024, true); //  breaths per minute
     allUserParams[(int) UP::T_IN] = User_Parameter(2, t_in_min, t_in_max,"T_in", 0, 1024, true); // Inspiration time
     allUserParams[(int) UP::TIDAL_VOLUME] = User_Parameter(250, 0, 650, "VTid", 0, 1024, true); // milliliters
@@ -76,6 +77,7 @@ void setup()
     allUserParams[(int) UP::FLOW_TRIGGER_THRESHOLD] = User_Parameter(20, 5, 50, "Fthr", 0, 1024, true); //  milliliters per second
     allUserParams[(int) UP::ANGLE] = User_Parameter(0, 0, 1, "angl", 0, 1024, true); //  milliliters per second
     allUserParams[(int) UP::COMPRESSED_VOLUME_RATIO] = User_Parameter(100, 0, 100, "Volu", 0, 1024, true); //  milliliters per second
+
 
     ConfigureStepperDriver();
     pressureSensor.begin();
