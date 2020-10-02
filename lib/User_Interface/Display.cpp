@@ -143,11 +143,11 @@ void Display::update(bool confirm, bool cancel, bool toggle, int8_t delta) {
             break;
 
         case EDIT_PARAMETER:
-            _allUserParameters[(int)_mode->parameters[_paramIndex]].setDialValue(
-                    _allUserParameters[(int)_mode->parameters[_paramIndex]].getDialValue() + (float)delta * _allUserParameters[(int)_mode->parameters[_paramIndex]].increment);
+            _allUserParameters.getActive(_paramIndex).setDialValue(
+                    _allUserParameters.getActive(_paramIndex).getDialValue() + (float)delta * _allUserParameters.getActive(_paramIndex).increment);
             indexToParamValuePosition(_navigationIndex, _cursorRow, _cursorCol);
             setCursor(_cursorCol, _cursorRow);
-            printValue(_allUserParameters[(int)_mode->parameters[_paramIndex]].getDialValue());
+            printValue(_allUserParameters.getActive(_paramIndex).getDialValue());
 
             if (toggle) {
                 _editState = ENTER_NAVIGATE;
@@ -254,14 +254,14 @@ void Display::printValue(float value) {
 void Display::safeParams() {
     // save user parameters momentarily
     for (int i; i<(_mode->nParams); i++){
-        _allUserParameters[(int)_mode->parameters[i]].saveValue();
+        _allUserParameters.getActive(i).saveValue();
     }
 }
 
 void Display::loadParams() {
     // save user parameters momentarily
     for (int i; i<(_mode->nParams); i++){
-        _allUserParameters[(int)_mode->parameters[i]].resetDialValue();
+        _allUserParameters.getActive(i).resetDialValue();
     }
 }
 
@@ -280,7 +280,7 @@ void Display::printStaticText() {
         indexToTextPosition(i, _cursorCol, _cursorRow);
         if (_topRowIndex <= _cursorRow && _cursorRow< _topRowIndex+4) {
             setCursor(_cursorCol, _cursorRow);
-            _lcd.print(_allUserParameters[(int)_mode->parameters[i]].lcdString);
+            _lcd.print(_allUserParameters.getActive(i).lcdString);
         }
         indexToParamValuePosition(i, _cursorRow, _cursorCol);
         if (_topRowIndex <= _cursorRow && _cursorRow< _topRowIndex+4) {
@@ -397,7 +397,7 @@ void Display::printScrollIndicator() {
 
 void Display::resetParams() {
     for (int i; i<(_mode->nParams); i++){
-        _allUserParameters[(int)_mode->parameters[i]].resetDialValue();
+        _allUserParameters.getActive(i).resetDialValue();
     }
 }
 

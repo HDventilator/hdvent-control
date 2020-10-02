@@ -103,11 +103,13 @@ void setup()
     Serial3.begin(115200);
 
     stopwatch.sinceIdle.start();
-
+    allUserParams.update(mode.parameters, mode.nParams);
     display.printStaticText();
     for (Diagnostic_Parameter &param : diagnosticParameters.arr){
         param.setValue(10);
     }
+
+
 
 }
 

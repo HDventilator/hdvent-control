@@ -6,6 +6,7 @@
 #define HDVENT_CONTROL_USER_PARAMETER_H
 
 #include <Serial_Protocol.h>
+#include <Ventilation_Modes.h>
 
 const char USER_PARAMETER_VALUE_ID_PREFIX[] = "Pv";
 const char USER_PARAMETER_MIN_ID_PREFIX[] = "P_";
@@ -61,21 +62,25 @@ public:
 
     }
 
-    User_Parameter & operator[](uint32_t idx)       { return params[idx]; }
-    const User_Parameter& operator[](uint32_t idx)      const  { return params[idx]; }
-    void update(uint8_t activeIndexes, uint8_t n){
+    User_Parameter & operator[](int idx)       { return params[idx]; }
+    const User_Parameter& operator[](int idx)      const  { return params[idx]; }
+    void update(int activeIndexes[], int n){
         _activeIndexes = activeIndexes;
         nActive = n;
     };
+    void update(UP* activeIndexes, int n){
+        _activeIndexes = reinterpret_cast<int*>(activeIndexes);
+        nActive = n;
+    };
 
-    User_Parameter getFromSubset(int i){
+    User_Parameter& getActive(int i){
         return params[_activeIndexes[i]];
     }
-    uint8_t nActive{};
+    int nActive{};
     User_Parameter params[N];
 private:
 
-    uint8_t _activeIndexes[N];
+    int* _activeIndexes;
 
 };
 
