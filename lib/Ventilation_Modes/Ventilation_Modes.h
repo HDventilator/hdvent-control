@@ -36,7 +36,7 @@ struct Triggers{
     static bool angleReached();
 };
 
-enum struct ControlMode { PC, VC, VN };
+enum struct ControlMode { PC=0, VC=1, VN=2 };
 
 struct PID_parameters_t {
     float k_p;

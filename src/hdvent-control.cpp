@@ -60,7 +60,7 @@ void setup()
     float t_ex_min = sqrtf(2*(1/(float)ACC_EX+ 1/(float)DEC_EX)*(float) STEPS_FULL_RANGE);
 
     // these define also an upper boundary for the respiratory rate:
-    float respiratory_rate = 20;
+    float respiratory_rate = 6;
     float respiratory_rate_max = 60/(t_in_min+t_ex_min);
     float respiratory_rate_min = 5;
     // slowest in movement is bounded by fastest possible out movement and fastest respiratory rate
@@ -68,7 +68,7 @@ void setup()
 
 
     allUserParams[(int) UP::RESPIRATORY_RATE] = User_Parameter(respiratory_rate, respiratory_rate_min, respiratory_rate_max, "freq", 0, 1024, true); //  breaths per minute
-    allUserParams[(int) UP::T_IN] = User_Parameter(2, t_in_min, t_in_max,"T_in", 0, 1024, true); // Inspiration time
+    allUserParams[(int) UP::T_IN] = User_Parameter(4, t_in_min, t_in_max,"T_in", 0, 1024, true); // Inspiration time
     allUserParams[(int) UP::TIDAL_VOLUME] = User_Parameter(250, 0, 650, "VTid", 0, 1024, true); // milliliters
     allUserParams[(int) UP::INSPIRATORY_PRESSURE] = User_Parameter(20, 5, 50, "P_aw", 0, 1024, true); //  millibar
     allUserParams[(int) UP::FLOW] = User_Parameter(20, 5, 50,"Flow", 0, 1024, true); //  milliliters per second
@@ -150,7 +150,7 @@ void checkBuzzer(){
 
 void loop(){
     //scan_i2c();
-    //writeDiagnosticParameters();
+    writeDiagnosticParameters();
 
     // record cycle time
     cycleTime = stopwatch.mainLoop.getElapsedTime();
@@ -168,21 +168,33 @@ void loop(){
         Serial.println(diagnosticParameters.s.volume.getState());
     }
 */
+
     checkAlarms();
     //readUserInput();
-    //readSensors();
-    //checkHomeSensors(isHome);
+    readSensors();
+    checkHomeSensors(isHome);
     //runMachineDiagnostics();
-    //Stepper.move(0,100*STEP_DIVIDER);
-    //ventilationStateMachine(ventilationState);
 
+
+    runVentilation = digitalRead(PIN_SD_VENTI);
+
+    ventilationStateMachine(ventilationState);
 
     //encoder.service();
     display.update(confirmButton.getSingleDebouncedPress(), cancelButton.getSingleDebouncedPress(), encoderButton.getSingleDebouncedPress(), encoder.getDelta());
 
-    //serialDebug();
+    serialDebug();
 }
-
+void debugMotor(){
+    if (!isHome){
+        Serial.println("not Home");
+        if (!Stepper.busyCheck()) {
+            moveStepper(200 * STEP_DIVIDER, 800, DIR_EX);
+        }
+        //Stepper.move(DIR_EX, 40*STEP_DIVIDER);
+        //Stepper.hardStop();
+    }
+}
 void checkAlarms() {
     //Serial.println(diagnosticParameters.s.volume.getState());
 
@@ -279,45 +291,38 @@ if (delta) {
     display.update();
     Serial.println(display._editState);
 */
-    //Serial.println(allUserParams[(int)UP::T_IN].getValue());
+    Serial.print("T inspiration:   ");Serial.println(allUserParams[(int)UP::T_IN].getValue());
+    Serial.print("Volume:   ");Serial.println(allUserParams[(int)UP::COMPRESSED_VOLUME_RATIO].getValue());
+    Serial.print("Frequency:   ");Serial.println(allUserParams[(int)UP::RESPIRATORY_RATE].getValue());
    // Serial.println(diagnosticParameters.s.flow.getValue());
     //Serial.print("Stepper pos   ");Serial.println(stepperMonitor.getData().relativePosition);
     //Serial.print("home?   "); Serial.println(isHome);
-    //Serial.print("ventilationState:  ");Serial.println(ventilationState);
+    //Serial.print("Inspiration time"); Serial.println(stopwatch.inspiration.getElapsedTime());
+   // Serial.print("ventilationState:  ");Serial.println(ventilationState);
     //Serial.print("busy?   ");            Serial.println(Stepper.busyCheck());
     //Serial.print("stopwatch inspiration:");Serial.println(stopwatch.inspiration.getElapsedTime());
     //Serial.print("User Input state:");Serial.println(userInput.getInputState());
     //Serial.print("do save?  ");Serial.println(saveUserParams);
     //Serial.print("User Input stopwatch"); Serial.println(userInput._stopwatch.getElapsedTime());
-
+    //Serial.print("StepperState    "); Serial.println(Stepper.getStatus());
     //Serial.print("runVentilation   ");Serial.println(runVentilation);
     //Serial.print("StepperState    "); Serial.println(Stepper.getStatus());
     //Serial.println((int)Stepper.getStatus(), HEX); // print STATUS register
     //Serial.print("opticalHomeSensor:  ");Serial.println(opticalHomeSensor.getData().isBlocked);
+    //Serial.print("Button:   "); Serial.println(digitalRead(PIN_ALARM_MUTE));
 
 }
 
 void readUserInput(){
-    // read Buttons and Switches
-    saveUserParams = !digitalRead(PIN_EDIT_MODE);
-    runVentilation = digitalRead(PIN_VENTI_MODE);
-
-
-    // read all four potis and update params
-    for ( int i=0;  i<(mode.nParams); i++)
-    {
-        controller.userParams[i].loadValue(analogRead(potiPins[i]));
-    }
-
-    userInput.update();
 
     // dynamically scale allowed range of T_IN when Respiratory Rate Changes
     if (allUserParams[(int)UP::RESPIRATORY_RATE].hasChanged()){
         float rr = allUserParams[(int)UP::RESPIRATORY_RATE].getDialValue();
         float t_in_max = 60/rr - sqrtf(2*(1/ACC_EX+ 1/DEC_EX)* STEPS_FULL_RANGE);
         allUserParams[(int)UP::T_IN].setMax((t_in_max));
-
     }
+
+
 
     //if (userInput.getInputState() == User_Input::VIEW){
     if (true){
@@ -455,10 +460,13 @@ VentilationState ventilationStateMachine( VentilationState &state){
             // In open loop mode, issue single Motor command to move to specified position
             if (mode.controlMode==ControlMode::VN){
                 float steps= allUserParams[(int)UP::COMPRESSED_VOLUME_RATIO].getValue() / 100 * STEPS_FULL_RANGE;
-                //Serial.print("Move steps:"); Serial.println(steps);
+                Serial.print("Move steps:"); Serial.println(steps);
+                //steps=40;
                 int speed = calculateSpeed(ACC_IN, DEC_IN, allUserParams[(int)UP::T_IN].getValue(), steps);
                 Stepper.setMaxSpeed(speed);
+                //delay(100);
                 //Serial.print("speed:  "); Serial.println(speed);
+
                 //Stepper.move(DIR_IN, 4000);
                 moveStepper(steps* STEP_DIVIDER, speed, DIR_IN);
             }
@@ -470,9 +478,11 @@ VentilationState ventilationStateMachine( VentilationState &state){
             break;
 
         case MOVING_IN:
+            //Serial.print("controlMode: ");Serial.println((int)mode.controlMode);
             if (mode.controlMode!=ControlMode::VN) {
                 Serial.println('controlled mode');
                 // set stepper speed to calculated value
+                Serial.println(controller.calcSpeed());
                 Stepper.run(DIR_IN, controller.calcSpeed());
             }
             // start expiration on trigger
@@ -775,6 +785,27 @@ byte spi_test()
     Serial.print("\n Chain="); Serial.println(u);Serial.print("\n");
     return(u);
 }
+void setKVals(uint8_t dir) {
+    if (dir==DIR_EX){
+        Stepper.setRunKVAL(RUN_KVAL_EX);
+        Stepper.setAccKVAL(ACC_KVAL_EX);
+        Stepper.setDecKVAL(DEC_KVAL_EX);
+        Stepper.setHoldKVAL(HOLD_KVAL_EX);
+
+        Stepper.setMaxSpeed(SPEED_EX);
+        Stepper.setAcc(ACC_EX);
+        Stepper.setDec(DEC_EX);
+    }
+    else {
+        Stepper.setRunKVAL(RUN_KVAL_IN);
+        Stepper.setAccKVAL(ACC_KVAL_IN);
+        Stepper.setDecKVAL(DEC_KVAL_IN);
+        Stepper.setHoldKVAL(HOLD_KVAL_IN);
+        Stepper.setAcc(ACC_IN);
+        Stepper.setDec(DEC_IN);
+    }
+
+}
 
 //  For ease of reading, we're just going to configure all the boards to the same settings.
 void ConfigureStepperDriver()
@@ -845,26 +876,6 @@ void ConfigureStepperDriver()
 
 }
 
-void setKVals(uint8_t dir) {
-    if (dir==DIR_EX){
-        Stepper.setRunKVAL(RUN_KVAL_EX);
-        Stepper.setAccKVAL(ACC_KVAL_EX);
-        Stepper.setDecKVAL(DEC_KVAL_EX);
-        Stepper.setHoldKVAL(HOLD_KVAL_EX);
 
-        Stepper.setMaxSpeed(SPEED_EX);
-        Stepper.setAcc(ACC_EX);
-        Stepper.setDec(DEC_EX);
-    }
-    else {
-        Stepper.setRunKVAL(RUN_KVAL_IN);
-        Stepper.setAccKVAL(ACC_KVAL_IN);
-        Stepper.setDecKVAL(DEC_KVAL_IN);
-        Stepper.setHoldKVAL(HOLD_KVAL_IN);
-        Stepper.setAcc(ACC_IN);
-        Stepper.setDec(DEC_IN);
-    }
-
-}
 
 

@@ -50,6 +50,7 @@ int const PIN_ALARM_ENABLE = 27;
 
 int const PIN_SD_VENTI = 41;
 int const PIN_VENTI_MODE = 43;
+int const PIN_MAG_VALVE_1 = 44;
 int const PIN_ENCO_A = 40;
 int const PIN_ENCO_B = 42;
 int const PIN_ENCO_BTN = 3;
