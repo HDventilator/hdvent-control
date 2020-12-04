@@ -128,6 +128,7 @@ void Display::update(bool confirm, bool cancel, bool toggle, int8_t delta) {
                 if (_navigationIndex < _mode->nParams) {
                     _menuState = UNSAVED_SETTINGS;
                     _editState = EDIT_PARAMETER;
+                    _allUserParameters.getActive(_paramIndex).isGettingEdited = true;
                 }
                 else {
                     _editState = EDIT_ALARM;
@@ -143,16 +144,20 @@ void Display::update(bool confirm, bool cancel, bool toggle, int8_t delta) {
             break;
 
         case EDIT_PARAMETER:
-            _allUserParameters.getActive(_paramIndex).setDialValue(
-                    _allUserParameters.getActive(_paramIndex).getDialValue() + (float)delta * _allUserParameters.getActive(_paramIndex).increment);
+        {
+            float _newValue = _allUserParameters.getActive(_paramIndex).getDialValue() + (float)delta * _allUserParameters.getActive(_paramIndex).increment;
+            _newValue = min(_newValue, _allUserParameters.getActive(_paramIndex).getMax());
+            _newValue = max(_newValue, _allUserParameters.getActive(_paramIndex).getMin());
+            _allUserParameters.getActive(_paramIndex).setDialValue(_newValue);
             indexToParamValuePosition(_navigationIndex, _cursorRow, _cursorCol);
             setCursor(_cursorCol, _cursorRow);
             printValue(_allUserParameters.getActive(_paramIndex).getDialValue());
 
             if (toggle) {
+                _allUserParameters.getActive(_paramIndex).isGettingEdited = false;
                 _editState = ENTER_NAVIGATE;
             }
-            break;
+            break;}
 
         case EDIT_ALARM: {
             Diagnostic_Parameter & param = _diagnosticParameters->arr[_alarmIndex];
@@ -204,6 +209,7 @@ void Display::update(bool confirm, bool cancel, bool toggle, int8_t delta) {
 
         case ENTER_NAVIGATE:
             _editState = NAVIGATE;
+            _allUserParameters.getActive(_paramIndex).isGettingEdited = false;
             _alarmValue =0;
             _markerIncrementer = _navigationIndex;
             break;

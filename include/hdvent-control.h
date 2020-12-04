@@ -96,6 +96,7 @@ void serialDebug();
 void setKVals(uint8_t dir);
 void moveStepper(int steps,  int speed, int dir);
 void runMachineDiagnostics();
+void rescaleParameterLimits();
 
 /* *****************************
  * Global Variables

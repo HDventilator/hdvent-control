@@ -105,10 +105,20 @@ void User_Parameter::setMax(float max) {
 }
 
 void User_Parameter::setDialValue(float dialValue) {
+    _oldDialValue = _dialValue;
     _dialValue = dialValue;
 }
+
 
 void User_Parameter::resetDialValue() {
     _dialValue = _value;
 
+}
+
+float User_Parameter::getMin() const {
+    return _min;
+}
+
+float User_Parameter::getMax() const {
+    return _max;
 }

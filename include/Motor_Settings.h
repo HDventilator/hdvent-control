@@ -23,6 +23,7 @@ float const DEC_IN = 300; // steps/s/s
 float const ACC_EX = 300; // steps/s/s
 float const SPEED_EX = 1600; //steps/s
 float const DEC_EX = 300; // steps/s/s
+
 bool const DIR_IN = 0;
 bool const DIR_EX = abs(DIR_IN - 1);
 int const STEP_DIVIDER_REGISTER = STEP_FS_128;

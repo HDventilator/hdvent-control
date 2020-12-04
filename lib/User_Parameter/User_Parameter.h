@@ -36,8 +36,15 @@ public:
     void setMin(float min);
     void setMax(float max);
     float increment;
+    bool isGettingEdited;
+
+    float getMin() const;
+
+    float getMax() const;
 
 private:
+
+    float _oldDialValue;
     float _dialValue;
     float _value;
     float _min;

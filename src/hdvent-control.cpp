@@ -23,6 +23,10 @@ void setup()
 
 
     attachInterrupt(digitalPinToInterrupt(PIN_ENCO_BTN), buttonEncoderInterruptRoutine, CHANGE);
+// LED Pins
+
+    pinMode(PIN_LED_ORANGE, OUTPUT);
+    pinMode(PIN_LED_GREEN, OUTPUT);
 
     // SPI pins
     pinMode(MOSI, OUTPUT);
@@ -149,6 +153,8 @@ void checkBuzzer(){
 }
 
 void loop(){
+    digitalWrite(PIN_LED_GREEN,HIGH);
+    digitalWrite(PIN_LED_ORANGE,HIGH);
     //scan_i2c();
     writeDiagnosticParameters();
 
@@ -157,6 +163,7 @@ void loop(){
     stopwatch.mainLoop.start();
 
     buzzer.service();
+    rescaleParameterLimits();
 
 /*
     if (diagnosticParameters.s.volume.getPersistentState() != Diagnostic_Parameter::OK) {
@@ -170,17 +177,12 @@ void loop(){
 */
 
     checkAlarms();
-    //readUserInput();
     readSensors();
     checkHomeSensors(isHome);
-    //runMachineDiagnostics();
-
 
     runVentilation = digitalRead(PIN_SD_VENTI);
 
     ventilationStateMachine(ventilationState);
-
-    //encoder.service();
     display.update(confirmButton.getSingleDebouncedPress(), cancelButton.getSingleDebouncedPress(), encoderButton.getSingleDebouncedPress(), encoder.getDelta());
 
     serialDebug();
@@ -291,9 +293,12 @@ if (delta) {
     display.update();
     Serial.println(display._editState);
 */
-    Serial.print("T inspiration:   ");Serial.println(allUserParams[(int)UP::T_IN].getValue());
+    /*Serial.print("T inspiration:   ");Serial.println(allUserParams[(int)UP::T_IN].getValue());
     Serial.print("Volume:   ");Serial.println(allUserParams[(int)UP::COMPRESSED_VOLUME_RATIO].getValue());
-    Serial.print("Frequency:   ");Serial.println(allUserParams[(int)UP::RESPIRATORY_RATE].getValue());
+    Serial.print("Frequency:   ");Serial.println(allUserParams[(int)UP::RESPIRATORY_RATE].getValue());*/
+    Serial.print("T inspiration:   ");Serial.println(allUserParams[(int)UP::T_IN].isGettingEdited);
+    Serial.print("Volume:   ");Serial.println(allUserParams[(int)UP::COMPRESSED_VOLUME_RATIO].isGettingEdited);
+    Serial.print("Frequency:   ");Serial.println(allUserParams[(int)UP::RESPIRATORY_RATE].isGettingEdited);
    // Serial.println(diagnosticParameters.s.flow.getValue());
     //Serial.print("Stepper pos   ");Serial.println(stepperMonitor.getData().relativePosition);
     //Serial.print("home?   "); Serial.println(isHome);
@@ -311,6 +316,32 @@ if (delta) {
     //Serial.print("opticalHomeSensor:  ");Serial.println(opticalHomeSensor.getData().isBlocked);
     //Serial.print("Button:   "); Serial.println(digitalRead(PIN_ALARM_MUTE));
 
+}
+void rescaleParameterLimits(){
+    float T = 60/allUserParams[(int)UP::RESPIRATORY_RATE].getDialValue();
+    float t_in = allUserParams[(int)UP::T_IN].getDialValue();
+    float x = allUserParams[(int)UP::COMPRESSED_VOLUME_RATIO].getDialValue()/100*STEPS_FULL_RANGE*STEP_DIVIDER;
+    float a = ACC_EX *STEP_DIVIDER;
+
+    if (allUserParams[(int)UP::RESPIRATORY_RATE].isGettingEdited){
+        float f_max = 60/(t_in + sqrtf(4*x/a));
+        allUserParams[(int)UP::RESPIRATORY_RATE].setMax(f_max);
+    }
+
+    if (allUserParams[(int)UP::T_IN].isGettingEdited){
+        float t_in_min = sqrtf(4*x/a);
+        float t_in_max = T-sqrtf(4*x/a);
+        Serial.println(t_in_max);
+        t_in_min = max (0, t_in_min);
+        allUserParams[(int)UP::T_IN].setMin(t_in_min);
+        allUserParams[(int)UP::T_IN].setMax(t_in_max);
+    }
+
+    if (allUserParams[(int)UP::COMPRESSED_VOLUME_RATIO].isGettingEdited){
+        float x_max = (T - t_in)*(T - t_in) *a/4;
+        x_max = min (x_max, STEPS_FULL_RANGE*STEP_DIVIDER);
+        allUserParams[(int)UP::COMPRESSED_VOLUME_RATIO].setMax(x_max*100/STEP_DIVIDER/STEPS_FULL_RANGE);
+    }
 }
 
 void readUserInput(){
