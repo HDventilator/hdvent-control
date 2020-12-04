@@ -4,9 +4,10 @@
 
 #include "Stepper_Monitor.h"
 
-Stepper_Monitor::Stepper_Monitor(powerSTEP *stepper, int homeTolerance) {
+Stepper_Monitor::Stepper_Monitor(powerSTEP *stepper, int homeTolerance, uint8_t positiveDir) {
     _stepper = stepper;
     _homeTolerance=homeTolerance;
+    _positionSign = (2*positiveDir-1);
 
 }
 
@@ -15,7 +16,7 @@ bool Stepper_Monitor::readSensor() {
     // TODO get step loss from status register
     setState(OK);
 
-    _data.relativePosition = _stepper->getPos();
+    _data.relativePosition = _stepper->getPos()*_positionSign;
     _data.isHome = abs(_data.relativePosition) < _homeTolerance;
 
     return true;
