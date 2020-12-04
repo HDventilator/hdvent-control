@@ -183,9 +183,14 @@ void loop(){
     runVentilation = digitalRead(PIN_SD_VENTI);
 
     ventilationStateMachine(ventilationState);
-    display.update(confirmButton.getSingleDebouncedPress(), cancelButton.getSingleDebouncedPress(), encoderButton.getSingleDebouncedPress(), encoder.getDelta());
+    display.update(confirmButton.getSingleDebouncedPress(),
+            cancelButton.getSingleDebouncedPress(),
+            encoderButton.getSingleDebouncedPress(),
+            encoder.getDelta());
 
     serialDebug();
+
+
 }
 void debugMotor(){
     if (!isHome){
@@ -293,12 +298,15 @@ if (delta) {
     display.update();
     Serial.println(display._editState);
 */
-    /*Serial.print("T inspiration:   ");Serial.println(allUserParams[(int)UP::T_IN].getValue());
+    Serial.print("T inspiration:   ");Serial.println(allUserParams[(int)UP::T_IN].getValue());
     Serial.print("Volume:   ");Serial.println(allUserParams[(int)UP::COMPRESSED_VOLUME_RATIO].getValue());
-    Serial.print("Frequency:   ");Serial.println(allUserParams[(int)UP::RESPIRATORY_RATE].getValue());*/
-    Serial.print("T inspiration:   ");Serial.println(allUserParams[(int)UP::T_IN].isGettingEdited);
+    Serial.print("Frequency:   ");Serial.println(allUserParams[(int)UP::RESPIRATORY_RATE].getValue());
+    //Serial.print("T inspiration:   ");Serial.println(display._allUserParameters[(int)UP::T_IN].getValue());
+    //Serial.print("Volume:   ");Serial.println(display._allUserParameters[(int)UP::COMPRESSED_VOLUME_RATIO].getValue());
+    //Serial.print("Frequency:   ");Serial.println(display._allUserParameters[(int)UP::RESPIRATORY_RATE].getValue());
+    /*Serial.print("T inspiration:   ");Serial.println(allUserParams[(int)UP::T_IN].isGettingEdited);
     Serial.print("Volume:   ");Serial.println(allUserParams[(int)UP::COMPRESSED_VOLUME_RATIO].isGettingEdited);
-    Serial.print("Frequency:   ");Serial.println(allUserParams[(int)UP::RESPIRATORY_RATE].isGettingEdited);
+    Serial.print("Frequency:   ");Serial.println(allUserParams[(int)UP::RESPIRATORY_RATE].isGettingEdited);*/
    // Serial.println(diagnosticParameters.s.flow.getValue());
     //Serial.print("Stepper pos   ");Serial.println(stepperMonitor.getData().relativePosition);
     //Serial.print("home?   "); Serial.println(isHome);
@@ -331,7 +339,6 @@ void rescaleParameterLimits(){
     if (allUserParams[(int)UP::T_IN].isGettingEdited){
         float t_in_min = sqrtf(4*x/a);
         float t_in_max = T-sqrtf(4*x/a);
-        Serial.println(t_in_max);
         t_in_min = max (0, t_in_min);
         allUserParams[(int)UP::T_IN].setMin(t_in_min);
         allUserParams[(int)UP::T_IN].setMax(t_in_max);
@@ -345,17 +352,6 @@ void rescaleParameterLimits(){
 }
 
 void readUserInput(){
-
-    // dynamically scale allowed range of T_IN when Respiratory Rate Changes
-    if (allUserParams[(int)UP::RESPIRATORY_RATE].hasChanged()){
-        float rr = allUserParams[(int)UP::RESPIRATORY_RATE].getDialValue();
-        float t_in_max = 60/rr - sqrtf(2*(1/ACC_EX+ 1/DEC_EX)* STEPS_FULL_RANGE);
-        allUserParams[(int)UP::T_IN].setMax((t_in_max));
-    }
-
-
-
-    //if (userInput.getInputState() == User_Input::VIEW){
     if (true){
         for ( int i=0;  i<(mode.nParams); i++)
         {
@@ -492,13 +488,8 @@ VentilationState ventilationStateMachine( VentilationState &state){
             if (mode.controlMode==ControlMode::VN){
                 float steps= allUserParams[(int)UP::COMPRESSED_VOLUME_RATIO].getValue() / 100 * STEPS_FULL_RANGE;
                 Serial.print("Move steps:"); Serial.println(steps);
-                //steps=40;
                 int speed = calculateSpeed(ACC_IN, DEC_IN, allUserParams[(int)UP::T_IN].getValue(), steps);
                 Stepper.setMaxSpeed(speed);
-                //delay(100);
-                //Serial.print("speed:  "); Serial.println(speed);
-
-                //Stepper.move(DIR_IN, 4000);
                 moveStepper(steps* STEP_DIVIDER, speed, DIR_IN);
             }
             // start the setpoint generation for the controller
