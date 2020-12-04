@@ -298,9 +298,10 @@ if (delta) {
     display.update();
     Serial.println(display._editState);
 */
-    Serial.print("T inspiration:   ");Serial.println(allUserParams[(int)UP::T_IN].getValue());
-    Serial.print("Volume:   ");Serial.println(allUserParams[(int)UP::COMPRESSED_VOLUME_RATIO].getValue());
-    Serial.print("Frequency:   ");Serial.println(allUserParams[(int)UP::RESPIRATORY_RATE].getValue());
+    //Serial.print("T inspiration:   ");Serial.println(allUserParams[(int)UP::T_IN].getValue());
+    //Serial.print("Volume:   ");Serial.println(allUserParams[(int)UP::COMPRESSED_VOLUME_RATIO].getValue());
+    //Serial.print("Frequency:   ");Serial.println(allUserParams[(int)UP::RESPIRATORY_RATE].getValue());
+    Serial.print("Angle:"); Serial.println(angleSensor.getData().relativePosition);
     //Serial.print("T inspiration:   ");Serial.println(display._allUserParameters[(int)UP::T_IN].getValue());
     //Serial.print("Volume:   ");Serial.println(display._allUserParameters[(int)UP::COMPRESSED_VOLUME_RATIO].getValue());
     //Serial.print("Frequency:   ");Serial.println(display._allUserParameters[(int)UP::RESPIRATORY_RATE].getValue());
@@ -472,11 +473,12 @@ VentilationState ventilationStateMachine( VentilationState &state){
 
 
         case HOLDING_EX:
-
-            if (controller.inspirationTrigger()) {
+            if (! runVentilation){
+                state = IDLE;
+            }
+            else if (controller.inspirationTrigger()) {
                 state = START_IN;
             }
-
             break;
 
         case START_IN:
@@ -843,13 +845,13 @@ void ConfigureStepperDriver()
     Stepper.configSyncPin(BUSY_PIN, 0); // use SYNC/nBUSY pin as nBUSY,
     // thus syncSteps (2nd paramater) does nothing
 
-    Stepper.configStepMode(STEP_FS_128); // 1/128 microstepping, full steps = STEP_FS,
+    Stepper.configStepMode(STEP_DIVIDER_REGISTER); // 1/128 microstepping, full steps = STEP_FS,
     // options: 1, 1/2, 1/4, 1/8, 1/16, 1/32, 1/64, 1/128
 
-    Stepper.setMaxSpeed(500); // max speed in units of full steps/s
+    Stepper.setMaxSpeed(SPEED_EX); // max speed in units of full steps/s
     Stepper.setFullSpeed(1000); // full steps/s threshold for disabling microstepping
-    Stepper.setAcc(400); // full steps/s^2 acceleration
-    Stepper.setDec(400); // full steps/s^2 deceleration
+    Stepper.setAcc(ACC_EX); // full steps/s^2 acceleration
+    Stepper.setDec(ACC_IN); // full steps/s^2 deceleration
 
     Stepper.setSlewRate(SR_520V_us); // faster may give more torque (but also EM noise),
     // options are: 114, 220, 400, 520, 790, 980(V/us)
