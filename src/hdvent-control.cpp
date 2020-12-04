@@ -301,7 +301,8 @@ if (delta) {
     //Serial.print("T inspiration:   ");Serial.println(allUserParams[(int)UP::T_IN].getValue());
     //Serial.print("Volume:   ");Serial.println(allUserParams[(int)UP::COMPRESSED_VOLUME_RATIO].getValue());
     //Serial.print("Frequency:   ");Serial.println(allUserParams[(int)UP::RESPIRATORY_RATE].getValue());
-    Serial.print("Angle:"); Serial.println(angleSensor.getData().relativePosition);
+    //Serial.print("Angle:"); Serial.println(angleSensor.getData().relativePosition);
+    Serial.print("Angle/MotorMonitor:"); Serial.println(stepperMonitor.getData().relativePosition-angleSensor.getData().relativePosition);
     //Serial.print("T inspiration:   ");Serial.println(display._allUserParameters[(int)UP::T_IN].getValue());
     //Serial.print("Volume:   ");Serial.println(display._allUserParameters[(int)UP::COMPRESSED_VOLUME_RATIO].getValue());
     //Serial.print("Frequency:   ");Serial.println(display._allUserParameters[(int)UP::RESPIRATORY_RATE].getValue());
@@ -433,6 +434,7 @@ VentilationState ventilationStateMachine( VentilationState &state){
 
                 // store home position in stepper driver memory
                 Stepper.resetPos();
+                angleSensor.resetPos();
                 state=IDLE;
             }
 
@@ -469,8 +471,6 @@ VentilationState ventilationStateMachine( VentilationState &state){
                 state = IDLE;
             }
             break;
-
-
 
         case HOLDING_EX:
             if (! runVentilation){

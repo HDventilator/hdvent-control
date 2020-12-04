@@ -108,9 +108,9 @@ void rescaleParameterLimits();
  */
 SSC_100MD4A3 pressureSensor(1);
 SSC_016MD2A5 flowSensor(0);
-Angle_Sensor angleSensor(PIN_RPS_OUT, STEPS_FS_FULL_TURN*STEP_DIVIDER, 360, 0, 1024, 10);
+Angle_Sensor angleSensor(PIN_RPS_OUT, STEPS_FS_FULL_TURN*STEP_DIVIDER, 360, 1024*0.05, 1024*0.95, 50);
 Optical_Sensor opticalHomeSensor(PIN_OPTICAL_SWITCH_HOME);
-Stepper_Monitor stepperMonitor(&Stepper, STEP_DIVIDER*5);
+Stepper_Monitor stepperMonitor(&Stepper, STEP_DIVIDER * 5, DIR_IN);
 
 float timeEx=1;
 float timeIn=1;
