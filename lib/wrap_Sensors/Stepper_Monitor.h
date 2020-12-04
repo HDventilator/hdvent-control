@@ -12,8 +12,8 @@
 class Stepper_Monitor : public Sensor {
 public:
     typedef struct{
-        uint16_t relativePosition;
-        uint16_t absolutePosition;
+        int16_t relativePosition;
+        int16_t absolutePosition;
         bool isHome;
     } sensor_values_t;
     Stepper_Monitor(powerSTEP *stepper, int homeTolerance);
