@@ -4,10 +4,10 @@
 
 #include "angleSensor.h"
 
-Angle_Sensor::Angle_Sensor(int pin, int stepRange, int angleRange, int analogMin, int analogMax, int homeTolerance){
+Angle_Sensor::Angle_Sensor(int pin, int stepRange, int angleRange, float analogMin, float analogMax, int homeTolerance){
     _pin = pin;
     _homeTolerance = homeTolerance;
-    _stepRange = stepRange;
+    _stepsFullTurn = stepRange;
     _angleRange = angleRange;
     _analogMin = analogMin;
     _analogMax = analogMax;
@@ -29,7 +29,7 @@ bool Angle_Sensor::checkHome(int16_t stepValue){
 }
 
 int Angle_Sensor::transferFunction(uint16_t data) {
-    float stepPosition = (float)(data-_analogMin) / (float)(_analogMax-_analogMin) * (float)_angleRange / 360 * (float)_stepRange;
+    float stepPosition = (float)(data-_analogMin) / (float)(_analogMax-_analogMin) * (float)_angleRange / 360 * (float)_stepsFullTurn;
     return (int)stepPosition;
 }
 

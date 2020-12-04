@@ -23,7 +23,7 @@ public:
     /// @param analogMax
     /// @param homeTolerance Number of (micro-) steps, that the relativePosition can deviate from 0
     /// before isHome becomes false
-    Angle_Sensor(int pin,  int stepRange, int angleRange=360, int analogMin=0, int analogMax=1024, int homeTolerance=10);
+    Angle_Sensor(int pin, int stepRange, int angleRange=360, float analogMin=0, float analogMax=1024, int homeTolerance=10);
 
 
     /// @brief update the position data, by calling analogRead on the initialised pin
@@ -46,7 +46,7 @@ private:
     int _mark; // step value that corresponds to mark position
     int _pin;
     int _homeTolerance;
-    int _stepRange;
+    int _stepsFullTurn;
     int _angleRange;
     int _analogMin;
     int _analogMax;
