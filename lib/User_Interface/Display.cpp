@@ -92,7 +92,6 @@ void Display::update(bool confirm, bool cancel, bool toggle, int8_t delta) {
 
             if (cancel){
                 Serial.println("cancel");
-                //safeParams();
                 resetParams();
             }
             else if (confirm){
@@ -258,14 +257,12 @@ void Display::printValue(float value) {
 
 
 void Display::safeParams() {
-    // save user parameters momentarily
-    for (int i; i<(_mode->nParams); i++){
+    for (int i=0; i<(_mode->nParams); i++){
         _allUserParameters.getActive(i).saveValue();
     }
 }
 
 void Display::loadParams() {
-    // save user parameters momentarily
     for (int i; i<(_mode->nParams); i++){
         _allUserParameters.getActive(i).resetDialValue();
     }

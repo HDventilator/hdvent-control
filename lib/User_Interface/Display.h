@@ -42,6 +42,7 @@ public:
     uint8_t nActiveDiagnosticParameters;
 
     void printScrollIndicator();
+    Parameter_Container<N_USER_PARAMETERS> & _allUserParameters;
 
 private:
     uint8_t  _header;
@@ -59,7 +60,8 @@ private:
    uint8_t _allowedAlarmIndexes[nDiagnosticParameters];
    void moveMarker();
    LiquidCrystal &_lcd;
-   Parameter_Container<N_USER_PARAMETERS> & _allUserParameters;
+
+
     const VentilationMode *_mode;
     int _markerIncrementer=0;
 
