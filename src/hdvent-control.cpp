@@ -138,6 +138,7 @@ void scan_i2c()
     }
     Serial.println("\ndone");
 }
+
 bool buzzerState;
 
 void checkBuzzer(){
@@ -157,14 +158,19 @@ void loop(){
     digitalWrite(PIN_LED_ORANGE,HIGH);
     //scan_i2c();
     writeDiagnosticParameters();
+    writeUserInput();
 
     // record cycle time
-    cycleTime = stopwatch.mainLoop.getElapsedTime();
+    //cycleTimeMus = stopwatch.mainLoop.getElapsedTime();
+
     stopwatch.mainLoop.start();
+    cycleTimeMus = mainLoopMus.getElapsedTime();
+    mainLoopMus.start();
 
     buzzer.service();
     rescaleParameterLimits();
 
+    runMachineDiagnostics();
 /*
     if (diagnosticParameters.s.volume.getPersistentState() != Diagnostic_Parameter::OK) {
         buzzer.saveTurnOn();
@@ -183,16 +189,40 @@ void loop(){
     runVentilation = digitalRead(PIN_SD_VENTI);
 
     ventilationStateMachine(ventilationState);
-    display.update(confirmButton.getSingleDebouncedPress(),
+
+   /* if (motorTestTimer.getElapsedTime()>2*200/speed*1000){
+        Stepper.hardStop();
+    }*/
+
+
+   display.update(confirmButton.getSingleDebouncedPress(),
             cancelButton.getSingleDebouncedPress(),
             encoderButton.getSingleDebouncedPress(),
             encoder.getDelta());
 
-    serialDebug();
-
-
+    //serialDebug();
 }
+
+
 void debugMotor(){
+    Stepper.resetPos();
+    if (confirmButton.getSingleDebouncedPress()){
+        float speed=0;
+        while (speed<800) {
+            speed = speed +100;
+            float delayTime = 10000;
+            Stepper.resetPos();
+            Stepper.run(DIR_EX, speed);
+            delay(delayTime);
+            Stepper.hardStop();
+            long d = Stepper.getPos();
+            //delay((float)(200.0*1000) / 80 - delayTime);
+            Serial.println(d);
+            machineDiagnostics.absolutePosition.setValue(d);
+            serialWritePackage(&cobsSerial, machineDiagnostics.absolutePosition.getPackageStruct());
+        }
+    }
+    Stepper.hardStop();
     if (!isHome){
         Serial.println("not Home");
         if (!Stepper.busyCheck()) {
@@ -225,12 +255,21 @@ void writeDiagnosticParameters(){
 
 void runMachineDiagnostics(){
     // program cycle time
-    machineDiagnostics.cycle_time.setValue(cycleTime);
-    serialWritePackage(&cobsSerial, machineDiagnostics.cycle_time.getPackageStruct());
+ //   machineDiagnostics.cycle_time.setValue(cycleTimeMus);
+  //  serialWritePackage(&cobsSerial, machineDiagnostics.cycle_time.getPackageStruct());
     delay(1);
     // ventilation state
     machineDiagnostics.ventilationState.setValue((int)ventilationState);
     serialWritePackage(&cobsSerial, machineDiagnostics.ventilationState.getPackageStruct());
+
+    machineDiagnostics.stepperPosition.setValue(stepperMonitor.getData().relativePosition);
+   serialWritePackage(&cobsSerial, machineDiagnostics.stepperPosition.getPackageStruct());
+
+    machineDiagnostics.rotationSensor.setValue(angleSensor.getData().relativePosition);
+    serialWritePackage(&cobsSerial, machineDiagnostics.rotationSensor.getPackageStruct());
+
+    machineDiagnostics.absolutePosition.setValue(Stepper.getParam(ABS_POS));
+    serialWritePackage(&cobsSerial, machineDiagnostics.absolutePosition.getPackageStruct());
 
 }
 
@@ -253,7 +292,7 @@ if (delta) {
     //Serial.print("nParams:");Serial.println(display.nActiveDiagnosticParameters);
 
 
-//Serial.println(cycleTime);
+//Serial.println(cycleTimeMus);
     /*for (int i=0; i < (display._mode->nParams); i++){
     lcd.setCursor(1,i);
     lcd.print(display._allUserParameters[(int)display._mode->parameters[i]].lcdString);
@@ -299,10 +338,10 @@ if (delta) {
     Serial.println(display._editState);
 */
     //Serial.print("T inspiration:   ");Serial.println(allUserParams[(int)UP::T_IN].getValue());
-    //Serial.print("Volume:   ");Serial.println(allUserParams[(int)UP::COMPRESSED_VOLUME_RATIO].getValue());
-    //Serial.print("Frequency:   ");Serial.println(allUserParams[(int)UP::RESPIRATORY_RATE].getValue());
+   // Serial.print("Volume:   ");Serial.println(allUserParams[(int)UP::COMPRESSED_VOLUME_RATIO].getValue());
+   // Serial.print("Frequency:   ");Serial.println(allUserParams[(int)UP::RESPIRATORY_RATE].getValue());
     //Serial.print("Angle:"); Serial.println(angleSensor.getData().relativePosition);
-    Serial.print("Angle/MotorMonitor:"); Serial.println(stepperMonitor.getData().relativePosition-angleSensor.getData().relativePosition);
+    //Serial.print("Angle/MotorMonitor:"); Serial.println(stepperMonitor.getData().relativePosition-angleSensor.getData().relativePosition);
     //Serial.print("T inspiration:   ");Serial.println(display._allUserParameters[(int)UP::T_IN].getValue());
     //Serial.print("Volume:   ");Serial.println(display._allUserParameters[(int)UP::COMPRESSED_VOLUME_RATIO].getValue());
     //Serial.print("Frequency:   ");Serial.println(display._allUserParameters[(int)UP::RESPIRATORY_RATE].getValue());
@@ -325,7 +364,7 @@ if (delta) {
     //Serial.println((int)Stepper.getStatus(), HEX); // print STATUS register
     //Serial.print("opticalHomeSensor:  ");Serial.println(opticalHomeSensor.getData().isBlocked);
     //Serial.print("Button:   "); Serial.println(digitalRead(PIN_ALARM_MUTE));
-
+    //Serial.print("Time: "); Serial.println(cycleTimeMus);
 }
 void rescaleParameterLimits(){
     float T = 60/allUserParams[(int)UP::RESPIRATORY_RATE].getDialValue();
@@ -353,7 +392,7 @@ void rescaleParameterLimits(){
     }
 }
 
-void readUserInput(){
+void writeUserInput(){
     if (true){
         for ( int i=0;  i<(mode.nParams); i++)
         {
@@ -377,7 +416,7 @@ void readSensors(){
         diagnosticParameters.s.volume.setValue(0);
     }
     else {
-        float newVolume = diagnosticParameters.s.volume.getValue() + diagnosticParameters.s.flow.getValue()*(float)cycleTime/1000;
+        float newVolume = diagnosticParameters.s.volume.getValue() + diagnosticParameters.s.flow.getValue() * (float)cycleTimeMus / 1000000;
         diagnosticParameters.s.volume.setValue(newVolume);
     }
 
@@ -404,7 +443,7 @@ void readSensors(){
     }
 
 /*
-    float pressureChange = (pressureSensor.getData().pressure - oldPressure)/cycleTime*1000;
+    float pressureChange = (pressureSensor.getData().pressure - oldPressure)/cycleTimeMus*1000;
     diagnosticParameters.s.pressureChange.setValue(pressureChange);
     oldPressure = pressureSensor.getData().pressure;
 */
@@ -487,31 +526,52 @@ VentilationState ventilationStateMachine( VentilationState &state){
             setKVals(DIR_IN);
 
             // In open loop mode, issue single Motor command to move to specified position
-            if (mode.controlMode==ControlMode::VN){
+            if (false){//mode.controlMode==ControlMode::VN){
                 float steps= allUserParams[(int)UP::COMPRESSED_VOLUME_RATIO].getValue() / 100 * STEPS_FULL_RANGE;
-                Serial.print("Move steps:"); Serial.println(steps);
-                int speed = calculateSpeed(ACC_IN, DEC_IN, allUserParams[(int)UP::T_IN].getValue(), steps);
+                float time =allUserParams[(int)UP::T_IN].getValue();
+                float speed = calculateSpeed(ACC_IN, DEC_IN, time, steps);
+
                 Stepper.setMaxSpeed(speed);
-                moveStepper(steps* STEP_DIVIDER, speed, DIR_IN);
+                Serial.print("Move steps: "); Serial.print(steps);
+                Serial.print("\ttime: "); Serial.print(time);
+                Serial.print("\tsetpoint speed: "); Serial.println(speed);
+                Serial.print("\tactual speed: "); Serial.println(Stepper.getMaxSpeed());
+                Stepper.move(DIR_IN, steps*STEP_DIVIDER);
+                //moveStepper(steps* STEP_DIVIDER, speed, DIR_IN);
             }
             // start the setpoint generation for the controller
             else{
-                controller.startRamp(1000, 100);
+                float steps= allUserParams[(int)UP::COMPRESSED_VOLUME_RATIO].getValue() / 100 * STEPS_FULL_RANGE;
+                float time =allUserParams[(int)UP::T_IN].getValue();
+                float speed = calculateSpeed(ACC_IN, DEC_IN, time, steps);
+                Serial.print("Move steps: "); Serial.print(steps);
+                Serial.print("Absolute Position Start: "); Serial.println(machineDiagnostics.absolutePosition.getValue());
+
+                controller.startTrapezoid(ACC_IN, speed, time);
             }
             state =MOVING_IN;
+            integratedPosition=0;
+            stopwatch.movingIn.start();
             break;
 
         case MOVING_IN:
             //Serial.print("controlMode: ");Serial.println((int)mode.controlMode);
-            if (mode.controlMode!=ControlMode::VN) {
-                Serial.println('controlled mode');
+            if (true){//mode.controlMode!=ControlMode::VN) {
+                Serial.println("controlled mode");
+                float speed = max(controller.calcSpeed(),(int) 0) * SPEED_CORRECTION;
                 // set stepper speed to calculated value
-                Serial.println(controller.calcSpeed());
-                Stepper.run(DIR_IN, controller.calcSpeed());
+                Serial.print("\tsetpoint speed: ");Serial.println(speed);
+                Serial.print("\tregister speed: ");Serial.println(Stepper.getParam(SPEED));
+                //machineDiagnostics.cycle_time.setValue(speed);
+               // integratedPosition += speed*(float)cycleTimeMus/1000000;
+                //serialWritePackage(&cobsSerial, machineDiagnostics.cycle_time.getPackageStruct());
+                Stepper.run(DIR_IN, speed);
             }
             // start expiration on trigger
             if (controller.expirationTrigger()) {
             state = END_IN;
+            //Serial.print("integratedPosition:");Serial.println(integratedPosition);
+            //Serial.print("Absolute Position End: "); Serial.println(machineDiagnostics.absolutePosition.getValue());
             }
             break;
 
@@ -521,8 +581,12 @@ VentilationState ventilationStateMachine( VentilationState &state){
             state = HOLDING_IN;
 
         case HOLDING_IN:
-
-            if (stopwatch.holdingIn.getElapsedTime() > TIME_HOLD_PLATEAU){
+            if (!Stepper.busyCheck()){
+                //stopwatch.movingIn.stop();
+                //Serial.println(stopwatch.movingIn.getElapsedTime());
+            }
+            if (stopwatch.holdingIn.getElapsedTime() > TIME_HOLD_PLATEAU*1000){
+                Stepper.hardStop(); // this ensures moving out command is received
                 state = START_EX;
             }
             break;
@@ -541,6 +605,9 @@ VentilationState ventilationStateMachine( VentilationState &state){
             }
             // Stepper has reached home position
             if (isHome) {
+                if (Stepper.busyCheck()){
+                    Stepper.resetPos();
+                }
                 state = END_EX;
             }
             // Stepper not busy anymore but hasn't reached home (step loss)
@@ -741,7 +808,7 @@ void moveStepper(int steps, int speed, int acc, int dec, int dir) {
     Stepper.move(dir, steps);
 }
 
-void moveStepper(int steps,  int speed, int dir) {
+void moveStepper(int steps, float speed, int dir) {
     if (dir==DIR_EX){
         Stepper.setRunKVAL(RUN_KVAL_EX);
         Stepper.setAccKVAL(ACC_KVAL_EX);
@@ -770,7 +837,7 @@ float calculateSpeed(int acc, int dec, float t, int steps) {
     float discriminant = sq(t) - 2 * (1. / acc + 1. / dec) * steps;
     float speed = steps/t;
     if (discriminant > 0) {
-        speed = (-t + sqrtf(discriminant)) / -(1. / acc + 1. / dec);
+        speed = (t - sqrtf(discriminant)) / (1. / acc + 1. / dec);
     }
     else{
         Serial.println("discriminant <0 ");
@@ -849,7 +916,7 @@ void ConfigureStepperDriver()
     // options: 1, 1/2, 1/4, 1/8, 1/16, 1/32, 1/64, 1/128
 
     Stepper.setMaxSpeed(SPEED_EX); // max speed in units of full steps/s
-    Stepper.setFullSpeed(1000); // full steps/s threshold for disabling microstepping
+    Stepper.setFullSpeed(2000); // full steps/s threshold for disabling microstepping
     Stepper.setAcc(ACC_EX); // full steps/s^2 acceleration
     Stepper.setDec(ACC_IN); // full steps/s^2 deceleration
 
@@ -865,6 +932,8 @@ void ConfigureStepperDriver()
     Stepper.setOCShutdown(OC_SD_ENABLE); // shutdown motor bridge on over-current event
     // to protect against permanent damage
 
+    Stepper.setLoSpdOpt(HIGH);
+    Stepper.setMinSpeed(5);
     Stepper.setPWMFreq(PWM_DIV_1, PWM_MUL_0_75); // 16MHz*0.75/(512*1) = 23.4375kHz
     // power is supplied to stepper phases as a sin wave,
     // frequency is set by two PWM modulators,
@@ -899,7 +968,5 @@ void ConfigureStepperDriver()
     Serial.println(F("Initialisation complete"));
 
 }
-
-
 
 

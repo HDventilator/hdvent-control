@@ -44,19 +44,41 @@ void VentilationController::startRamp(float slope, float level) {
     _timer.start();
 }
 
+void VentilationController::startTrapezoid(float slope, float level, float time) {
+    _slope = slope;
+    _level = level;
+    _slopeTime = level / slope;
+    _holdTime = time-2*_slopeTime;
+    _timer.start();
+}
+
 
 float VentilationController::calcSetPoint() {
-    unsigned long time = _timer.getElapsedTime();
+    float time = (float)_timer.getElapsedTime()/1000;
     if (time < _slopeTime){
-        return _slope*(float)time/1000;
+        return _slope*(float)time;
     }
     else {
         return _level;
     }
 }
 
+float VentilationController::calcSetPointTrapezoid() {
+    float time = (float)_timer.getElapsedTime()/1000;
+    Serial.print("time: ");Serial.println(time);
+    if (time < _slopeTime){
+        return _slope*(float)time;
+    }
+    else if (time < (_slopeTime + _holdTime)){
+        return _level;
+    }
+    else {
+        return _level-_slope*(float)(time-_holdTime-_slopeTime);
+    }
+}
+
 float VentilationController::calcSpeed() {
-    _pidSetpoint = calcSetPoint();
+    _pidSetpoint = calcSetPointTrapezoid();
     _pidIn = _param.getValue();
     _pid.Compute();
     if (_bypass){

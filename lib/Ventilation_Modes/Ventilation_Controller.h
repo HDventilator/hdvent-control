@@ -26,7 +26,9 @@ public:
     void startRamp(float slope, float level);
     Subset<User_Parameter, UP> userParams;
     VentilationMode _mode;
+    float calcSetPointTrapezoid();
 
+    void startTrapezoid(float slope, float level, float time);
 private:
 
 
@@ -38,9 +40,12 @@ private:
     input_func_t _getInput;
     float _slope;
     float _level;
-    unsigned long _slopeTime;
+    float _slopeTime;
     Stopwatch _timer;
     Diagnostic_Parameter _param;
+    float _holdTime;
+
+
 };
 
 

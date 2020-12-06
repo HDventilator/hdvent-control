@@ -32,6 +32,7 @@
 #include <Buzzer.h>
 #include <Pushbutton.h>
 #include <StopwatchEvent.h>
+#include <StopwatchMus.h>
 
 extern "C" {
 #include "utility/twi.h"  // from Wire library, so we can do bus scanning
@@ -47,7 +48,7 @@ powerSTEP Stepper(0, nCS_PIN, nSTBY_nRESET_PIN);;  // Nr, CS, Reset => 0 , D16/A
 
 // Clinical settings
 int const PRESSURE_MAX = 0; // mm H20
-float const TIME_HOLD_PLATEAU = 0.050; // seconds, hold time after inspiratory phase
+float const TIME_HOLD_PLATEAU = 1; // seconds, hold time after inspiratory phase
 float const TEMPERATURE_INFLUX_THRESHOLD = 20;// °C, start heating when influx temperature falls below this value
 
 int const STEPS_EX_HOMING = 80; // steps to move out when trying to find home
@@ -57,7 +58,8 @@ int const STEPS_FS_FULL_TURN = 200; // how many full steps for one full turn of 
 
 float calculateSpeed(int acc, int dec, float t, int steps);
 // state flags
-enum VentilationState {START_IN=0, MOVING_IN=1, HOLDING_IN=2, START_EX=3, MOVING_EX=4, HOLDING_EX=5, STARTUP=6, END_IN=7, END_EX=8, HOMING_EX=9, IDLE=10, START_HOMING=11};
+enum VentilationState {START_IN=0, MOVING_IN=1, HOLDING_IN=2, START_EX=3, MOVING_EX=4, HOLDING_EX=5, STARTUP=6,
+        END_IN=7, END_EX=8, HOMING_EX=9, IDLE=10, START_HOMING=11};
 
 
 float const PRESSURE_FLOW_CONVERSION = 771.49; // ml*s^-1 / mbar
@@ -67,6 +69,7 @@ float const PRESSURE_FLOW_CONVERSION_OFFSET = 0.017;
  * **********************
  */
 void checkAlarms();
+int old_speed=0;
 
 byte spi_test();
 void ConfigureStepperDriver();
@@ -91,10 +94,10 @@ int getPosition(int tolerance=1*STEP_DIVIDER);
 float motorPositionToVolume(uint16_t position);
 void toggleIsHome();
 void toggleEnableEncoder();
-void readUserInput();
+void writeUserInput();
 void serialDebug();
 void setKVals(uint8_t dir);
-void moveStepper(int steps,  int speed, int dir);
+void moveStepper(int steps, float speed, int dir);
 void runMachineDiagnostics();
 void rescaleParameterLimits();
 
@@ -128,13 +131,18 @@ diagnosticParameters_t diagnosticParameters =
         Diagnostic_Parameter("flow","Flow",  0,20),
          Diagnostic_Parameter("pins","Pins", 0,30)
         };
+Stopwatch motorTestTimer;
 
 struct machineDiagnostics_t {
     Diagnostic_Parameter cycle_time=Diagnostic_Parameter(0,0,0,"tcyc");
     Diagnostic_Parameter ventilationState=Diagnostic_Parameter(0,0,0,"svent");
+    Diagnostic_Parameter stepperPosition=Diagnostic_Parameter(0,0,0,"step");
+    Diagnostic_Parameter rotationSensor=Diagnostic_Parameter(0,0,0,"rots");
+    Diagnostic_Parameter absolutePosition=Diagnostic_Parameter(0,0,0,"pabs");
 } machineDiagnostics;
 
 struct stopwatches_t{
+
     Stopwatch holdingIn;
     Stopwatch inspiration;
     Stopwatch expiration;
@@ -142,8 +150,12 @@ struct stopwatches_t{
     Stopwatch pressureRate;
     Stopwatch homing;
     Stopwatch sinceIdle;
+    Stopwatch movingIn;
 } stopwatch;
 
+StopwatchMus mainLoopMus;
+
+float integratedPosition=0;
 
 
 float pathRatio=1;
@@ -152,7 +164,7 @@ VentilationMode mode= OL_CMV ;
 VentilationState ventilationState = STARTUP;
 
 float oldPressure;
-unsigned long cycleTime =0;
+unsigned long cycleTimeMus =0;
 bool saveUserParams = false;
 bool isHome=false;
 bool runVentilation=true;
