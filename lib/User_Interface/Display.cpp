@@ -30,7 +30,7 @@ byte SYMBOL_SCROLL_UPDOWN[8] = {
 Display::Display(LiquidCrystal &lcd, Parameter_Container<N_USER_PARAMETERS> & allUserParameters, const VentilationMode *mode,
                  diagnosticParameters_t *diagnosticParameters)
                  : _lcd(lcd)
-                 , _allUserParameters(allUserParameters)
+                 , _allUserParams(allUserParameters)
                  , _mode(mode)
                  , _diagnosticParameters(diagnosticParameters)
 {
@@ -127,7 +127,7 @@ void Display::update(bool confirm, bool cancel, bool toggle, int8_t delta) {
                 if (_navigationIndex < _mode->nParams) {
                     _menuState = UNSAVED_SETTINGS;
                     _editState = EDIT_PARAMETER;
-                    _allUserParameters.getActive(_paramIndex).isGettingEdited = true;
+                    _allUserParams.getActive(_paramIndex).isGettingEdited = true;
                 }
                 else {
                     _editState = EDIT_ALARM;
@@ -144,16 +144,16 @@ void Display::update(bool confirm, bool cancel, bool toggle, int8_t delta) {
 
         case EDIT_PARAMETER:
         {
-            float _newValue = _allUserParameters.getActive(_paramIndex).getDialValue() + (float)delta * _allUserParameters.getActive(_paramIndex).increment;
-            _newValue = min(_newValue, _allUserParameters.getActive(_paramIndex).getMax());
-            _newValue = max(_newValue, _allUserParameters.getActive(_paramIndex).getMin());
-            _allUserParameters.getActive(_paramIndex).setDialValue(_newValue);
+            float _newValue = _allUserParams.getActive(_paramIndex).getDialValue() + (float)delta * _allUserParams.getActive(_paramIndex).increment;
+            _newValue = min(_newValue, _allUserParams.getActive(_paramIndex).getMax());
+            _newValue = max(_newValue, _allUserParams.getActive(_paramIndex).getMin());
+            _allUserParams.getActive(_paramIndex).setDialValue(_newValue);
             indexToParamValuePosition(_navigationIndex, _cursorRow, _cursorCol);
             setCursor(_cursorCol, _cursorRow);
-            printValue(_allUserParameters.getActive(_paramIndex).getDialValue());
+            printValue(_allUserParams.getActive(_paramIndex).getDialValue());
 
             if (toggle) {
-                _allUserParameters.getActive(_paramIndex).isGettingEdited = false;
+                _allUserParams.getActive(_paramIndex).isGettingEdited = false;
                 _editState = ENTER_NAVIGATE;
             }
             break;}
@@ -208,7 +208,7 @@ void Display::update(bool confirm, bool cancel, bool toggle, int8_t delta) {
 
         case ENTER_NAVIGATE:
             _editState = NAVIGATE;
-            _allUserParameters.getActive(_paramIndex).isGettingEdited = false;
+            _allUserParams.getActive(_paramIndex).isGettingEdited = false;
             _alarmValue =0;
             _markerIncrementer = _navigationIndex;
             break;
@@ -258,13 +258,13 @@ void Display::printValue(float value) {
 
 void Display::safeParams() {
     for (int i=0; i<(_mode->nParams); i++){
-        _allUserParameters.getActive(i).saveValue();
+        _allUserParams.getActive(i).saveValue();
     }
 }
 
 void Display::loadParams() {
     for (int i; i<(_mode->nParams); i++){
-        _allUserParameters.getActive(i).resetDialValue();
+        _allUserParams.getActive(i).resetDialValue();
     }
 }
 
@@ -283,12 +283,12 @@ void Display::printStaticText() {
         indexToTextPosition(i, _cursorCol, _cursorRow);
         if (_topRowIndex <= _cursorRow && _cursorRow< _topRowIndex+4) {
             setCursor(_cursorCol, _cursorRow);
-            _lcd.print(_allUserParameters.getActive(i).lcdString);
+            _lcd.print(_allUserParams.getActive(i).lcdString);
         }
         indexToParamValuePosition(i, _cursorRow, _cursorCol);
         if (_topRowIndex <= _cursorRow && _cursorRow< _topRowIndex+4) {
             setCursor(_cursorCol, _cursorRow);
-            printValue(_allUserParameters[(int) _mode->parameters[i]].getDialValue());
+            printValue(_allUserParams[(int) _mode->parameters[i]].getDialValue());
         }
     }
 
@@ -400,7 +400,7 @@ void Display::printScrollIndicator() {
 
 void Display::resetParams() {
     for (int i; i<(_mode->nParams); i++){
-        _allUserParameters.getActive(i).resetDialValue();
+        _allUserParams.getActive(i).resetDialValue();
     }
 }
 

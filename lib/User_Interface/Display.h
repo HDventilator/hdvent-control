@@ -42,7 +42,7 @@ public:
     uint8_t nActiveDiagnosticParameters;
 
     void printScrollIndicator();
-    Parameter_Container<N_USER_PARAMETERS> & _allUserParameters;
+    Parameter_Container<N_USER_PARAMETERS> & _allUserParams;
 
     menuState_t getMenuState() const;
 
