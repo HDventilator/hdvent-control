@@ -33,6 +33,7 @@
 #include <Pushbutton.h>
 #include <StopwatchEvent.h>
 #include <StopwatchMus.h>
+#include <EEPROM.h>
 
 extern "C" {
 #include "utility/twi.h"  // from Wire library, so we can do bus scanning
@@ -70,7 +71,7 @@ float const PRESSURE_FLOW_CONVERSION_OFFSET = 0.017;
  */
 void checkAlarms();
 int old_speed=0;
-
+void safeToEEPROM();
 byte spi_test();
 void ConfigureStepperDriver();
 int getBoardStatus();
@@ -170,6 +171,8 @@ bool isHome=false;
 bool runVentilation=true;
 void ledService();
 bool debuggingOn = true;
+void readFromEEPROM();
+void enumerateEEPROM();
 
 Sensor::state_t stepperPositionState = Sensor::OK;
 Sensor::state_t anglePositionState = Sensor::OK;

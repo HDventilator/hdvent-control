@@ -97,6 +97,7 @@ void Display::update(bool confirm, bool cancel, bool toggle, int8_t delta) {
             else if (confirm){
                 Serial.println("confirm");
                 safeParams();
+                _settingsWereSaved=true;
             }
             if (confirm||cancel){
                 deleteText("OK/CANCEL", 10,0);
@@ -108,6 +109,7 @@ void Display::update(bool confirm, bool cancel, bool toggle, int8_t delta) {
             break;
 
         case VIEW:
+            _settingsWereSaved=false;
             break;
         default:
             break;
@@ -411,3 +413,7 @@ void Display::resetCursor() {
 Display::menuState_t Display::getMenuState() const {
     return _menuState;
 }
+
+bool Display::getSavingEvent() {
+    return _settingsWereSaved;
+    }

@@ -30,6 +30,7 @@ public:
     package_struct_float_t getMaxPackage();
     package_struct_float_t getDialValuePackage();
 
+    float getValueEEPROM(int &index);
     void setDialValue(float dialValue);
     void resetDialValue();
     bool hasChanged() const;
@@ -42,8 +43,13 @@ public:
 
     float getMax() const;
 
-private:
+    int getEeAddress() const;
 
+    void setEeAddress(int eeAddress);
+
+
+private:
+    int eeAddress;
     float _oldDialValue;
     float _dialValue;
     float _value;

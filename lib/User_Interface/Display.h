@@ -37,7 +37,7 @@ public:
     void indexToTextPosition(uint8_t i, uint8_t &col, uint8_t &row);
     void indexToParamValuePosition(uint8_t i, uint8_t &row, uint8_t &col);
     void indexToAlarmValuePosition(uint8_t i, uint8_t &row, uint8_t &col);
-
+    bool getSavingEvent();
     void updateIndexes();
     uint8_t nActiveDiagnosticParameters;
 
@@ -52,6 +52,7 @@ private:
     uint8_t _topRowIndex;
     uint8_t _paramIndex;
     float _alarmValue;
+    bool _settingsWereSaved;
     editState_t _editState;
     menuState_t _menuState;
      uint8_t  _navigationIndex;

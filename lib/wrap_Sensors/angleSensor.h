@@ -39,17 +39,25 @@ public:
 
     const sensor_values_t &getData() const;
 
+    int getEeAddress() const;
+
+    float getHome() const;
+
+    void setHome(int home);
+
+    void setEeAddress(int eeAddress);
 
 private:
-    int transferFunction(uint16_t data);
-    int _home; // step value that corresponds to home position
-    int _mark; // step value that corresponds to mark position
+    float transferFunction(uint16_t data);
+    float _home; // step value that corresponds to home position
+    float _mark; // step value that corresponds to mark position
     int _pin;
     int _homeTolerance;
     int _stepsFullTurn;
     int _angleRange;
     int _analogMin;
     int _analogMax;
+    int _eeAddress;
     sensor_values_t _data;
     bool checkHome(int16_t stepValue);
 };

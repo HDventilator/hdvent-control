@@ -5,7 +5,6 @@
 #include <Serial_Protocol.h>
 #include "User_Parameter.h"
 #include <CRC32.h>
-
 User_Parameter::User_Parameter(float initialValue, float minOutValue, float maxOutValue, char string[], float minInValue, float maxInValue, bool invert) {
     _min = minOutValue;
     _max = maxOutValue;
@@ -28,6 +27,7 @@ float User_Parameter::getValue() const {
 
 void User_Parameter::setValue(float value) {
     _value = value;
+    _dialValue =value;
 }
 
 float User_Parameter::transferFunction(float valueIn){
@@ -122,3 +122,18 @@ float User_Parameter::getMin() const {
 float User_Parameter::getMax() const {
     return _max;
 }
+
+int User_Parameter::getEeAddress() const {
+    return eeAddress;
+}
+
+void User_Parameter::setEeAddress(int eeAddress) {
+    User_Parameter::eeAddress = eeAddress;
+}
+
+float User_Parameter::getValueEEPROM(int &index) {
+    eeAddress = index;
+    index += sizeof(float);
+    return _value;
+}
+

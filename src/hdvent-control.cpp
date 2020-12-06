@@ -82,7 +82,6 @@ void setup()
     allUserParams[(int) UP::ANGLE] = User_Parameter(0, 0, 1, "angl", 0, 1024, true); //  milliliters per second
     allUserParams[(int) UP::COMPRESSED_VOLUME_RATIO] = User_Parameter(100, 0, 100, "Volu", 0, 1024, true); //  milliliters per second
 
-
     ConfigureStepperDriver();
     pressureSensor.begin();
 
@@ -107,14 +106,16 @@ void setup()
     Serial3.begin(115200);
 
     stopwatch.sinceIdle.start();
+
     allUserParams.update(mode.parameters, mode.nParams);
-    display.printStaticText();
+
     for (Diagnostic_Parameter &param : diagnosticParameters.arr){
         param.setValue(10);
     }
 
-
-
+    enumerateEEPROM();
+    readFromEEPROM();
+    display.printStaticText();
 }
 
 
@@ -201,7 +202,64 @@ void loop(){
     writeDiagnosticParameters();
     writeUserInput();
 
+Serial.println(angleSensor.getHome());
     serialDebug();
+
+    if (display.getSavingEvent()){
+        safeToEEPROM();
+    }
+
+}
+
+void debugEEPROM(){
+    for (int i=0; i<(mode.nParams); i++){
+        Serial.print(allUserParams.getActive(i).getEeAddress());
+        Serial.print("\t");
+    }
+    Serial.println("");
+    for (int i=0; i<(mode.nParams); i++){
+        Serial.print(allUserParams.getActive(i).getValue());
+        Serial.print("\t");
+    }
+    Serial.println("");
+}
+
+void safeToEEPROM(){
+    for (int i=0; i<(mode.nParams); i++){
+        int address = allUserParams.getActive(i).getEeAddress();
+        float value=allUserParams.getActive(i).getValue();
+        EEPROM.put(address, value);
+    }
+    int address = angleSensor.getEeAddress();
+    float value=angleSensor.getHome();
+    EEPROM.put(address, value);
+}
+
+void enumerateEEPROM(){
+    int index=0;
+    for (int i=0; i<(int)UP::LAST_PARAM_LABEL; i++){
+        allUserParams[i].setEeAddress(index);
+        index += sizeof(float);
+        //Serial.print(index);
+    }
+    angleSensor.setEeAddress(index);
+    index+=sizeof(float);
+
+}
+
+void readFromEEPROM(){
+    for (int i=0; i<(mode.nParams); i++){
+        float value;
+        int address = allUserParams.getActive(i).getEeAddress();
+        EEPROM.get(address, value);
+        allUserParams.getActive(i).setValue(value);
+        //Serial.print("address: ");Serial.println(address);
+    }
+    float value;
+    int address = angleSensor.getEeAddress();
+    EEPROM.get(address, value);
+    angleSensor.setHome(value);
+   // Serial.print("address: ");Serial.println(address);
 }
 
 
@@ -296,7 +354,7 @@ if (delta) {
 //Serial.println(cycleTimeMus);
     /*for (int i=0; i < (display._mode->nParams); i++){
     lcd.setCursor(1,i);
-    lcd.print(display._allUserParameters[(int)display._mode->parameters[i]].lcdString);
+    lcd.print(display._allUserParams[(int)display._mode->parameters[i]].lcdString);
 }*/
     //display.printStaticText();
     /*
@@ -341,11 +399,12 @@ if (delta) {
     //Serial.print("T inspiration:   ");Serial.println(allUserParams[(int)UP::T_IN].getValue());
    // Serial.print("Volume:   ");Serial.println(allUserParams[(int)UP::COMPRESSED_VOLUME_RATIO].getValue());
    // Serial.print("Frequency:   ");Serial.println(allUserParams[(int)UP::RESPIRATORY_RATE].getValue());
-    //Serial.print("Angle:"); Serial.println(angleSensor.getData().relativePosition);
+    Serial.print("Angle:"); Serial.println(angleSensor.getData().absolutePosition);
+    Serial.print("Angle:"); Serial.println(angleSensor.getData().relativePosition);
     //Serial.print("Angle/MotorMonitor:"); Serial.println(stepperMonitor.getData().relativePosition-angleSensor.getData().relativePosition);
-    //Serial.print("T inspiration:   ");Serial.println(display._allUserParameters[(int)UP::T_IN].getValue());
-    //Serial.print("Volume:   ");Serial.println(display._allUserParameters[(int)UP::COMPRESSED_VOLUME_RATIO].getValue());
-    //Serial.print("Frequency:   ");Serial.println(display._allUserParameters[(int)UP::RESPIRATORY_RATE].getValue());
+    //Serial.print("T inspiration:   ");Serial.println(display._allUserParams[(int)UP::T_IN].getValue());
+    //Serial.print("Volume:   ");Serial.println(display._allUserParams[(int)UP::COMPRESSED_VOLUME_RATIO].getValue());
+    //Serial.print("Frequency:   ");Serial.println(display._allUserParams[(int)UP::RESPIRATORY_RATE].getValue());
     /*Serial.print("T inspiration:   ");Serial.println(allUserParams[(int)UP::T_IN].isGettingEdited);
     Serial.print("Volume:   ");Serial.println(allUserParams[(int)UP::COMPRESSED_VOLUME_RATIO].isGettingEdited);
     Serial.print("Frequency:   ");Serial.println(allUserParams[(int)UP::RESPIRATORY_RATE].isGettingEdited);*/
@@ -461,7 +520,7 @@ VentilationState ventilationStateMachine( VentilationState &state){
             stepperMonitor.setState(Sensor::FAULTY);
 
             // start full revolution of stepper in ex direction to find home position
-            moveStepper(STEPS_FS_FULL_TURN*STEP_DIVIDER, 200, 400, 400, DIR_EX);
+            moveStepper(STEPS_FS_FULL_TURN*STEP_DIVIDER, 100, 400, 400, DIR_EX);
 
             state = HOMING_EX;
             break;

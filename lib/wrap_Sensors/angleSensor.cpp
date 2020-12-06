@@ -28,9 +28,9 @@ bool Angle_Sensor::checkHome(int16_t stepValue){
     return abs(_home - stepValue) < _homeTolerance;
 }
 
-int Angle_Sensor::transferFunction(uint16_t data) {
+float Angle_Sensor::transferFunction(uint16_t data) {
     float stepPosition = (float)(data-_analogMin) / (float)(_analogMax-_analogMin) * (float)_angleRange / 360 * (float)_stepsFullTurn;
-    return (int)stepPosition;
+    return stepPosition;
 }
 
 void Angle_Sensor::markPos() {
@@ -43,4 +43,20 @@ void Angle_Sensor::resetPos() {
 
 const Angle_Sensor::sensor_values_t &Angle_Sensor::getData() const {
     return _data;
+}
+
+int Angle_Sensor::getEeAddress() const {
+    return _eeAddress;
+}
+
+void Angle_Sensor::setEeAddress(int eeAddress) {
+    _eeAddress = eeAddress;
+}
+
+float Angle_Sensor::getHome() const {
+    return _home;
+}
+
+void Angle_Sensor::setHome(int home) {
+    _home = home;
 }
