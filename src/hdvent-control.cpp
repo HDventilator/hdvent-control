@@ -152,13 +152,32 @@ void checkBuzzer(){
         }
     }
 }
+void ledService(){
+    if (runVentilation){
+        if (greenLEDBlink.getEvent()) {
+            digitalWrite(PIN_LED_GREEN, greenLEDBlink.getState());
+        }
+    }
+    else {
+        digitalWrite(PIN_LED_GREEN, LOW);
+    }
+
+    if (display.getMenuState()==Display::UNSAVED_SETTINGS){
+        if (orangeLEDBlink.getEvent()){
+            digitalWrite(PIN_LED_ORANGE, orangeLEDBlink.getState());
+        }
+    }
+    else {
+        digitalWrite(PIN_LED_ORANGE, LOW);
+    }
+
+}
 
 void loop(){
-    digitalWrite(PIN_LED_GREEN,HIGH);
-    digitalWrite(PIN_LED_ORANGE,HIGH);
+
+    ledService();
     //scan_i2c();
-    writeDiagnosticParameters();
-    writeUserInput();
+
 
     // record cycle time
     //cycleTimeMus = stopwatch.mainLoop.getElapsedTime();
@@ -199,6 +218,9 @@ void loop(){
             cancelButton.getSingleDebouncedPress(),
             encoderButton.getSingleDebouncedPress(),
             encoder.getDelta());
+
+    writeDiagnosticParameters();
+    writeUserInput();
 
     //serialDebug();
 }

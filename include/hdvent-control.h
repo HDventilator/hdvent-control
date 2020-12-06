@@ -168,7 +168,7 @@ unsigned long cycleTimeMus =0;
 bool saveUserParams = false;
 bool isHome=false;
 bool runVentilation=true;
-
+void ledService();
 bool debuggingOn = true;
 
 Sensor::state_t stepperPositionState = Sensor::OK;
@@ -189,7 +189,10 @@ Pushbutton confirmButton(PIN_EDIT_MODE);
 Pushbutton cancelButton(PIN_OPTICAL_SWITCH_END);
 Pushbutton alarmOverwrite(PIN_ALARM_MUTE);
 Pushbutton encoderButton(PIN_ENCO_BTN);
+Pushbutton enableVentilation(PIN_SD_VENTI);
 
+TimedToggler greenLEDBlink(500);
+TimedToggler orangeLEDBlink(300);
 Display display(lcd, allUserParams, &OL_CMV,
                 &diagnosticParameters);
 
