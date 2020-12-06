@@ -174,13 +174,7 @@ void ledService(){
 }
 
 void loop(){
-
     ledService();
-    //scan_i2c();
-
-
-    // record cycle time
-    //cycleTimeMus = stopwatch.mainLoop.getElapsedTime();
 
     stopwatch.mainLoop.start();
     cycleTimeMus = mainLoopMus.getElapsedTime();
@@ -190,16 +184,6 @@ void loop(){
     rescaleParameterLimits();
 
     runMachineDiagnostics();
-/*
-    if (diagnosticParameters.s.volume.getPersistentState() != Diagnostic_Parameter::OK) {
-        buzzer.saveTurnOn();
-    }
-    if (alarmOverwrite.getPush() && (diagnosticParameters.s.volume.getState())){
-        buzzer.turnOff();
-        diagnosticParameters.s.volume.resetPersistentAlarm();
-        Serial.println(diagnosticParameters.s.volume.getState());
-    }
-*/
 
     checkAlarms();
     readSensors();
@@ -209,11 +193,6 @@ void loop(){
 
     ventilationStateMachine(ventilationState);
 
-   /* if (motorTestTimer.getElapsedTime()>2*200/speed*1000){
-        Stepper.hardStop();
-    }*/
-
-
    display.update(confirmButton.getSingleDebouncedPress(),
             cancelButton.getSingleDebouncedPress(),
             encoderButton.getSingleDebouncedPress(),
@@ -222,7 +201,7 @@ void loop(){
     writeDiagnosticParameters();
     writeUserInput();
 
-    //serialDebug();
+    serialDebug();
 }
 
 
