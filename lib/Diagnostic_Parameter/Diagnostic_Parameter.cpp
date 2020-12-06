@@ -228,7 +228,7 @@ package_struct_float_t Diagnostic_Parameter::getSettingsAlarmPackage() {
     else {
         value=0;
     }
-    package_struct_float_t package= preparePackage(DIAGNOSTIC_PARAMETER_LOW_ALARM_PREFIX, value);
+    package_struct_float_t package= preparePackage(DIAGNOSTIC_PARAMETER_SETTINGS_ALARM_PREFIX, value);
     return package;
 }
 
