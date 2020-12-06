@@ -91,13 +91,13 @@ void setup()
 
     // adjust sensor state if connected/disconnected
     opticalHomeSensor.setState(Sensor::OK);
-    angleSensor.setState(Sensor::DISCONNECTED);
+    angleSensor.setState(Sensor::OK);
 
     // stepper cannot know absolute position on startup
     stepperMonitor.setState(Sensor::FAULTY);
 
     // initial state for state machine
-    ventilationState = IDLE;
+    ventilationState = STARTUP;
     //flowSensor.begin();
     Wire.begin();
     //Serial3.begin(115200);
@@ -192,7 +192,7 @@ void loop(){
 
     runVentilation = digitalRead(PIN_SD_VENTI);
 
-    ventilationStateMachine(ventilationState);
+
 
    display.update(confirmButton.getSingleDebouncedPress(),
             cancelButton.getSingleDebouncedPress(),
@@ -202,12 +202,13 @@ void loop(){
     writeDiagnosticParameters();
     writeUserInput();
 
-Serial.println(angleSensor.getHome());
-    serialDebug();
+    Serial.println(angleSensor.getHome());
+    //serialDebug();
 
     if (display.getSavingEvent()){
         safeToEEPROM();
     }
+    ventilationStateMachine(ventilationState);
 
 }
 
@@ -515,6 +516,16 @@ void readSensors(){
 
 VentilationState ventilationStateMachine( VentilationState &state){
     switch (state){
+        case STARTUP:
+            if (isHome){
+                Stepper.resetPos();
+                state=IDLE;
+            }
+            else {
+                state=START_HOMING;
+            }
+
+
         case START_HOMING: // executed when transitioning to HOMING_EX
             // stepper driver doesn't know absolute home position
             stepperMonitor.setState(Sensor::FAULTY);
@@ -763,6 +774,9 @@ void checkHomeSensors(bool &isHome) {
             break;
         case 0B110:
             // both optical and angle good: use optical
+            if (opticalHomeSensor.getData().isBlocked && !angleSensor.getData().isHome){
+                angleSensor.resetPos();
+            }
             isHome = opticalHomeSensor.getData().isBlocked;
             break;
         case 0B101:
