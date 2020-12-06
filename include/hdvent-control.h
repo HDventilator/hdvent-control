@@ -157,7 +157,7 @@ struct stopwatches_t{
 StopwatchMus mainLoopMus;
 
 float integratedPosition=0;
-
+void writeDiagnosticAlarms();
 
 float pathRatio=1;
 

@@ -8,6 +8,9 @@
 #include "../Serial_Protocol/Serial_Protocol.h"
 
 const char DIAGNOSTIC_PARAMETER_ID_PREFIX[] = {"DM"};
+const char DIAGNOSTIC_PARAMETER_LOW_ALARM_PREFIX[] = {"LA"};
+const char DIAGNOSTIC_PARAMETER_HIGH_ALARM_PREFIX[] = {"HA"};
+const char DIAGNOSTIC_PARAMETER_SETTINGS_ALARM_PREFIX[] = {"SA"};
 
 class Diagnostic_Parameter {
 public:
@@ -47,6 +50,11 @@ public:
     char* lcdString;
 
     package_struct_float_t getPackageStruct();
+    package_struct_float_t preparePackage(const char *prefix, float value);
+    package_struct_float_t getLoAlarmPackage();
+    package_struct_float_t getHiAlarmPackage();
+    package_struct_float_t getSettingsAlarmPackage();
+
 
     void setHiAlarmSet(AlarmSetting hiAlarmSet);
 

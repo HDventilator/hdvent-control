@@ -81,6 +81,25 @@ void Diagnostic_Parameter::setValue(float value) {
     checkAlarm();
 }
 
+package_struct_float_t Diagnostic_Parameter::preparePackage(const char *prefix, float value) {
+    package_struct_float_t dataPackage{};
+    dataPackage.identifier[0]=prefix[0];
+    dataPackage.identifier[1]=prefix[1];
+    //memcpy(&dataPackage.identifier+2,_identifier,4);
+    dataPackage.identifier[2]=_identifier[0];
+    dataPackage.identifier[3]=_identifier[1];
+    dataPackage.identifier[4]=_identifier[2];
+    dataPackage.identifier[5]=_identifier[3];
+    dataPackage.value = value;
+    CRC32 crc;
+    crc.update((uint8_t*) &dataPackage, IDENTIFIER_LENGTH+4);
+    dataPackage.checksum = crc.finalize();
+
+    return dataPackage;
+}
+
+
+
 package_struct_float_t Diagnostic_Parameter::getPackageStruct() {
     package_struct_float_t dataPackage{};
     dataPackage.identifier[0]=DIAGNOSTIC_PARAMETER_ID_PREFIX[0];
@@ -183,6 +202,34 @@ void Diagnostic_Parameter::checkAlarm() {
 
 Diagnostic_Parameter::Alarm Diagnostic_Parameter::getPersistentState() const {
     return _persistentState;
+}
+
+package_struct_float_t Diagnostic_Parameter::getLoAlarmPackage() {
+    package_struct_float_t package= preparePackage(DIAGNOSTIC_PARAMETER_LOW_ALARM_PREFIX, _loAlarm);
+    return package;
+}
+
+package_struct_float_t Diagnostic_Parameter::getHiAlarmPackage() {
+    package_struct_float_t package= preparePackage(DIAGNOSTIC_PARAMETER_HIGH_ALARM_PREFIX, _hiAlarm);
+    return package;
+}
+
+package_struct_float_t Diagnostic_Parameter::getSettingsAlarmPackage() {
+    float value =0;
+    if (_hiAlarmSet&&_loAlarmSet){
+        value=3;
+    }
+    else if (_hiAlarmSet){
+        value=2;
+    }
+    else if (_loAlarmSet){
+        value=1;
+    }
+    else {
+        value=0;
+    }
+    package_struct_float_t package= preparePackage(DIAGNOSTIC_PARAMETER_LOW_ALARM_PREFIX, value);
+    return package;
 }
 
 

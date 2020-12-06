@@ -209,6 +209,7 @@ void loop(){
         safeToEEPROM();
     }
     ventilationStateMachine(ventilationState);
+    writeDiagnosticAlarms();
 
 }
 
@@ -311,6 +312,16 @@ void writeDiagnosticParameters(){
     serialWritePackage(&cobsSerial, diagnosticParameters.s.volume.getPackageStruct());
     serialWritePackage(&cobsSerial, diagnosticParameters.s.tidalVolume.getPackageStruct());
     serialWritePackage(&cobsSerial, diagnosticParameters.s.peep.getPackageStruct());
+}
+
+void writeDiagnosticAlarms(){
+    for (int i=0; i<nDiagnosticParameters; i++) {
+        if ((diagnosticParameters.arr[i].getHiAlarmSet() != Diagnostic_Parameter::DISABLED) ||
+            (diagnosticParameters.arr[i].getLoAlarmSet() != Diagnostic_Parameter::DISABLED)){
+            serialWritePackage(&cobsSerial, diagnosticParameters.arr[i].getLoAlarmPackage());
+            serialWritePackage(&cobsSerial, diagnosticParameters.arr[i].getHiAlarmPackage());
+            serialWritePackage(&cobsSerial, diagnosticParameters.arr[i].getSettingsAlarmPackage());
+        }}
 }
 
 void runMachineDiagnostics(){
