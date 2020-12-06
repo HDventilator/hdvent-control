@@ -117,7 +117,7 @@ void Display::update(bool confirm, bool cancel, bool toggle, int8_t delta) {
         case NAVIGATE:
             // calc new position
             _markerIncrementer = _markerIncrementer + navigationDelta;
-            Serial.println(_markerIncrementer);
+           // Serial.println(_markerIncrementer);
             _markerIncrementer = min(_markerIncrementer, (_mode->nParams + nActiveDiagnosticParameters * 2 - 1));
             _markerIncrementer = max(_markerIncrementer, 0);
             _navigationIndex = _markerIncrementer;
@@ -406,4 +406,8 @@ void Display::resetParams() {
 
 void Display::resetCursor() {
     _lcd.setCursor(_cursorCol,_cursorRow);
+}
+
+Display::menuState_t Display::getMenuState() const {
+    return _menuState;
 }

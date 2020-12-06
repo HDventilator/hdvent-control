@@ -44,6 +44,8 @@ public:
     void printScrollIndicator();
     Parameter_Container<N_USER_PARAMETERS> & _allUserParameters;
 
+    menuState_t getMenuState() const;
+
 private:
     uint8_t  _header;
     uint8_t _nRows;
