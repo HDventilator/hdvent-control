@@ -11,9 +11,10 @@ class TimedToggler {
 
 public:
     TimedToggler();
+    TimedToggler(unsigned long myPeriod);
     void set(unsigned long myPeriod);
     void reset();
-    void disable();
+    void disable(bool state);
     void enable();
     void update();
     void setInterval( unsigned long myPeriod );

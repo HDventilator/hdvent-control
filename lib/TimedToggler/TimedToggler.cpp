@@ -7,6 +7,11 @@
 
 TimedToggler::TimedToggler() {
 // Nothing inside constructor.
+    set(1000);
+}
+
+TimedToggler::TimedToggler(unsigned long myPeriod) {
+    set(myPeriod);
 }
 
 void TimedToggler::set(unsigned long myPeriod) {
@@ -16,12 +21,14 @@ void TimedToggler::set(unsigned long myPeriod) {
 }
 
 
+
 void TimedToggler::reset(){
     timer = millis();
 }
 
-void TimedToggler::disable(){
+void TimedToggler::disable(bool state) {
     active = false;
+    _state = state;
 }
 
 void TimedToggler::enable(){
@@ -55,3 +62,5 @@ bool TimedToggler::getState() {
     update();
     return _state;
 }
+
+
