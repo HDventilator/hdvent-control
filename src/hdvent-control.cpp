@@ -186,7 +186,7 @@ void loop(){
 
     runMachineDiagnostics();
 
-    checkAlarms();
+    //checkAlarms();
     readSensors();
     checkHomeSensors(isHome);
 
@@ -314,14 +314,19 @@ void writeDiagnosticParameters(){
     serialWritePackage(&cobsSerial, diagnosticParameters.s.peep.getPackageStruct());
 }
 
-void writeDiagnosticAlarms(){
-    for (int i=0; i<nDiagnosticParameters; i++) {
-        if ((diagnosticParameters.arr[i].getHiAlarmSet() != Diagnostic_Parameter::DISABLED) ||
-            (diagnosticParameters.arr[i].getLoAlarmSet() != Diagnostic_Parameter::DISABLED)){
-            serialWritePackage(&cobsSerial, diagnosticParameters.arr[i].getLoAlarmPackage());
-            serialWritePackage(&cobsSerial, diagnosticParameters.arr[i].getHiAlarmPackage());
+void writeDiagnosticAlarms() {
+    for (int i = 0; i < nDiagnosticParameters; i++) {
+        if (diagnosticParameters.arr[i].isAlarmSettingChanged()) {
+            Serial.println("alarm settings changed!");
             serialWritePackage(&cobsSerial, diagnosticParameters.arr[i].getSettingsAlarmPackage());
-        }}
+            if (diagnosticParameters.arr[i].getLoAlarmSet()==Diagnostic_Parameter::ACTIVE){
+                serialWritePackage(&cobsSerial, diagnosticParameters.arr[i].getLoAlarmPackage());
+            }
+            if (diagnosticParameters.arr[i].getHiAlarmSet()==Diagnostic_Parameter::ACTIVE){
+                serialWritePackage(&cobsSerial, diagnosticParameters.arr[i].getHiAlarmPackage());
+            }
+        }
+    }
 }
 
 void runMachineDiagnostics(){

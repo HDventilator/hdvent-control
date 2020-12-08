@@ -195,6 +195,7 @@ void Display::update(bool confirm, bool cancel, bool toggle, int8_t delta) {
             }
 
             if (toggle) {
+                param.setAlarmSettingChanged(true);
                 if (!((_navigationIndex - _mode->nParams) % 2)) {
                     param.setLoAlarm(_alarmValue);
                     param.setLoAlarmSet(alarmSetting);
@@ -211,6 +212,7 @@ void Display::update(bool confirm, bool cancel, bool toggle, int8_t delta) {
         case ENTER_NAVIGATE:
             _editState = NAVIGATE;
             _allUserParams.getActive(_paramIndex).isGettingEdited = false;
+            _diagnosticParameters->arr[_alarmIndex].setAlarmSettingChanged(false);
             _alarmValue =0;
             _markerIncrementer = _navigationIndex;
             break;

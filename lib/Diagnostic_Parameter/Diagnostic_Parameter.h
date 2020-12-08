@@ -68,9 +68,14 @@ public:
 
     float getIncrement() const;
 
+    bool isAlarmSettingChanged() const;
+
+    void setAlarmSettingChanged(bool alarmSettingChanged);
+
 private:
     Alarm _state=Alarm::OK;
     Alarm _persistentState = Alarm::OK;
+    bool _alarmSettingChanged;
     float _increment;
     float _minAlarm;
     float _maxAlarm;

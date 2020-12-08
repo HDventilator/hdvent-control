@@ -216,13 +216,13 @@ package_struct_float_t Diagnostic_Parameter::getHiAlarmPackage() {
 
 package_struct_float_t Diagnostic_Parameter::getSettingsAlarmPackage() {
     float value =0;
-    if (_hiAlarmSet&&_loAlarmSet){
+    if (_hiAlarmSet==ACTIVE&&_loAlarmSet==ACTIVE){
         value=3;
     }
-    else if (_hiAlarmSet){
+    else if (_hiAlarmSet==ACTIVE){
         value=2;
     }
-    else if (_loAlarmSet){
+    else if (_loAlarmSet==ACTIVE){
         value=1;
     }
     else {
@@ -230,6 +230,14 @@ package_struct_float_t Diagnostic_Parameter::getSettingsAlarmPackage() {
     }
     package_struct_float_t package= preparePackage(DIAGNOSTIC_PARAMETER_SETTINGS_ALARM_PREFIX, value);
     return package;
+}
+
+bool Diagnostic_Parameter::isAlarmSettingChanged() const {
+    return _alarmSettingChanged;
+}
+
+void Diagnostic_Parameter::setAlarmSettingChanged(bool alarmSettingChanged) {
+    _alarmSettingChanged = alarmSettingChanged;
 }
 
 
