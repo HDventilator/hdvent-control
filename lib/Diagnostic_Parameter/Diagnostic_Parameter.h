@@ -11,12 +11,13 @@ const char DIAGNOSTIC_PARAMETER_ID_PREFIX[] = {"DM"};
 const char DIAGNOSTIC_PARAMETER_LOW_ALARM_PREFIX[] = {"LA"};
 const char DIAGNOSTIC_PARAMETER_HIGH_ALARM_PREFIX[] = {"HA"};
 const char DIAGNOSTIC_PARAMETER_SETTINGS_ALARM_PREFIX[] = {"SA"};
+const char DIAGNOSTIC_PARAMETER_ALARM_TRIGGERED_PREFIX[] = {"TA"};
 
 class Diagnostic_Parameter {
 public:
     Diagnostic_Parameter();
 
-    enum Alarm {TOO_LOW, OK, TOO_HIGH};
+    enum Alarm {OK=0, TOO_LOW=1, TOO_HIGH=2};
     enum AlarmSetting {ACTIVE, INACTIVE, DISABLED};
     Diagnostic_Parameter(float initialValue, float minAlarm, float maxAlarm, char *identifier, char string[]);
     Diagnostic_Parameter(char *identifier, char string[], AlarmSetting hiAlarmSet, AlarmSetting loAlarmSet, float minAlarm, float maxAlarm);
@@ -51,8 +52,8 @@ public:
 
     package_struct_float_t getPackageStruct();
     package_struct_float_t preparePackage(const char *prefix, float value);
-    package_struct_float_t getLoAlarmPackage();
-    package_struct_float_t getHiAlarmPackage();
+    package_struct_float_t getLoAlarmThresholdPackage();
+    package_struct_float_t getHiAlarmThresholdPackage();
     package_struct_float_t getSettingsAlarmPackage();
 
 
@@ -71,6 +72,7 @@ public:
     bool isAlarmSettingChanged() const;
 
     void setAlarmSettingChanged(bool alarmSettingChanged);
+    package_struct_float_t getAlarmTriggeredPackage();
 
 private:
     Alarm _state=Alarm::OK;
@@ -85,6 +87,7 @@ private:
     float _hiAlarm;
     float _loAlarm;
     char* _identifier;
+
 
 };
 

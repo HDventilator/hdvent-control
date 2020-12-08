@@ -186,7 +186,7 @@ void loop(){
 
     runMachineDiagnostics();
 
-    //checkAlarms();
+    checkAlarms();
     readSensors();
     checkHomeSensors(isHome);
 
@@ -300,9 +300,11 @@ void checkAlarms() {
 
         if (param.getState() != Diagnostic_Parameter::OK) {
             buzzer.saveTurnOn();
+            serialWritePackage(&cobsSerial, param.getAlarmTriggeredPackage());
         } else if (alarmOverwrite.getSingleDebouncedPress() && (param.getState() == Diagnostic_Parameter::OK)) {
             buzzer.turnOff();
             param.resetPersistentAlarm();
+            serialWritePackage(&cobsSerial, param.getAlarmTriggeredPackage());
         }
 }}
 
@@ -320,10 +322,10 @@ void writeDiagnosticAlarms() {
             Serial.println("alarm settings changed!");
             serialWritePackage(&cobsSerial, diagnosticParameters.arr[i].getSettingsAlarmPackage());
             if (diagnosticParameters.arr[i].getLoAlarmSet()==Diagnostic_Parameter::ACTIVE){
-                serialWritePackage(&cobsSerial, diagnosticParameters.arr[i].getLoAlarmPackage());
+                serialWritePackage(&cobsSerial, diagnosticParameters.arr[i].getLoAlarmThresholdPackage());
             }
             if (diagnosticParameters.arr[i].getHiAlarmSet()==Diagnostic_Parameter::ACTIVE){
-                serialWritePackage(&cobsSerial, diagnosticParameters.arr[i].getHiAlarmPackage());
+                serialWritePackage(&cobsSerial, diagnosticParameters.arr[i].getHiAlarmThresholdPackage());
             }
         }
     }

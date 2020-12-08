@@ -204,15 +204,22 @@ Diagnostic_Parameter::Alarm Diagnostic_Parameter::getPersistentState() const {
     return _persistentState;
 }
 
-package_struct_float_t Diagnostic_Parameter::getLoAlarmPackage() {
+package_struct_float_t Diagnostic_Parameter::getLoAlarmThresholdPackage() {
     package_struct_float_t package= preparePackage(DIAGNOSTIC_PARAMETER_LOW_ALARM_PREFIX, _loAlarm);
     return package;
 }
 
-package_struct_float_t Diagnostic_Parameter::getHiAlarmPackage() {
+package_struct_float_t Diagnostic_Parameter::getHiAlarmThresholdPackage() {
     package_struct_float_t package= preparePackage(DIAGNOSTIC_PARAMETER_HIGH_ALARM_PREFIX, _hiAlarm);
     return package;
 }
+
+package_struct_float_t Diagnostic_Parameter::getAlarmTriggeredPackage() {
+    package_struct_float_t package= preparePackage(DIAGNOSTIC_PARAMETER_ALARM_TRIGGERED_PREFIX, _state);
+    return package;
+}
+
+
 
 package_struct_float_t Diagnostic_Parameter::getSettingsAlarmPackage() {
     float value =0;
