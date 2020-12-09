@@ -190,7 +190,7 @@ void loop(){
     readSensors();
     checkHomeSensors(isHome);
 
-    runVentilation = digitalRead(PIN_SD_VENTI);
+    runVentilation = !digitalRead(PIN_SD_VENTI);
 
 
 
