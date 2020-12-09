@@ -181,7 +181,7 @@ float Diagnostic_Parameter::getLoAlarm() const {
 }
 
 void Diagnostic_Parameter::resetPersistentAlarm() {
-    _persistentState = Alarm::WITHIN_BOUNDS;
+    _persistentState = Alarm::OK;
 }
 
 void Diagnostic_Parameter::checkAlarm() {
@@ -196,7 +196,7 @@ void Diagnostic_Parameter::checkAlarm() {
         _persistentState = _state;
     }
     else {
-        _state = WITHIN_BOUNDS;
+        _state = OK;
     }
 }
 

@@ -298,15 +298,15 @@ void debugMotor(){
 void checkAlarms() {
     //Serial.println(diagnosticParameters.s.volume.getState());
     bool isAlarmOverwrite = alarmOverwrite.getSingleDebouncedPress();
-    
+
     for (Diagnostic_Parameter &param : diagnosticParameters.arr){
 
-        if (param.getState() != Diagnostic_Parameter::WITHIN_BOUNDS) {
+        if (param.getState() != Diagnostic_Parameter::OK) {
             buzzer.saveTurnOn();
             Serial.print("alarm state: ");Serial.println(param.getState());
             serialWritePackage(&cobsSerial, param.getAlarmTriggeredPackage());
             alarmIsTriggered=true;
-        } else if (isAlarmOverwrite && (param.getState() == Diagnostic_Parameter::WITHIN_BOUNDS)) {
+        } else if (isAlarmOverwrite && (param.getState() == Diagnostic_Parameter::OK)) {
             buzzer.turnOff();
             param.resetPersistentAlarm();
             serialWritePackage(&cobsSerial, param.getAlarmTriggeredPackage());

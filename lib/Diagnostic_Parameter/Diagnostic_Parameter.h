@@ -17,7 +17,7 @@ class Diagnostic_Parameter {
 public:
     Diagnostic_Parameter();
 
-    enum Alarm {WITHIN_BOUNDS=0, TOO_LOW=1, TOO_HIGH=2};
+    enum Alarm {OK=0, TOO_LOW=1, TOO_HIGH=2};
     enum AlarmSetting {ACTIVE, INACTIVE, DISABLED};
     Diagnostic_Parameter(float initialValue, float minAlarm, float maxAlarm, char *identifier, char string[]);
     Diagnostic_Parameter(char *identifier, char string[], AlarmSetting hiAlarmSet, AlarmSetting loAlarmSet, float minAlarm, float maxAlarm);
@@ -75,8 +75,8 @@ public:
     package_struct_float_t getAlarmTriggeredPackage();
 
 private:
-    Alarm _state=Alarm::WITHIN_BOUNDS;
-    Alarm _persistentState = Alarm::WITHIN_BOUNDS;
+    Alarm _state=Alarm::OK;
+    Alarm _persistentState = Alarm::OK;
     bool _alarmSettingChanged;
     float _increment;
     float _minAlarm;
