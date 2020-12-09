@@ -11,7 +11,7 @@
 #include "User_Input.h"
 #include <TimedToggler.h>
 const uint8_t N_USER_PARAMETERS=12;
-const uint8_t nDiagnosticParameters=4;
+const uint8_t nDiagnosticParameters=7;
 class Display {
 public:
     Display(LiquidCrystal &lcd, Parameter_Container<N_USER_PARAMETERS> &allUserParameters, const VentilationMode *mode,

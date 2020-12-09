@@ -6,6 +6,7 @@
 #define HDVENT_CONTROL_DIAGNOSTIC_PARAMETER_H
 #include <Arduino.h>
 #include "../Serial_Protocol/Serial_Protocol.h"
+#include "Aggregated_Parameter.h"
 
 const char DIAGNOSTIC_PARAMETER_ID_PREFIX[] = {"DM"};
 const char DIAGNOSTIC_PARAMETER_LOW_ALARM_PREFIX[] = {"LA"};
@@ -93,7 +94,7 @@ private:
 
 typedef union  {
     struct mytype_t {
-        Diagnostic_Parameter peep, tidalVolume, volume, flow, airwayPressure, respiratoryRate, plateauPressure, meanPressure, pressureChange;
+        Diagnostic_Parameter tidalVolume, peep, volume, flow, airwayPressure, plateauPressure, minuteVolume;
         //Aggregated_Parameter minuteVolume= Aggregated_Parameter(0, 0, 0, "mvol", 60);
     } s;
     Diagnostic_Parameter arr[9];

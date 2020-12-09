@@ -7,9 +7,13 @@
 
 #include "Diagnostic_Parameter.h"
 
-class Aggregated_Parameter : public Diagnostic_Parameter{
+class Aggregated_Parameter
+        {
 public:
-    Aggregated_Parameter(float initialValue, float minAlarm, float maxAlarm, char *identifier, unsigned  int nSamples);
+    Aggregated_Parameter(int nSamples);
+
+/*Aggregated_Parameter(float initialValue, float minAlarm, float maxAlarm, char *identifier, unsigned  int nSamples);*/
+
     void enqueue(float item, unsigned long time);
     float sumN(unsigned int n);
     float sumFromTimestamp(unsigned long timestamp);

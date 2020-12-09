@@ -16,8 +16,9 @@ User_Parameter::User_Parameter(float initialValue, float minOutValue, float maxO
     lcdString = string;
     _toleranceInputChange = (_maxIn - _minIn) / 800;
     _invert = invert;
-    increment = (_max-_min)/200;
+    increment = (_max-_min)/100;
     resetDialValue();
+    wasEdited=false;
 
 }
 

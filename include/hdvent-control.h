@@ -49,7 +49,7 @@ powerSTEP Stepper(0, nCS_PIN, nSTBY_nRESET_PIN);;  // Nr, CS, Reset => 0 , D16/A
 
 // Clinical settings
 int const PRESSURE_MAX = 0; // mm H20
-float const TIME_HOLD_PLATEAU = 1; // seconds, hold time after inspiratory phase
+float const TIME_HOLD_PLATEAU = 0.2; // seconds, hold time after inspiratory phase
 float const TEMPERATURE_INFLUX_THRESHOLD = 20;// °C, start heating when influx temperature falls below this value
 
 int const STEPS_EX_HOMING = 80; // steps to move out when trying to find home
@@ -63,8 +63,8 @@ enum VentilationState {START_IN=0, MOVING_IN=1, HOLDING_IN=2, START_EX=3, MOVING
         END_IN=7, END_EX=8, HOMING_EX=9, IDLE=10, START_HOMING=11};
 
 
-float const PRESSURE_FLOW_CONVERSION = 771.49; // ml*s^-1 / mbar
-float const PRESSURE_FLOW_CONVERSION_OFFSET = 0.017;
+float const PRESSURE_FLOW_CONVERSION = -771.49; // ml*s^-1 / mbar
+float const PRESSURE_FLOW_CONVERSION_OFFSET = 0.053;
 /* **********************
  * Function declarations
  * **********************
@@ -126,13 +126,17 @@ unsigned int stepsInterval = 300;
 Parameter_Container<(int) UP::LAST_PARAM_LABEL> allUserParams;
 
 diagnosticParameters_t diagnosticParameters =
-        { Diagnostic_Parameter("peep", "PEEP"),
-        Diagnostic_Parameter("tvol","Tvol",  0,500),
-       Diagnostic_Parameter("cvol","Cvol",  0,200),
-        Diagnostic_Parameter("flow","Flow",  -30,30),
-         Diagnostic_Parameter("pins","Pins", 0,30)
+        { Diagnostic_Parameter("tvol","Tvol",  0,800),
+        Diagnostic_Parameter("peep", "PEEP", 0,30),
+       Diagnostic_Parameter("cvol","Cvol"),
+        Diagnostic_Parameter("flow","Flow"),
+         Diagnostic_Parameter("pins","Pins", 0, 60),
+                Diagnostic_Parameter("plat","Plat", 0, 60),
+                Diagnostic_Parameter("mvol", "mVol")
         };
 Stopwatch motorTestTimer;
+
+Aggregated_Parameter minuteVolume(50);
 
 struct machineDiagnostics_t {
     Diagnostic_Parameter cycle_time=Diagnostic_Parameter(0,0,0,"tcyc");

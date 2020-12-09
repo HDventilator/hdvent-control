@@ -156,6 +156,7 @@ void Display::update(bool confirm, bool cancel, bool toggle, int8_t delta) {
 
             if (toggle) {
                 _allUserParams.getActive(_paramIndex).isGettingEdited = false;
+                _allUserParams.getActive(_paramIndex).wasEdited = true;
                 _editState = ENTER_NAVIGATE;
             }
             break;}
@@ -212,6 +213,7 @@ void Display::update(bool confirm, bool cancel, bool toggle, int8_t delta) {
         case ENTER_NAVIGATE:
             _editState = NAVIGATE;
             _allUserParams.getActive(_paramIndex).isGettingEdited = false;
+            _allUserParams.getActive(_paramIndex).wasEdited = false;
             _diagnosticParameters->arr[_alarmIndex].setAlarmSettingChanged(false);
             _alarmValue =0;
             _markerIncrementer = _navigationIndex;

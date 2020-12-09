@@ -38,6 +38,7 @@ public:
     void setMax(float max);
     float increment;
     bool isGettingEdited;
+    bool wasEdited=false;
 
     float getMin() const;
 

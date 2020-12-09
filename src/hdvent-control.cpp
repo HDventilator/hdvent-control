@@ -71,7 +71,7 @@ void setup()
     float t_in_max = 60/respiratory_rate - t_ex_min;
 
 
-    allUserParams[(int) UP::RESPIRATORY_RATE] = User_Parameter(respiratory_rate, respiratory_rate_min, respiratory_rate_max, "freq", 0, 1024, true); //  breaths per minute
+    allUserParams[(int) UP::RESPIRATORY_RATE] = User_Parameter(respiratory_rate, 5,30, "freq", 0, 1024, true); //  breaths per minute
     allUserParams[(int) UP::T_IN] = User_Parameter(4, t_in_min, t_in_max,"T_in", 0, 1024, true); // Inspiration time
     allUserParams[(int) UP::TIDAL_VOLUME] = User_Parameter(250, 0, 650, "VTid", 0, 1024, true); // milliliters
     allUserParams[(int) UP::INSPIRATORY_PRESSURE] = User_Parameter(20, 5, 50, "P_aw", 0, 1024, true); //  millibar
@@ -212,6 +212,16 @@ void loop(){
     ventilationStateMachine(ventilationState);
     writeDiagnosticAlarms();
 
+    // check if any user parameter was edited
+    bool wasEdited=false;
+    for (int i=0; !wasEdited && i<mode.nParams; i++){
+        wasEdited = wasEdited || allUserParams.getActive(i).wasEdited;
+    }
+    if (wasEdited){
+        rescaleParameterLimits();
+        writeUserInput();
+    }
+
 }
 
 void debugEEPROM(){
@@ -299,9 +309,11 @@ void checkAlarms() {
     //Serial.println(diagnosticParameters.s.volume.getState());
     bool isAlarmOverwrite = alarmOverwrite.getSingleDebouncedPress();
 
-    for (Diagnostic_Parameter &param : diagnosticParameters.arr){
+    for (int i=0; i<mode.nParams;i++){
+            Diagnostic_Parameter & param = diagnosticParameters.arr[i];
 
         if (param.getState() != Diagnostic_Parameter::OK) {
+            Serial.print("alarm param");Serial.println(param.getIdentifier());
             buzzer.saveTurnOn();
             Serial.print("alarm state: ");Serial.println(param.getState());
             serialWritePackage(&cobsSerial, param.getAlarmTriggeredPackage());
@@ -319,9 +331,11 @@ void checkAlarms() {
 void writeDiagnosticParameters(){
     serialWritePackage(&cobsSerial, diagnosticParameters.s.flow.getPackageStruct());
     serialWritePackage(&cobsSerial, diagnosticParameters.s.airwayPressure.getPackageStruct());
+    serialWritePackage(&cobsSerial, diagnosticParameters.s.plateauPressure.getPackageStruct());
     serialWritePackage(&cobsSerial, diagnosticParameters.s.volume.getPackageStruct());
     serialWritePackage(&cobsSerial, diagnosticParameters.s.tidalVolume.getPackageStruct());
     serialWritePackage(&cobsSerial, diagnosticParameters.s.peep.getPackageStruct());
+    serialWritePackage(&cobsSerial, diagnosticParameters.s.minuteVolume.getPackageStruct());
 }
 
 void writeDiagnosticAlarms() {
@@ -459,24 +473,22 @@ void rescaleParameterLimits(){
     float x = allUserParams[(int)UP::COMPRESSED_VOLUME_RATIO].getDialValue()/100*STEPS_FULL_RANGE*STEP_DIVIDER;
     float a = ACC_EX *STEP_DIVIDER;
 
-    if (allUserParams[(int)UP::RESPIRATORY_RATE].isGettingEdited){
-        float f_max = 60/(t_in + sqrtf(4*x/a));
-        allUserParams[(int)UP::RESPIRATORY_RATE].setMax(f_max);
-    }
+    float f_max = 60/(t_in + sqrtf(4*x/a) + TIME_HOLD_PLATEAU);
+    allUserParams[(int)UP::RESPIRATORY_RATE].setMax(f_max);
 
-    if (allUserParams[(int)UP::T_IN].isGettingEdited){
-        float t_in_min = sqrtf(4*x/a);
-        float t_in_max = T-sqrtf(4*x/a);
-        t_in_min = max (0, t_in_min);
-        allUserParams[(int)UP::T_IN].setMin(t_in_min);
-        allUserParams[(int)UP::T_IN].setMax(t_in_max);
-    }
+    //float t_in_min = sqrtf(4*x/a);
+    // using max speed
+    float vMax = 600*STEP_DIVIDER;
+    float t_in_min = (x-sq(vMax)/a)/vMax +2*vMax/a;
+    float t_in_max = T-sqrtf(4*x/a) - TIME_HOLD_PLATEAU;
+    t_in_min = max (0, t_in_min);
+    allUserParams[(int)UP::T_IN].setMin(t_in_min);
+    allUserParams[(int)UP::T_IN].setMax(t_in_max);
 
-    if (allUserParams[(int)UP::COMPRESSED_VOLUME_RATIO].isGettingEdited){
-        float x_max = (T - t_in)*(T - t_in) *a/4;
-        x_max = min (x_max, STEPS_FULL_RANGE*STEP_DIVIDER);
-        allUserParams[(int)UP::COMPRESSED_VOLUME_RATIO].setMax(x_max*100/STEP_DIVIDER/STEPS_FULL_RANGE);
-    }
+    float x_max = sq(t_in) *a/4;
+    x_max = min (x_max, STEPS_FULL_RANGE*STEP_DIVIDER);
+    allUserParams[(int)UP::COMPRESSED_VOLUME_RATIO].setMax(x_max*100/STEP_DIVIDER/STEPS_FULL_RANGE);
+
 }
 
 void writeUserInput(){
@@ -511,7 +523,9 @@ void readSensors(){
     if (ventilationState == END_IN) {
         unsigned long timestamp=stopwatch.sinceIdle.getElapsedTime();
         diagnosticParameters.s.tidalVolume.setValue(diagnosticParameters.s.volume.getValue());
-        //diagnosticParameters.s.minuteVolume.enqueue(diagnosticParameters.s.volume.getValue()/1000, timestamp);
+
+        minuteVolume.enqueue(diagnosticParameters.s.tidalVolume.getValue(), timestamp);
+        diagnosticParameters.s.minuteVolume.setValue(minuteVolume.sumFromTimestamp(millis()-60000)/1000);
 
         if (timestamp>60000){
             timestamp = timestamp-60000;
@@ -525,10 +539,15 @@ void readSensors(){
 
     if (ventilationState == HOLDING_IN){
         if (stopwatch.holdingIn.getElapsedTime()>50){
-            diagnosticParameters.s.peep.setValue(pressureSensor.getData().pressure);
+            diagnosticParameters.s.plateauPressure.setValue(pressureSensor.getData().pressure);
         }
     }
 
+    if (ventilationState == START_IN){
+        //if (stopwatch.expiration.getElapsedTime()>50){
+            diagnosticParameters.s.peep.setValue(pressureSensor.getData().pressure);
+        //}
+    }
 /*
     float pressureChange = (pressureSensor.getData().pressure - oldPressure)/cycleTimeMus*1000;
     diagnosticParameters.s.pressureChange.setValue(pressureChange);
@@ -654,11 +673,11 @@ VentilationState ventilationStateMachine( VentilationState &state){
         case MOVING_IN:
             //Serial.print("controlMode: ");Serial.println((int)mode.controlMode);
             if (true){//mode.controlMode!=ControlMode::VN) {
-                Serial.println("controlled mode");
+                //Serial.println("controlled mode");
                 float speed = max(controller.calcSpeed(),(int) 0) * SPEED_CORRECTION;
                 // set stepper speed to calculated value
-                Serial.print("\tsetpoint speed: ");Serial.println(speed);
-                Serial.print("\tregister speed: ");Serial.println(Stepper.getParam(SPEED));
+                //Serial.print("\tsetpoint speed: ");Serial.println(speed);
+                //Serial.print("\tregister speed: ");Serial.println(Stepper.getParam(SPEED));
                 //machineDiagnostics.cycle_time.setValue(speed);
                // integratedPosition += speed*(float)cycleTimeMus/1000000;
                 //serialWritePackage(&cobsSerial, machineDiagnostics.cycle_time.getPackageStruct());
@@ -697,9 +716,9 @@ VentilationState ventilationStateMachine( VentilationState &state){
 
         case MOVING_EX:
             // record PEEP pressure shortly after start of expiration phase
-            if (stopwatch.expiration.getElapsedTime() > 50){
+            /*if (stopwatch.expiration.getElapsedTime() > 50){
                 diagnosticParameters.s.peep.setValue(pressureSensor.getData().pressure);
-            }
+            }*/
             // Stepper has reached home position
             if (isHome) {
                 if (Stepper.busyCheck()){
@@ -733,9 +752,9 @@ bool Triggers::inspirationTime() {
     return (float)stopwatch.inspiration.getElapsedTime() > allUserParams[(int)UP::T_IN].getValue()*1000;
 }
 
-bool Triggers::pressureDrop() {
+/*bool Triggers::pressureDrop() {
     return (- diagnosticParameters.s.pressureChange.getValue() > allUserParams[(int)UP::PRESSURE_TRIGGER_THRESHOLD].getValue());
-}
+}*/
 
 bool Triggers::flowIncrease() {
     return diagnosticParameters.s.flow.getValue() > allUserParams[(int)UP::FLOW_TRIGGER_THRESHOLD].getValue();
