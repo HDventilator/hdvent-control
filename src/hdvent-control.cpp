@@ -163,7 +163,8 @@ void ledService(){
         digitalWrite(PIN_LED_GREEN, LOW);
     }
 
-    if (display.getMenuState()==Display::UNSAVED_SETTINGS){
+//if (display.getMenuState()==Display::UNSAVED_SETTINGS){
+    if (alarmIsTriggered){
         if (orangeLEDBlink.getEvent()){
             digitalWrite(PIN_LED_ORANGE, orangeLEDBlink.getState());
         }
@@ -202,7 +203,7 @@ void loop(){
     writeDiagnosticParameters();
     writeUserInput();
 
-    Serial.println(angleSensor.getHome());
+    //Serial.println(angleSensor.getHome());
     //serialDebug();
 
     if (display.getSavingEvent()){
@@ -293,20 +294,27 @@ void debugMotor(){
         //Stepper.hardStop();
     }
 }
+
 void checkAlarms() {
     //Serial.println(diagnosticParameters.s.volume.getState());
-
+    bool isAlarmOverwrite = alarmOverwrite.getSingleDebouncedPress();
+    
     for (Diagnostic_Parameter &param : diagnosticParameters.arr){
 
-        if (param.getState() != Diagnostic_Parameter::OK) {
+        if (param.getState() != Diagnostic_Parameter::WITHIN_BOUNDS) {
             buzzer.saveTurnOn();
+            Serial.print("alarm state: ");Serial.println(param.getState());
             serialWritePackage(&cobsSerial, param.getAlarmTriggeredPackage());
-        } else if (alarmOverwrite.getSingleDebouncedPress() && (param.getState() == Diagnostic_Parameter::OK)) {
+            alarmIsTriggered=true;
+        } else if (isAlarmOverwrite && (param.getState() == Diagnostic_Parameter::WITHIN_BOUNDS)) {
             buzzer.turnOff();
             param.resetPersistentAlarm();
             serialWritePackage(&cobsSerial, param.getAlarmTriggeredPackage());
+            alarmIsTriggered=false;
         }
-}}
+    }
+
+}
 
 void writeDiagnosticParameters(){
     serialWritePackage(&cobsSerial, diagnosticParameters.s.flow.getPackageStruct());

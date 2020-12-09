@@ -129,7 +129,7 @@ diagnosticParameters_t diagnosticParameters =
         { Diagnostic_Parameter("peep", "PEEP"),
         Diagnostic_Parameter("tvol","Tvol",  0,500),
        Diagnostic_Parameter("cvol","Cvol",  0,200),
-        Diagnostic_Parameter("flow","Flow",  0,20),
+        Diagnostic_Parameter("flow","Flow",  -30,30),
          Diagnostic_Parameter("pins","Pins", 0,30)
         };
 Stopwatch motorTestTimer;
@@ -178,7 +178,7 @@ Sensor::state_t stepperPositionState = Sensor::OK;
 Sensor::state_t anglePositionState = Sensor::OK;
 float motorSpeed;
 PID pressureControlPID();
-
+bool alarmIsTriggered=false;
 bool motorDir;
 VentilationController controller(OL_CMV, diagnosticParameters.s.airwayPressure, diagnosticParameters.s.flow,
                                  allUserParams.params);

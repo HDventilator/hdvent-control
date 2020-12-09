@@ -181,7 +181,7 @@ float Diagnostic_Parameter::getLoAlarm() const {
 }
 
 void Diagnostic_Parameter::resetPersistentAlarm() {
-    _persistentState = Alarm::OK;
+    _persistentState = Alarm::WITHIN_BOUNDS;
 }
 
 void Diagnostic_Parameter::checkAlarm() {
@@ -196,7 +196,7 @@ void Diagnostic_Parameter::checkAlarm() {
         _persistentState = _state;
     }
     else {
-        _state = OK;
+        _state = WITHIN_BOUNDS;
     }
 }
 
@@ -215,7 +215,7 @@ package_struct_float_t Diagnostic_Parameter::getHiAlarmThresholdPackage() {
 }
 
 package_struct_float_t Diagnostic_Parameter::getAlarmTriggeredPackage() {
-    package_struct_float_t package= preparePackage(DIAGNOSTIC_PARAMETER_ALARM_TRIGGERED_PREFIX, _state);
+    package_struct_float_t package= preparePackage(DIAGNOSTIC_PARAMETER_ALARM_TRIGGERED_PREFIX, _persistentState);
     return package;
 }
 

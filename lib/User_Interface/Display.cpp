@@ -88,7 +88,7 @@ void Display::update(bool confirm, bool cancel, bool toggle, int8_t delta) {
     updateIndexes();
     switch(_menuState){
         case UNSAVED_SETTINGS:
-            blinkText("OK/CANCEL", 10,0);
+            blinkText("WITHIN_BOUNDS/CANCEL", 10,0);
 
             if (cancel){
                 Serial.println("cancel");
@@ -100,7 +100,7 @@ void Display::update(bool confirm, bool cancel, bool toggle, int8_t delta) {
                 _settingsWereSaved=true;
             }
             if (confirm||cancel){
-                deleteText("OK/CANCEL", 10,0);
+                deleteText("WITHIN_BOUNDS/CANCEL", 10,0);
                 _menuState = VIEW;
                 _editState = NAVIGATE;
                 _markerIncrementer=0;
