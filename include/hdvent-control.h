@@ -136,7 +136,7 @@ diagnosticParameters_t diagnosticParameters =
         };
 Stopwatch motorTestTimer;
 
-Aggregated_Parameter minuteVolume(50);
+Aggregated_Parameter minuteVolume(60);
 
 struct machineDiagnostics_t {
     Diagnostic_Parameter cycle_time=Diagnostic_Parameter(0,0,0,"tcyc");

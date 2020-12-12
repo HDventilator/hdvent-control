@@ -525,7 +525,8 @@ void readSensors(){
         diagnosticParameters.s.tidalVolume.setValue(diagnosticParameters.s.volume.getValue());
 
         minuteVolume.enqueue(diagnosticParameters.s.tidalVolume.getValue(), timestamp);
-        diagnosticParameters.s.minuteVolume.setValue(minuteVolume.sumFromTimestamp(millis()-60000)/1000);
+        diagnosticParameters.s.minuteVolume.setValue(minuteVolume.sumFromInterval(60000)/1000);
+
 
         if (timestamp>60000){
             timestamp = timestamp-60000;
@@ -534,7 +535,7 @@ void readSensors(){
             timestamp =0;
         }
         //diagnosticParameters.s.minuteVolume.sumFromTimestamp(timestamp);
-        Serial.print("elapsed time:"); Serial.println(timestamp);
+        //Serial.print("elapsed time:"); Serial.println(timestamp);
     }
 
     if (ventilationState == HOLDING_IN){

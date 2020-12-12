@@ -65,7 +65,7 @@ float VentilationController::calcSetPoint() {
 
 float VentilationController::calcSetPointTrapezoid() {
     float time = (float)_timer.getElapsedTime()/1000;
-    Serial.print("time: ");Serial.println(time);
+    //Serial.print("time: ");Serial.println(time);
     if (time < _slopeTime){
         return _slope*(float)time;
     }
