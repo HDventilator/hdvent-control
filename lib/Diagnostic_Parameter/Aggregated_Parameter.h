@@ -17,6 +17,7 @@ public:
     void enqueue(float item, unsigned long time);
     float sumN(unsigned int n);
     float sumFromTimestamp(unsigned long timestamp);
+    float sumFromInterval(unsigned long dt);
 private:
     unsigned int _nSamples;
     float* _dataQueue;

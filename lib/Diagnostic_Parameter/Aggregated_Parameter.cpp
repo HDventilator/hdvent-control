@@ -29,7 +29,7 @@ void Aggregated_Parameter::enqueue(float item, unsigned long time)
 float Aggregated_Parameter::sumN(unsigned int n) {
     float sum =0;
     for (unsigned int i=0; i<n; i++){
-        Serial.print('i');Serial.println(i);
+        //Serial.print('i');Serial.println(i);
         unsigned int ix = (_index-i)%_nSamples;
         sum = sum + _dataQueue[ix];
     }
@@ -58,4 +58,16 @@ Aggregated_Parameter::Aggregated_Parameter(int nSamples)
     _rear = _nSamples;
     _front = 0;
     _index = 0;
+}
+
+float Aggregated_Parameter::sumFromInterval(unsigned long dt) {
+    float sum =0;
+    //Serial.println(_timeQueue[(_index-i)%_nSamples]);
+    for (unsigned int i=0; (i<_nSamples)&&((_timeQueue[(_index-i)%_nSamples] - millis())>dt); i++){
+        unsigned int ix = (_index-i)%_nSamples;
+        Serial.print("ix:");Serial.println(ix);
+        sum = sum + _dataQueue[ix];
+    }
+    //  setValue(sum);
+    return sum;
 }
