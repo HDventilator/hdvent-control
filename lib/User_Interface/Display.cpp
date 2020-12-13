@@ -6,6 +6,7 @@
 #include <Arduino.h>
 #include <LiquidCrystal.h>
 #include <User_Input.h>
+#include <Ventilation_Modes.h>
 byte SYMBOL_SCROLL_DOWN[8] = {
         B00000,
         B00000,
@@ -27,11 +28,11 @@ byte SYMBOL_SCROLL_UPDOWN[8] = {
         B00100
 };
 
-Display::Display(LiquidCrystal &lcd, Parameter_Container<N_USER_PARAMETERS> & allUserParameters, const VentilationMode *mode,
-                 diagnosticParameters_t *diagnosticParameters)
+Display::Display(LiquidCrystal &lcd, Parameter_Container<N_USER_PARAMETERS> &allUserParameters,
+                 VentiModeContainer<N_VENTI_MODES> &allVentiModes, diagnosticParameters_t *diagnosticParameters)
                  : _lcd(lcd)
                  , _allUserParams(allUserParameters)
-                 , _mode(mode)
+                 , _allVentiModes(allVentiModes)
                  , _diagnosticParameters(diagnosticParameters)
 {
     _lcd.begin(20, 4);
@@ -43,6 +44,7 @@ Display::Display(LiquidCrystal &lcd, Parameter_Container<N_USER_PARAMETERS> & al
     _editState = NAVIGATE;
     _nRows=4-_header;
     _timedToggler.set(700);
+    _mode = &_allVentiModes.getActiveMode();
     lcd.clear();
     printStaticText();
     lcd.home();
@@ -83,6 +85,8 @@ void Display::deleteText(char* text, uint8_t col, uint8_t row){
     }
 }
 void Display::update(bool confirm, bool cancel, bool toggle, int8_t delta) {
+
+
     int8_t navigationDelta = delta;
     _lcd.cursor();
     updateIndexes();
@@ -116,13 +120,27 @@ void Display::update(bool confirm, bool cancel, bool toggle, int8_t delta) {
     }
 
     switch(_editState){
-        case EDIT_VENTI_MODE:
-            blinkText("bla", 0, 0);
+        case EDIT_VENTI_MODE: {
+            uint8_t i = _allVentiModes.getSelectedIndex();
+            i = i + delta;
+            i = i%N_VENTI_MODES;
+            _allVentiModes.setSelected(i);
+            _lcd.setCursor(0,0);
+            _lcd.print(_allVentiModes.getSelectedMode().lcdString);
+
             if (toggle) {
                 _editState = ENTER_NAVIGATE;
+                _mode = &_allVentiModes.getSelectedMode();
+                _allUserParams.update(_mode->parameters, _mode->nParams);
+                _markerIncrementer=1;
+                _navigationIndex=1;
+                _topRowIndex=0;
+                printStaticText();
             }
 
             break;
+        }
+
         case NAVIGATE:
             // calc new position
             _markerIncrementer = _markerIncrementer + navigationDelta;

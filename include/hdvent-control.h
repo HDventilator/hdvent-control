@@ -124,6 +124,8 @@ unsigned int stepsInterval = 300;
 // user-set parameters
 //User_Parameter allUserParams[(int) UP::LAST_PARAM_LABEL];
 Parameter_Container<(int) UP::LAST_PARAM_LABEL> allUserParams;
+VentiModeContainer<N_VENTI_MODES> allVentiModes;
+
 
 diagnosticParameters_t diagnosticParameters =
         { Diagnostic_Parameter("tvol","Tvol",  0,800),
@@ -202,8 +204,7 @@ Pushbutton enableVentilation(PIN_SD_VENTI);
 
 TimedToggler greenLEDBlink(500);
 TimedToggler orangeLEDBlink(300);
-Display display(lcd, allUserParams, &PC_CMV,
-                &diagnosticParameters);
+Display display(lcd, allUserParams, allVentiModes, &diagnosticParameters);
 
 Buzzer buzzer(PIN_ALARM_ENABLE, 500, 1000);
 

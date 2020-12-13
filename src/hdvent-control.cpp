@@ -2,6 +2,7 @@
 // Created by david on 04.04.20.
 //
 #include <hdvent-control.h>
+#include <HardwareSerial.h>
 
 
 void buttonEncoderInterruptRoutine(){
@@ -82,6 +83,10 @@ void setup()
     allUserParams[(int) UP::ANGLE] = User_Parameter(0, 0, 1, "angl", 0, 1024, true); //  milliliters per second
     allUserParams[(int) UP::COMPRESSED_VOLUME_RATIO] = User_Parameter(100, 0, 100, "Volu", 0, 1024, true); //  milliliters per second
     allUserParams[(int) UP::SLOPE_P] = User_Parameter(0.2, 0, 2, "slop", 0, 1024, true); //  milliliters per second
+
+    allVentiModes[(int) VentiModes::OL_CMV] = OL_CMV;
+    allVentiModes[(int) VentiModes::PC_CMV] = PC_CMV;
+    allVentiModes[(int) VentiModes::VC_CMV] = VC_CMV;
 
     ConfigureStepperDriver();
     pressureSensor.begin();
@@ -177,6 +182,9 @@ void ledService(){
 }
 
 void loop(){
+    if ((ventilationState==HOLDING_EX )|| (ventilationState==IDLE)){
+        mode = allVentiModes.getActiveMode();
+    };
     ledService();
 
     stopwatch.mainLoop.start();

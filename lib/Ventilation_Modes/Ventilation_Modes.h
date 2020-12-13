@@ -37,6 +37,7 @@ struct Triggers{
 };
 
 enum struct ControlMode { PC=0, VC=1, VN=2 };
+enum struct VentiModes {PC_CMV, OL_CMV, VC_CMV};
 
 struct PID_parameters_t {
     float k_p;
@@ -63,11 +64,13 @@ void fillArray(T A[], int N, T a[], int n, T fillValue) {
 
 const uint8_t NUMBER_TRIGGERS=5;
 
-struct VentilationMode {
+class VentilationMode {
+public:
     VentilationMode(ControlMode control, UP userSetParametersSelection[], int nUserSetParameters,
                     trigger_func_t inspirationTriggersSelection[], int nInspirationTriggers,
                     trigger_func_t expirationTriggersSelection[], int nExpirationTriggers,
                     char *identifier);
+    VentilationMode(){};
 
     UP* parameters;
     trigger_func_t expirationTriggers[NUMBER_TRIGGERS];
@@ -81,6 +84,48 @@ struct VentilationMode {
 
 };
 
+template<uint8_t N>
+class VentiModeContainer {
+public:
+    VentiModeContainer(VentilationMode *params) : nActive(N), params(params) {}
+    VentiModeContainer() {
+    }
+    VentilationMode & operator[](int idx)       { return params[idx]; }
+    const VentilationMode& operator[](int idx)      const  { return params[idx]; }
+
+
+    int nActive{};
+    VentilationMode& getActiveMode(){
+        return params[_activeIndex];
+    }
+    VentilationMode& getSelectedMode(){
+        return params[_selectedIndex];
+    }
+    int getActiveIndex(){
+        return _activeIndex;
+    }
+    int getSelectedIndex(){
+        return _selectedIndex;
+    }
+    void setActive(int i){
+        _activeIndex = i;
+    }
+    void setSelected(int i){
+        _selectedIndex = i;
+    }
+    void save(){
+        _activeIndex=_selectedIndex;
+    }
+
+
+    VentilationMode params[N];
+private:
+    int _activeIndex;
+    int _selectedIndex;
+
+
+};
+
 const VentilationMode VC_CMV(
         ControlMode::VC,
         (UP[]){
@@ -89,7 +134,7 @@ const VentilationMode VC_CMV(
                 UP::T_IN,
                 UP::FLOW}, 4,
         (trigger_func_t[]) {Triggers::respiratoryRate}, 1,
-        (trigger_func_t[]) {Triggers::inspirationTime}, 1, "VC_CMV");
+        (trigger_func_t[]) {Triggers::inspirationTime}, 1, "VC-CMV");
 
 const VentilationMode OL_CMV (
         ControlMode::VN,
@@ -109,6 +154,9 @@ const VentilationMode PC_CMV (
                 UP::T_IN}, 4,
         (trigger_func_t[]) {Triggers::respiratoryRate}, 1,
         (trigger_func_t[]) {Triggers::inspirationTime}, 1, "PC-CMV");
+
+
+
 
 
 #endif //HDVENT_CONTROL_VENTILATION_MODES_H

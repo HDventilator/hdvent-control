@@ -11,11 +11,12 @@
 #include "User_Input.h"
 #include <TimedToggler.h>
 const uint8_t N_USER_PARAMETERS=12;
+const uint8_t N_VENTI_MODES=3;
 const uint8_t nDiagnosticParameters=7;
 class Display {
 public:
-    Display(LiquidCrystal &lcd, Parameter_Container<N_USER_PARAMETERS> &allUserParameters, const VentilationMode *mode,
-            diagnosticParameters_t *diagnosticParameters);
+    Display(LiquidCrystal &lcd, Parameter_Container<N_USER_PARAMETERS> &allUserParameters,
+            VentiModeContainer<N_VENTI_MODES>  &allVentiModes, diagnosticParameters_t *diagnosticParameters);
 
     Display(Parameter_Container<N_USER_PARAMETERS> &allUserParameters);
 
@@ -47,6 +48,8 @@ public:
     menuState_t getMenuState() const;
 
 private:
+    VentiModes _modeIndex;
+    VentiModeContainer<N_VENTI_MODES> & _allVentiModes;
     uint8_t  _header;
     uint8_t _nRows;
     uint8_t _topRowIndex;
@@ -65,7 +68,7 @@ private:
    LiquidCrystal &_lcd;
 
 
-    const VentilationMode *_mode;
+    VentilationMode *_mode;
     int _markerIncrementer=0;
 
    diagnosticParameters_t* _diagnosticParameters;
