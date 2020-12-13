@@ -202,15 +202,13 @@ void loop(){
 
     runVentilation = !digitalRead(PIN_SD_VENTI);
 
-
-
    display.update(confirmButton.getSingleDebouncedPress(),
             cancelButton.getSingleDebouncedPress(),
             encoderButton.getSingleDebouncedPress(),
             encoder.getDelta());
 
     writeDiagnosticParameters();
-    writeUserInput();
+    //writeUserInput();
 
     //Serial.println(angleSensor.getHome());
     //serialDebug();
@@ -220,7 +218,6 @@ void loop(){
     }
     ventilationStateMachine(ventilationState);
     writeDiagnosticAlarms();
-    Serial.println("loop");
 
     // check if any user parameter was edited
     bool wasEdited=false;
@@ -365,8 +362,8 @@ void writeDiagnosticAlarms() {
 
 void runMachineDiagnostics(){
     // program cycle time
- //   machineDiagnostics.cycle_time.setValue(cycleTimeMus);
-  //  serialWritePackage(&cobsSerial, machineDiagnostics.cycle_time.getPackageStruct());
+   machineDiagnostics.cycle_time.setValue(cycleTimeMus);
+    serialWritePackage(&cobsSerial, machineDiagnostics.cycle_time.getPackageStruct());
 
     // ventilation state
     /*
@@ -383,7 +380,7 @@ void runMachineDiagnostics(){
     serialWritePackage(&cobsSerial, machineDiagnostics.absolutePosition.getPackageStruct());
 
 */
-    serialWritePackage(&cobsSerial, machineDiagnostics.calculatedSpeed.getPackageStruct());
+    //serialWritePackage(&cobsSerial, machineDiagnostics.calculatedSpeed.getPackageStruct());
     serialWritePackage(&cobsSerial, machineDiagnostics.setpointPID.getPackageStruct());
 
 }
@@ -455,8 +452,8 @@ if (delta) {
     //Serial.print("T inspiration:   ");Serial.println(allUserParams[(int)UP::T_IN].getValue());
    // Serial.print("Volume:   ");Serial.println(allUserParams[(int)UP::COMPRESSED_VOLUME_RATIO].getValue());
    // Serial.print("Frequency:   ");Serial.println(allUserParams[(int)UP::RESPIRATORY_RATE].getValue());
-    Serial.print("Angle:"); Serial.println(angleSensor.getData().absolutePosition);
-    Serial.print("Angle:"); Serial.println(angleSensor.getData().relativePosition);
+    //Serial.print("Angle:"); Serial.println(angleSensor.getData().absolutePosition);
+    //Serial.print("Angle:"); Serial.println(angleSensor.getData().relativePosition);
     //Serial.print("Angle/MotorMonitor:"); Serial.println(stepperMonitor.getData().relativePosition-angleSensor.getData().relativePosition);
     //Serial.print("T inspiration:   ");Serial.println(display._allUserParams[(int)UP::T_IN].getValue());
     //Serial.print("Volume:   ");Serial.println(display._allUserParams[(int)UP::COMPRESSED_VOLUME_RATIO].getValue());
@@ -519,8 +516,16 @@ void writeUserInput(){
 
 void readSensors(){
     // read pressure Sensors
-    pressureSensor.readSensor();
-    diagnosticParameters.s.airwayPressure.setValue(pressureSensor.getData().pressure);
+    float pressure=0;
+    //pressureSensor.readSensor();
+    //pressure=pressureSensor.getData().pressure;
+    for (int i=0; i<5; i++){
+        pressureSensor.readSensor();
+        pressure+=pressureSensor.getData().pressure;
+    }
+    pressure = pressure/5;
+
+    diagnosticParameters.s.airwayPressure.setValue(pressure);
     flowSensor.readSensor();
 
     diagnosticParameters.s.flow.setValue((flowSensor.getData().pressure-PRESSURE_FLOW_CONVERSION_OFFSET) * PRESSURE_FLOW_CONVERSION);
@@ -671,14 +676,14 @@ VentilationState ventilationStateMachine( VentilationState &state){
                     Stepper.setMaxSpeed(1000);
                     Stepper.setAcc(3000);
                     break;}
-                case ControlMode::VN: {
+                case ControlMode::OL: {
                     float steps = allUserParams[(int) UP::COMPRESSED_VOLUME_RATIO].getValue() / 100 * STEPS_FULL_RANGE;
                     float time = allUserParams[(int) UP::T_IN].getValue();
                     float speed = calculateSpeed(ACC_IN, DEC_IN, time, steps);
-                    Serial.print("Move steps: ");
-                    Serial.print(steps);
-                    Serial.print("Absolute Position Start: ");
-                    Serial.println(machineDiagnostics.absolutePosition.getValue());
+                    //Serial.print("Move steps: ");
+                    //Serial.print(steps);
+                    //Serial.print("Absolute Position Start: ");
+                    //Serial.println(machineDiagnostics.absolutePosition.getValue());
                     controller.startTrapezoid(ACC_IN, speed, time);
                 }
 
@@ -701,7 +706,7 @@ VentilationState ventilationStateMachine( VentilationState &state){
             }
             float speed=0;
             switch (mode.controlMode){
-                case ControlMode::VN:
+                case ControlMode::OL:
                     // bypass setpoint
                     speed = (float)controller.calcSpeed();
                     break;
@@ -711,7 +716,7 @@ VentilationState ventilationStateMachine( VentilationState &state){
                     break;
                 case ControlMode::PC:
                     speed = (float)controller.calcSpeed(diagnosticParameters.s.airwayPressure.getValue());
-                    Serial.print("speed:");Serial.println(speed);
+                    //Serial.print("speed:");Serial.println(speed);
                     //Serial.print("kp:");Serial.println(controller._pid.GetKp());
                     break;
                 default:

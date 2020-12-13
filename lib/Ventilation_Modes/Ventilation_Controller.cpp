@@ -21,7 +21,7 @@ _mode(mode)
             _param = flow;
             _bypass = false;
             break;
-        case ControlMode::VN:
+        case ControlMode::OL:
             _param = pressure;
             _bypass = true;
             break;

@@ -36,7 +36,7 @@ struct Triggers{
     static bool angleReached();
 };
 
-enum struct ControlMode { PC=0, VC=1, VN=2 };
+enum struct ControlMode { PC=0, VC=1, OL=2 };
 enum struct VentiModes {PC_CMV, OL_CMV, VC_CMV};
 
 struct PID_parameters_t {
@@ -45,7 +45,7 @@ struct PID_parameters_t {
     float k_d;
 };
 
-const PID_parameters_t pidParams_PC{.k_p=10, .k_i=15, .k_d=0};
+const PID_parameters_t pidParams_PC{.k_p=15, .k_i=5, .k_d=0};
 const PID_parameters_t pidParams_VC{.k_p=2.0, .k_i=0.3, .k_d=0};
 const PID_parameters_t pidParams_VN{.k_p=1.0, .k_i=0., .k_d=0};
 
@@ -137,7 +137,7 @@ const VentilationMode VC_CMV(
         (trigger_func_t[]) {Triggers::inspirationTime}, 1, "VC-CMV");
 
 const VentilationMode OL_CMV (
-        ControlMode::VN,
+        ControlMode::OL,
         (UP[]) {
                 UP::RESPIRATORY_RATE,
                 UP::COMPRESSED_VOLUME_RATIO,
