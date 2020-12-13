@@ -116,17 +116,32 @@ void Display::update(bool confirm, bool cancel, bool toggle, int8_t delta) {
     }
 
     switch(_editState){
+        case EDIT_VENTI_MODE:
+            blinkText("bla", 0, 0);
+            if (toggle) {
+                _editState = ENTER_NAVIGATE;
+            }
+
+            break;
         case NAVIGATE:
             // calc new position
             _markerIncrementer = _markerIncrementer + navigationDelta;
            // Serial.println(_markerIncrementer);
             _markerIncrementer = min(_markerIncrementer, (_mode->nParams + nActiveDiagnosticParameters * 2 - 1));
-            _markerIncrementer = max(_markerIncrementer, 0);
+            _markerIncrementer = max(_markerIncrementer, -1);
             _navigationIndex = _markerIncrementer;
-
-            moveMarker();
+            if (_markerIncrementer < 0){
+                _lcd.setCursor(0,0);
+            }
+            else {
+                moveMarker();
+            }
             if (toggle) {
-                if (_navigationIndex < _mode->nParams) {
+                if (_markerIncrementer<0){
+                    _menuState = UNSAVED_SETTINGS;
+                    _editState = EDIT_VENTI_MODE;
+                }
+                else if (_navigationIndex < _mode->nParams) {
                     _menuState = UNSAVED_SETTINGS;
                     _editState = EDIT_PARAMETER;
                     _allUserParams.getActive(_paramIndex).isGettingEdited = true;

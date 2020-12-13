@@ -19,7 +19,7 @@ public:
 
     Display(Parameter_Container<N_USER_PARAMETERS> &allUserParameters);
 
-    enum editState_t {EDIT_PARAMETER, EDIT_ALARM, ENTER_NAVIGATE, NAVIGATE};
+    enum editState_t {EDIT_PARAMETER, EDIT_ALARM, ENTER_NAVIGATE, NAVIGATE,EDIT_VENTI_MODE};
     enum menuState_t {UNSAVED_SETTINGS, VIEW};
 
     void setCursor(uint8_t col, uint8_t row);
