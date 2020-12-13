@@ -7,7 +7,8 @@
 VentilationController::VentilationController(VentilationMode mode, Diagnostic_Parameter &pressure,
                                              Diagnostic_Parameter &flow,
                                              User_Parameter* allUserParams)
-: _pid(&_pidIn, &_pidOut, &_pidSetpoint, mode.pidParameters.k_p, mode.pidParameters.k_i, mode.pidParameters.k_d, DIRECT),
+:
+        _pid(&_pidIn, &_pidOut, &_pidSetpoint, mode.pidParameters.k_p, mode.pidParameters.k_i, mode.pidParameters.k_d, DIRECT),
 userParams (allUserParams, mode.parameters),
 _mode(mode)
 {
@@ -25,6 +26,7 @@ _mode(mode)
             _bypass = true;
             break;
     }
+    _pid.SetSampleTime(5);
 }
 
 bool VentilationController::expirationTrigger(){
@@ -37,10 +39,13 @@ bool VentilationController::inspirationTrigger(){
 }
 
 
-void VentilationController::startRamp(float slope, float level) {
-    _slope = slope;
+void VentilationController::startRamp(float slopeTime, float level, float offset) {
+    _pid.SetMode(1);
+    _pid.SetOutputLimits(0,1000);
+    _slope = (level-offset)/slopeTime;
+    _offset = offset;
     _level = level;
-    _slopeTime = level / slope;
+    _slopeTime = slopeTime;
     _timer.start();
 }
 
@@ -56,7 +61,7 @@ void VentilationController::startTrapezoid(float slope, float level, float time)
 float VentilationController::calcSetPoint() {
     float time = (float)_timer.getElapsedTime()/1000;
     if (time < _slopeTime){
-        return _slope*(float)time;
+        return _slope*(float)time+_offset;
     }
     else {
         return _level;
@@ -77,14 +82,22 @@ float VentilationController::calcSetPointTrapezoid() {
     }
 }
 
-float VentilationController::calcSpeed() {
+double VentilationController::calcSpeed(float input) {
+    _pidSetpoint = calcSetPoint();
+    _pidIn = input;
+    isChanged = _pid.Compute();
+    return _pidOut;
+
+}
+
+double VentilationController::calcSpeed() {
     _pidSetpoint = calcSetPointTrapezoid();
-    _pidIn = _param.getValue();
-    _pid.Compute();
-    if (_bypass){
-        return _pidSetpoint;
-    }
-    else {
-        return _pidOut;
-    }
+    isChanged=true;
+    return _pidSetpoint;
+}
+
+void VentilationController::stopControl() {
+    // turn off pid
+    _pid.SetMode(0);
+
 }

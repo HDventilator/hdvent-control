@@ -144,6 +144,8 @@ struct machineDiagnostics_t {
     Diagnostic_Parameter stepperPosition=Diagnostic_Parameter(0,0,0,"step");
     Diagnostic_Parameter rotationSensor=Diagnostic_Parameter(0,0,0,"rots");
     Diagnostic_Parameter absolutePosition=Diagnostic_Parameter(0,0,0,"pabs");
+    Diagnostic_Parameter calculatedSpeed=Diagnostic_Parameter(0,0,0,"vclc");
+    Diagnostic_Parameter setpointPID=Diagnostic_Parameter(0,0,0,"setp");
 } machineDiagnostics;
 
 struct stopwatches_t{
@@ -165,7 +167,7 @@ void writeDiagnosticAlarms();
 
 float pathRatio=1;
 
-VentilationMode mode= OL_CMV ;
+VentilationMode mode= PC_CMV ;
 VentilationState ventilationState = STARTUP;
 
 float oldPressure;
@@ -184,7 +186,7 @@ float motorSpeed;
 PID pressureControlPID();
 bool alarmIsTriggered=false;
 bool motorDir;
-VentilationController controller(OL_CMV, diagnosticParameters.s.airwayPressure, diagnosticParameters.s.flow,
+VentilationController controller(PC_CMV, diagnosticParameters.s.airwayPressure, diagnosticParameters.s.flow,
                                  allUserParams.params);
 LiquidCrystal lcd(PIN_LCD_RS, PIN_LCD_RW, PIN_LCD_EN, PIN_LCD_D4, PIN_LCD_D5, PIN_LCD_D6, PIN_LCD_D7);
 PacketSerial cobsSerial;
@@ -200,7 +202,7 @@ Pushbutton enableVentilation(PIN_SD_VENTI);
 
 TimedToggler greenLEDBlink(500);
 TimedToggler orangeLEDBlink(300);
-Display display(lcd, allUserParams, &OL_CMV,
+Display display(lcd, allUserParams, &PC_CMV,
                 &diagnosticParameters);
 
 Buzzer buzzer(PIN_ALARM_ENABLE, 500, 1000);

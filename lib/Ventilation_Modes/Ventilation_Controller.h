@@ -21,18 +21,21 @@ public:
                           User_Parameter* allUserParams);
     bool expirationTrigger();
     bool inspirationTrigger();
-    float calcSpeed();
+    double calcSpeed();
     float calcSetPoint();
-    void startRamp(float slope, float level);
+    void startRamp(float slopeTime, float level, float offset);
     Subset<User_Parameter, UP> userParams;
     VentilationMode _mode;
     float calcSetPointTrapezoid();
 
     void startTrapezoid(float slope, float level, float time);
+    void stopControl();
+    double calcSpeed(float input);
+    bool isChanged;
+    PID _pid;
 private:
 
 
-    PID _pid;
     bool _bypass;
     double _pidIn;
     double _pidOut;
@@ -45,6 +48,8 @@ private:
     Diagnostic_Parameter _param;
     float _holdTime;
 
+
+    float _offset;
 
 };
 

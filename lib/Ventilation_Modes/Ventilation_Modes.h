@@ -17,7 +17,7 @@ enum struct UP {
     RESPIRATORY_RATE,
     T_IN,
     FLOW,
-    SLOPE,
+    SLOPE_P,
     FLOW_TRIGGER_THRESHOLD,
     PRESSURE_TRIGGER_THRESHOLD,
     D_PRESSURE_SUPP,
@@ -44,7 +44,7 @@ struct PID_parameters_t {
     float k_d;
 };
 
-const PID_parameters_t pidParams_PC{.k_p=1.0, .k_i=0.3, .k_d=0};
+const PID_parameters_t pidParams_PC{.k_p=10, .k_i=15, .k_d=0};
 const PID_parameters_t pidParams_VC{.k_p=2.0, .k_i=0.3, .k_d=0};
 const PID_parameters_t pidParams_VN{.k_p=1.0, .k_i=0., .k_d=0};
 
@@ -89,7 +89,7 @@ const VentilationMode VC_CMV(
                 UP::T_IN,
                 UP::FLOW}, 4,
         (trigger_func_t[]) {Triggers::respiratoryRate}, 1,
-        (trigger_func_t[]) {Triggers::inspirationTime}, 1, nullptr);
+        (trigger_func_t[]) {Triggers::inspirationTime}, 1, "VC_CMV");
 
 const VentilationMode OL_CMV (
         ControlMode::VN,
@@ -101,14 +101,14 @@ const VentilationMode OL_CMV (
         (trigger_func_t[]) {Triggers::inspirationTime}, 1, "OL-CMV");
 
 const VentilationMode PC_CMV (
-        ControlMode::VN,
+        ControlMode::PC,
         (UP[]) {
                 UP::INSPIRATORY_PRESSURE,
                 UP::RESPIRATORY_RATE,
-                UP::TIDAL_VOLUME,
-                UP::T_IN}, 3,
+                UP::SLOPE_P,
+                UP::T_IN}, 4,
         (trigger_func_t[]) {Triggers::respiratoryRate}, 1,
-        (trigger_func_t[]) {Triggers::inspirationTime}, 1, nullptr);
+        (trigger_func_t[]) {Triggers::inspirationTime}, 1, "PC-CMV");
 
 
 #endif //HDVENT_CONTROL_VENTILATION_MODES_H
