@@ -169,7 +169,7 @@ void writeDiagnosticAlarms();
 
 float pathRatio=1;
 
-VentilationMode mode= PC_CMV ;
+VentilationMode mode= VC_CMV ;
 VentilationState ventilationState = STARTUP;
 
 float oldPressure;
@@ -188,7 +188,7 @@ float motorSpeed;
 PID pressureControlPID();
 bool alarmIsTriggered=false;
 bool motorDir;
-VentilationController controller(PC_CMV, diagnosticParameters.s.airwayPressure, diagnosticParameters.s.flow,
+VentilationController controller(VC_CMV, diagnosticParameters.s.airwayPressure, diagnosticParameters.s.flow,
                                  allUserParams.params);
 LiquidCrystal lcd(PIN_LCD_RS, PIN_LCD_RW, PIN_LCD_EN, PIN_LCD_D4, PIN_LCD_D5, PIN_LCD_D6, PIN_LCD_D7);
 PacketSerial cobsSerial;

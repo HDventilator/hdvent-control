@@ -22,7 +22,9 @@ enum struct UP {
     PRESSURE_TRIGGER_THRESHOLD,
     D_PRESSURE_SUPP,
     ANGLE,
-    LAST_PARAM_LABEL=12
+    KP,
+    KI,
+    LAST_PARAM_LABEL=14
 };
 
 typedef bool (*trigger_func_t)();
@@ -34,6 +36,7 @@ struct Triggers{
     static bool respiratoryRate();
     static bool inspirationTime();
     static bool angleReached();
+    static bool tidalVolume();
 };
 
 enum struct ControlMode { PC=0, VC=1, OL=2 };
@@ -46,7 +49,7 @@ struct PID_parameters_t {
 };
 
 const PID_parameters_t pidParams_PC{.k_p=15, .k_i=5, .k_d=0};
-const PID_parameters_t pidParams_VC{.k_p=2.0, .k_i=0.3, .k_d=0};
+const PID_parameters_t pidParams_VC{.k_p=15, .k_i=10, .k_d=0};
 const PID_parameters_t pidParams_VN{.k_p=1.0, .k_i=0., .k_d=0};
 
 bool alwaysFalseTrigger();
@@ -120,8 +123,8 @@ public:
 
     VentilationMode params[N];
 private:
-    int _activeIndex;
-    int _selectedIndex;
+    int _activeIndex=(int)VentiModes::VC_CMV;
+    int _selectedIndex=(int)VentiModes::VC_CMV;
 
 
 };
@@ -132,7 +135,10 @@ const VentilationMode VC_CMV(
                 UP::RESPIRATORY_RATE,
                 UP::TIDAL_VOLUME,
                 UP::T_IN,
-                UP::FLOW}, 4,
+                UP::FLOW,
+                UP::KP,
+                UP::KI
+                }, 6,
         (trigger_func_t[]) {Triggers::respiratoryRate}, 1,
         (trigger_func_t[]) {Triggers::inspirationTime}, 1, "VC-CMV");
 

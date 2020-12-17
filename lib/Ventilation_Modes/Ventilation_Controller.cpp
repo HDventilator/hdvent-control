@@ -26,7 +26,7 @@ _mode(mode)
             _bypass = true;
             break;
     }
-    _pid.SetSampleTime(5);
+    _pid.SetSampleTime(20);
 }
 
 bool VentilationController::expirationTrigger(){
@@ -99,5 +99,6 @@ double VentilationController::calcSpeed() {
 void VentilationController::stopControl() {
     // turn off pid
     _pid.SetMode(0);
+
 
 }

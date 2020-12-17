@@ -10,7 +10,7 @@
 #include <Ventilation_Modes.h>
 #include "User_Input.h"
 #include <TimedToggler.h>
-const uint8_t N_USER_PARAMETERS=12;
+const uint8_t N_USER_PARAMETERS=14;
 const uint8_t N_VENTI_MODES=3;
 const uint8_t nDiagnosticParameters=7;
 class Display {
