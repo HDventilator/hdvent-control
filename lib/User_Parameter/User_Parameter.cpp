@@ -5,21 +5,18 @@
 #include <Serial_Protocol.h>
 #include "User_Parameter.h"
 #include <CRC32.h>
-User_Parameter::User_Parameter(float initialValue, float minOutValue, float maxOutValue, char string[], float minInValue, float maxInValue, bool invert) {
-    _min = minOutValue;
-    _max = maxOutValue;
+User_Parameter::User_Parameter(float initialValue, float minOutValue, float maxOutValue, char *string)
+: wasEdited(false)
+,_min(minOutValue)
+, _max(maxOutValue)
+
+{
     _value = min(initialValue, maxOutValue) ;
     _value = max(_value, minOutValue) ;
     _dialValue = _value;
-    _minIn = minInValue;
-    _maxIn = maxInValue;
     lcdString = string;
-    _toleranceInputChange = (_maxIn - _minIn) / 800;
-    _invert = invert;
     increment = (_max-_min)/100;
     resetDialValue();
-    wasEdited=false;
-
 }
 
 float User_Parameter::getValue() const {
@@ -31,12 +28,6 @@ void User_Parameter::setValue(float value) {
     _dialValue =value;
 }
 
-float User_Parameter::transferFunction(float valueIn){
-    if (_invert){
-        valueIn = _maxIn - valueIn;
-    }
-    return ((float)valueIn-_minIn) / (_maxIn-_minIn) * (_max-_min) + _min;
-}
 
 float User_Parameter::getDialValue() {
     return _dialValue;
@@ -85,13 +76,6 @@ bool User_Parameter::hasChanged() const {
     return _valueChanged;
 }
 
-void User_Parameter::loadValue(int data) {
-    float _diff = _oldIn - data;
-    _valueChanged = abs(_diff) > _toleranceInputChange;
-    _dialValue = transferFunction(data);
-    _oldIn = data;
-}
-
 void User_Parameter::saveValue() {
     _value = _dialValue;
 
@@ -137,4 +121,3 @@ float User_Parameter::getValueEEPROM(int &index) {
     index += sizeof(float);
     return _value;
 }
-

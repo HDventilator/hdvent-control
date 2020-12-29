@@ -193,7 +193,6 @@ VentilationController controller(VC_CMV, diagnosticParameters.s.airwayPressure, 
 LiquidCrystal lcd(PIN_LCD_RS, PIN_LCD_RW, PIN_LCD_EN, PIN_LCD_D4, PIN_LCD_D5, PIN_LCD_D6, PIN_LCD_D7);
 PacketSerial cobsSerial;
 uint8_t potiPins[4] = {PIN_POTI_AD, PIN_POTI_IE, PIN_POTI_TV, PIN_POTI_RR};
-User_Input userInput(allUserParams.params, &mode, &saveUserParams);
 Encoder encoder(PIN_ENCO_A, PIN_ENCO_B);
 
 Pushbutton confirmButton(PIN_EDIT_MODE);

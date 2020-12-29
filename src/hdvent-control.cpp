@@ -72,19 +72,19 @@ void setup()
     float t_in_max = 60/respiratory_rate - t_ex_min;
 
 
-    allUserParams[(int) UP::RESPIRATORY_RATE] = User_Parameter(10, 5,30, "freq", 0, 1024, true); //  breaths per minute
-    allUserParams[(int) UP::T_IN] = User_Parameter(1.5, t_in_min, t_in_max,"T_in", 0, 1024, true); // Inspiration time
-    allUserParams[(int) UP::TIDAL_VOLUME] = User_Parameter(350, 0, 650, "VTid", 0, 1024, true); // milliliters
-    allUserParams[(int) UP::INSPIRATORY_PRESSURE] = User_Parameter(20, 5, 50, "Pins", 0, 1024, true); //  millibar
-    allUserParams[(int) UP::FLOW] = User_Parameter(200, 5, 500,"Flow", 0, 1024, true); //  milliliters per second
-    allUserParams[(int) UP::D_PRESSURE_SUPP] = User_Parameter(20, 5, 50, "Psup", 0, 1024, true); //  millibar
-    allUserParams[(int) UP::PRESSURE_TRIGGER_THRESHOLD] = User_Parameter(5, 5, 50, "Pthr", 0, 1024, true); //  millibar per second
-    allUserParams[(int) UP::FLOW_TRIGGER_THRESHOLD] = User_Parameter(20, 5, 50, "Fthr", 0, 1024, true); //  milliliters per second
-    allUserParams[(int) UP::ANGLE] = User_Parameter(0, 0, 1, "angl", 0, 1024, true); //  milliliters per second
-    allUserParams[(int) UP::COMPRESSED_VOLUME_RATIO] = User_Parameter(100, 0, 100, "Volu", 0, 1024, true); //  milliliters per second
-    allUserParams[(int) UP::SLOPE_P] = User_Parameter(0.2, 0, 2, "slop", 0, 1024, true); //  milliliters per second
-    allUserParams[(int) UP::KP] = User_Parameter(1, 0, 1, "kp  ", 0, 1024, true); //  milliliters per second
-    allUserParams[(int) UP::KI] = User_Parameter(1, 0, 3, "ki  ", 0, 1024, true); //  milliliters per second
+    allUserParams[(int) UP::RESPIRATORY_RATE] = User_Parameter(10, 5,30, "freq"); //  breaths per minute
+    allUserParams[(int) UP::T_IN] = User_Parameter(1.5, t_in_min, t_in_max,"T_in"); // Inspiration time
+    allUserParams[(int) UP::TIDAL_VOLUME] = User_Parameter(350, 0, 650, "VTid"); // milliliters
+    allUserParams[(int) UP::INSPIRATORY_PRESSURE] = User_Parameter(20, 5, 50, "Pins"); //  millibar
+    allUserParams[(int) UP::FLOW] = User_Parameter(200, 5, 500,"Flow"); //  milliliters per second
+    allUserParams[(int) UP::D_PRESSURE_SUPP] = User_Parameter(20, 5, 50, "Psup"); //  millibar
+    allUserParams[(int) UP::PRESSURE_TRIGGER_THRESHOLD] = User_Parameter(5, 5, 50, "Pthr"); //  millibar per second
+    allUserParams[(int) UP::FLOW_TRIGGER_THRESHOLD] = User_Parameter(20, 5, 50, "Fthr"); //  milliliters per second
+    allUserParams[(int) UP::ANGLE] = User_Parameter(0, 0, 1, "angl"); //  milliliters per second
+    allUserParams[(int) UP::COMPRESSED_VOLUME_RATIO] = User_Parameter(100, 0, 100, "Volu"); //  milliliters per second
+    allUserParams[(int) UP::SLOPE_P] = User_Parameter(0.2, 0, 2, "slop"); //  milliliters per second
+    allUserParams[(int) UP::KP] = User_Parameter(1, 0, 1, "kp  "); //  milliliters per second
+    allUserParams[(int) UP::KI] = User_Parameter(1, 0, 3, "ki  "); //  milliliters per second
 
     allVentiModes[(int) VentiModes::OL_CMV] = OL_CMV;
     allVentiModes[(int) VentiModes::PC_CMV] = PC_CMV;
