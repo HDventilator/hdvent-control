@@ -10,6 +10,8 @@
 #include <Ventilation_Modes.h>
 #include "User_Input.h"
 #include <TimedToggler.h>
+#include <Parameter_Container.h>
+
 const uint8_t N_USER_PARAMETERS=14;
 const uint8_t N_VENTI_MODES=3;
 const uint8_t nDiagnosticParameters=7;
@@ -17,8 +19,6 @@ class Display {
 public:
     Display(LiquidCrystal &lcd, Parameter_Container<N_USER_PARAMETERS> &allUserParameters,
             VentiModeContainer<N_VENTI_MODES>  &allVentiModes, diagnosticParameters_t *diagnosticParameters);
-
-    Display(Parameter_Container<N_USER_PARAMETERS> &allUserParameters);
 
     enum editState_t {EDIT_PARAMETER, EDIT_ALARM, ENTER_NAVIGATE, NAVIGATE,EDIT_VENTI_MODE};
     enum menuState_t {UNSAVED_SETTINGS, VIEW};

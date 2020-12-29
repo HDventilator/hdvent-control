@@ -72,23 +72,23 @@ void setup()
     float t_in_max = 60/respiratory_rate - t_ex_min;
 
 
-    allUserParams[(int) UP::RESPIRATORY_RATE] = User_Parameter(10, 5,30, "freq"); //  breaths per minute
-    allUserParams[(int) UP::T_IN] = User_Parameter(1.5, t_in_min, t_in_max,"T_in"); // Inspiration time
-    allUserParams[(int) UP::TIDAL_VOLUME] = User_Parameter(350, 0, 650, "VTid"); // milliliters
-    allUserParams[(int) UP::INSPIRATORY_PRESSURE] = User_Parameter(20, 5, 50, "Pins"); //  millibar
-    allUserParams[(int) UP::FLOW] = User_Parameter(200, 5, 500,"Flow"); //  milliliters per second
-    allUserParams[(int) UP::D_PRESSURE_SUPP] = User_Parameter(20, 5, 50, "Psup"); //  millibar
-    allUserParams[(int) UP::PRESSURE_TRIGGER_THRESHOLD] = User_Parameter(5, 5, 50, "Pthr"); //  millibar per second
-    allUserParams[(int) UP::FLOW_TRIGGER_THRESHOLD] = User_Parameter(20, 5, 50, "Fthr"); //  milliliters per second
-    allUserParams[(int) UP::ANGLE] = User_Parameter(0, 0, 1, "angl"); //  milliliters per second
-    allUserParams[(int) UP::COMPRESSED_VOLUME_RATIO] = User_Parameter(100, 0, 100, "Volu"); //  milliliters per second
-    allUserParams[(int) UP::SLOPE_P] = User_Parameter(0.2, 0, 2, "slop"); //  milliliters per second
-    allUserParams[(int) UP::KP] = User_Parameter(1, 0, 1, "kp  "); //  milliliters per second
-    allUserParams[(int) UP::KI] = User_Parameter(1, 0, 3, "ki  "); //  milliliters per second
+    allUserParams[UP::RESPIRATORY_RATE] = User_Parameter(10, 5,30, "freq"); //  breaths per minute
+    allUserParams[UP::T_IN] = User_Parameter(1.5, t_in_min, t_in_max,"T_in"); // Inspiration time
+    allUserParams[UP::TIDAL_VOLUME] = User_Parameter(350, 0, 650, "VTid"); // milliliters
+    allUserParams[UP::INSPIRATORY_PRESSURE] = User_Parameter(20, 5, 50, "Pins"); //  millibar
+    allUserParams[UP::FLOW] = User_Parameter(200, 5, 500,"Flow"); //  milliliters per second
+    allUserParams[UP::D_PRESSURE_SUPP] = User_Parameter(20, 5, 50, "Psup"); //  millibar
+    allUserParams[UP::PRESSURE_TRIGGER_THRESHOLD] = User_Parameter(5, 5, 50, "Pthr"); //  millibar per second
+    allUserParams[UP::FLOW_TRIGGER_THRESHOLD] = User_Parameter(20, 5, 50, "Fthr"); //  milliliters per second
+    allUserParams[UP::ANGLE] = User_Parameter(0, 0, 1, "angl"); //  milliliters per second
+    allUserParams[UP::COMPRESSED_VOLUME_RATIO] = User_Parameter(100, 0, 100, "Volu"); //  milliliters per second
+    allUserParams[UP::SLOPE_P] = User_Parameter(0.2, 0, 2, "slop"); //  milliliters per second
+    allUserParams[UP::KP] = User_Parameter(1, 0, 1, "kp  "); //  milliliters per second
+    allUserParams[UP::KI] = User_Parameter(1, 0, 3, "ki  "); //  milliliters per second
 
-    allVentiModes[(int) VentiModes::OL_CMV] = OL_CMV;
-    allVentiModes[(int) VentiModes::PC_CMV] = PC_CMV;
-    allVentiModes[(int) VentiModes::VC_CMV] = VC_CMV;
+    allVentiModes[VentiModes::OL_CMV] = OL_CMV;
+    allVentiModes[VentiModes::PC_CMV] = PC_CMV;
+    allVentiModes[VentiModes::VC_CMV] = VC_CMV;
 
     ConfigureStepperDriver();
     pressureSensor.begin();
@@ -121,12 +121,12 @@ void setup()
         param.setValue(10);
     }
 
-   // controller._pid.SetTunings(allUserParams[(int)UP::KP].getValue(), allUserParams[(int)UP::KI].getValue(),0);
+   // controller._pid.SetTunings(allUserParams[UP::KP].getValue(), allUserParams[UP::KI].getValue(),0);
 
     enumerateEEPROM();
     readFromEEPROM();
     display.printStaticText();
-    allVentiModes.setActive((int) VentiModes::VC_CMV);
+    allVentiModes.setActive(VentiModes::VC_CMV);
 }
 
 
@@ -412,7 +412,7 @@ if (delta) {
 //Serial.println(cycleTimeMus);
     /*for (int i=0; i < (display._mode->nParams); i++){
     lcd.setCursor(1,i);
-    lcd.print(display._allUserParams[(int)display._mode->parameters[i]].lcdString);
+    lcd.print(display._allUserParams[display._mode->parameters[i]].lcdString);
 }*/
     //display.printStaticText();
     /*
@@ -454,18 +454,18 @@ if (delta) {
     display.update();
     Serial.println(display._editState);
 */
-    //Serial.print("T inspiration:   ");Serial.println(allUserParams[(int)UP::T_IN].getValue());
-   // Serial.print("Volume:   ");Serial.println(allUserParams[(int)UP::COMPRESSED_VOLUME_RATIO].getValue());
-   // Serial.print("Frequency:   ");Serial.println(allUserParams[(int)UP::RESPIRATORY_RATE].getValue());
+    //Serial.print("T inspiration:   ");Serial.println(allUserParams[UP::T_IN].getValue());
+   // Serial.print("Volume:   ");Serial.println(allUserParams[UP::COMPRESSED_VOLUME_RATIO].getValue());
+   // Serial.print("Frequency:   ");Serial.println(allUserParams[UP::RESPIRATORY_RATE].getValue());
     //Serial.print("Angle:"); Serial.println(angleSensor.getData().absolutePosition);
     //Serial.print("Angle:"); Serial.println(angleSensor.getData().relativePosition);
     //Serial.print("Angle/MotorMonitor:"); Serial.println(stepperMonitor.getData().relativePosition-angleSensor.getData().relativePosition);
-    //Serial.print("T inspiration:   ");Serial.println(display._allUserParams[(int)UP::T_IN].getValue());
-    //Serial.print("Volume:   ");Serial.println(display._allUserParams[(int)UP::COMPRESSED_VOLUME_RATIO].getValue());
-    //Serial.print("Frequency:   ");Serial.println(display._allUserParams[(int)UP::RESPIRATORY_RATE].getValue());
-    /*Serial.print("T inspiration:   ");Serial.println(allUserParams[(int)UP::T_IN].isGettingEdited);
-    Serial.print("Volume:   ");Serial.println(allUserParams[(int)UP::COMPRESSED_VOLUME_RATIO].isGettingEdited);
-    Serial.print("Frequency:   ");Serial.println(allUserParams[(int)UP::RESPIRATORY_RATE].isGettingEdited);*/
+    //Serial.print("T inspiration:   ");Serial.println(display._allUserParams[UP::T_IN].getValue());
+    //Serial.print("Volume:   ");Serial.println(display._allUserParams[UP::COMPRESSED_VOLUME_RATIO].getValue());
+    //Serial.print("Frequency:   ");Serial.println(display._allUserParams[UP::RESPIRATORY_RATE].getValue());
+    /*Serial.print("T inspiration:   ");Serial.println(allUserParams[UP::T_IN].isGettingEdited);
+    Serial.print("Volume:   ");Serial.println(allUserParams[UP::COMPRESSED_VOLUME_RATIO].isGettingEdited);
+    Serial.print("Frequency:   ");Serial.println(allUserParams[UP::RESPIRATORY_RATE].isGettingEdited);*/
    // Serial.println(diagnosticParameters.s.flow.getValue());
     //Serial.print("Stepper pos   ");Serial.println(stepperMonitor.getData().relativePosition);
     //Serial.print("home?   "); Serial.println(isHome);
@@ -479,19 +479,19 @@ if (delta) {
     //Serial.print("StepperState    "); Serial.println(Stepper.getStatus());
     //Serial.print("runVentilation   ");Serial.println(runVentilation);
     //Serial.print("StepperState    "); Serial.println(Stepper.getStatus());
-    //Serial.println((int)Stepper.getStatus(), HEX); // print STATUS register
+    //Serial.println(Stepper.getStatus(), HEX); // print STATUS register
     //Serial.print("opticalHomeSensor:  ");Serial.println(opticalHomeSensor.getData().isBlocked);
     //Serial.print("Button:   "); Serial.println(digitalRead(PIN_ALARM_MUTE));
     //Serial.print("Time: "); Serial.println(cycleTimeMus);
 }
 void rescaleParameterLimits(){
-    float T = 60/allUserParams[(int)UP::RESPIRATORY_RATE].getDialValue();
-    float t_in = allUserParams[(int)UP::T_IN].getDialValue();
-    float x = allUserParams[(int)UP::COMPRESSED_VOLUME_RATIO].getDialValue()/100*STEPS_FULL_RANGE*STEP_DIVIDER;
+    float T = 60/allUserParams[UP::RESPIRATORY_RATE].getDialValue();
+    float t_in = allUserParams[UP::T_IN].getDialValue();
+    float x = allUserParams[UP::COMPRESSED_VOLUME_RATIO].getDialValue()/100*STEPS_FULL_RANGE*STEP_DIVIDER;
     float a = ACC_EX *STEP_DIVIDER;
 
     float f_max = 60/(t_in + sqrtf(4*x/a) + TIME_HOLD_PLATEAU);
-    allUserParams[(int)UP::RESPIRATORY_RATE].setMax(f_max);
+    allUserParams[UP::RESPIRATORY_RATE].setMax(f_max);
 
     //float t_in_min = sqrtf(4*x/a);
     // using max speed
@@ -499,12 +499,12 @@ void rescaleParameterLimits(){
     float t_in_min = (x-sq(vMax)/a)/vMax +2*vMax/a;
     float t_in_max = T-sqrtf(4*x/a) - TIME_HOLD_PLATEAU;
     t_in_min = max (0, t_in_min);
-    allUserParams[(int)UP::T_IN].setMin(t_in_min);
-    allUserParams[(int)UP::T_IN].setMax(t_in_max);
+    allUserParams[UP::T_IN].setMin(t_in_min);
+    allUserParams[UP::T_IN].setMax(t_in_max);
 
     float x_max = sq(t_in) *a/4;
     x_max = min (x_max, STEPS_FULL_RANGE*STEP_DIVIDER);
-    allUserParams[(int)UP::COMPRESSED_VOLUME_RATIO].setMax(x_max*100/STEP_DIVIDER/STEPS_FULL_RANGE);
+    allUserParams[UP::COMPRESSED_VOLUME_RATIO].setMax(x_max*100/STEP_DIVIDER/STEPS_FULL_RANGE);
 
 }
 
@@ -681,8 +681,8 @@ VentilationState ventilationStateMachine( VentilationState &state){
 
             switch (mode.controlMode){
                 case ControlMode::PC:{
-                    float slopeTime = allUserParams[(int)UP::SLOPE_P].getValue();
-                    float level = allUserParams[(int)UP::INSPIRATORY_PRESSURE].getValue();
+                    float slopeTime = allUserParams[UP::SLOPE_P].getValue();
+                    float level = allUserParams[UP::INSPIRATORY_PRESSURE].getValue();
                     float offset = diagnosticParameters.s.peep.getValue();
                     offset = min(offset, 40);
                     offset = max(offset, 0);
@@ -694,21 +694,21 @@ VentilationState ventilationStateMachine( VentilationState &state){
                     Stepper.setAcc(3000);
                     break;}
                 case ControlMode::VC:{
-                    float slopeTime = 0.01;//allUserParams[(int)UP::SLOPE_P].getValue();
-                    float level = allUserParams[(int)UP::FLOW].getValue();
+                    float slopeTime = 0.01;//allUserParams[UP::SLOPE_P].getValue();
+                    float level = allUserParams[UP::FLOW].getValue();
                     float offset = 0;//diagnosticParameters.s.peep.getValue();
                     offset = min(offset, 40);
                     offset = max(offset, 0);
                     controller.startRamp(slopeTime, level, offset,
-                            0.25,//allUserParams[(int)UP::KP].getValue(),
-                            0.03,//allUserParams[(int)UP::KP].getValue(),
+                            0.25,//allUserParams[UP::KP].getValue(),
+                            0.03,//allUserParams[UP::KP].getValue(),
                            0);
                     Stepper.setMaxSpeed(1000);
                     Stepper.setAcc(3000);
                     break;}
                 case ControlMode::OL: {
-                    float steps = allUserParams[(int) UP::COMPRESSED_VOLUME_RATIO].getValue() / 100 * STEPS_FULL_RANGE;
-                    float time = allUserParams[(int) UP::T_IN].getValue();
+                    float steps = allUserParams[UP::COMPRESSED_VOLUME_RATIO].getValue() / 100 * STEPS_FULL_RANGE;
+                    float time = allUserParams[UP::T_IN].getValue();
                     float speed = calculateSpeed(ACC_IN, DEC_IN, time, steps);
                     //Serial.print("Move steps: ");
                     //Serial.print(steps);
@@ -730,7 +730,7 @@ VentilationState ventilationStateMachine( VentilationState &state){
         }
 
         case MOVING_IN:{
-            //Serial.print("controlMode: ");Serial.println((int)mode.controlMode);
+            //Serial.print("controlMode: ");Serial.println(mode.controlMode);
             if (stepperMonitor.getData().relativePosition>STEPS_FULL_RANGE*0.9){
                 Stepper.hardStop();
             }
@@ -828,27 +828,27 @@ VentilationState ventilationStateMachine( VentilationState &state){
 }
 
 bool Triggers::respiratoryRate() {
-    return (float)stopwatch.inspiration.getElapsedTime() > 1 / allUserParams[(int) UP::RESPIRATORY_RATE].getValue()*60*1000;
+    return (float)stopwatch.inspiration.getElapsedTime() > 1 / allUserParams[UP::RESPIRATORY_RATE].getValue()*60*1000;
 }
 
 bool Triggers::inspirationTime() {
-    return (float)stopwatch.inspiration.getElapsedTime() > allUserParams[(int)UP::T_IN].getValue()*1000;
+    return (float)stopwatch.inspiration.getElapsedTime() > allUserParams[UP::T_IN].getValue()*1000;
 }
 
 /*bool Triggers::pressureDrop() {
-    return (- diagnosticParameters.s.pressureChange.getValue() > allUserParams[(int)UP::PRESSURE_TRIGGER_THRESHOLD].getValue());
+    return (- diagnosticParameters.s.pressureChange.getValue() > allUserParams[UP::PRESSURE_TRIGGER_THRESHOLD].getValue());
 }*/
 
 bool Triggers::flowIncrease() {
-    return diagnosticParameters.s.flow.getValue() > allUserParams[(int)UP::FLOW_TRIGGER_THRESHOLD].getValue();
+    return diagnosticParameters.s.flow.getValue() > allUserParams[UP::FLOW_TRIGGER_THRESHOLD].getValue();
 }
 
 bool Triggers::angleReached() {
-    return (float) getPosition() > allUserParams[(int)UP::ANGLE].getValue() * STEPS_FULL_TURN * STEP_DIVIDER;
+    return (float) getPosition() > allUserParams[UP::ANGLE].getValue() * STEPS_FULL_TURN * STEP_DIVIDER;
 }
 
 bool Triggers::tidalVolume() {
-    return diagnosticParameters.s.tidalVolume.getValue() > allUserParams[(int)UP::TIDAL_VOLUME].getValue();
+    return diagnosticParameters.s.tidalVolume.getValue() > allUserParams[UP::TIDAL_VOLUME].getValue();
 }
 
 

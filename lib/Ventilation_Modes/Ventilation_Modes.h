@@ -93,8 +93,8 @@ public:
     VentiModeContainer(VentilationMode *params) : nActive(N), params(params) {}
     VentiModeContainer() {
     }
-    VentilationMode & operator[](int idx)       { return params[idx]; }
-    const VentilationMode& operator[](int idx)      const  { return params[idx]; }
+    VentilationMode & operator[](VentiModes idx)       { return params[idx]; }
+    const VentilationMode& operator[](VentiModes idx)      const  { return params[idx]; }
 
 
     int nActive{};
