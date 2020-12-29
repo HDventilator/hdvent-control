@@ -83,8 +83,8 @@ void setup()
     allUserParams[(int) UP::ANGLE] = User_Parameter(0, 0, 1, "angl", 0, 1024, true); //  milliliters per second
     allUserParams[(int) UP::COMPRESSED_VOLUME_RATIO] = User_Parameter(100, 0, 100, "Volu", 0, 1024, true); //  milliliters per second
     allUserParams[(int) UP::SLOPE_P] = User_Parameter(0.2, 0, 2, "slop", 0, 1024, true); //  milliliters per second
-    allUserParams[(int) UP::KP] = User_Parameter(0.3, 0, 0.5, "kp  ", 0, 1024, true); //  milliliters per second
-    allUserParams[(int) UP::KI] = User_Parameter(0.3, 0, 0.5, "ki  ", 0, 1024, true); //  milliliters per second
+    allUserParams[(int) UP::KP] = User_Parameter(1, 0, 1, "kp  ", 0, 1024, true); //  milliliters per second
+    allUserParams[(int) UP::KI] = User_Parameter(1, 0, 3, "ki  ", 0, 1024, true); //  milliliters per second
 
     allVentiModes[(int) VentiModes::OL_CMV] = OL_CMV;
     allVentiModes[(int) VentiModes::PC_CMV] = PC_CMV;
@@ -121,7 +121,7 @@ void setup()
         param.setValue(10);
     }
 
-    controller._pid.SetTunings(allUserParams[(int)UP::KP].getValue(), allUserParams[(int)UP::KI].getValue(),0);
+   // controller._pid.SetTunings(allUserParams[(int)UP::KP].getValue(), allUserParams[(int)UP::KI].getValue(),0);
 
     enumerateEEPROM();
     readFromEEPROM();
@@ -536,11 +536,13 @@ void readSensors(){
         flow += (flowSensor.getData().pressure-PRESSURE_FLOW_CONVERSION_OFFSET) * PRESSURE_FLOW_CONVERSION;
     }
     flow = flow/15;
-
+    /*flowSensor.readSensor();
+    flow = (flowSensor.getData().pressure-PRESSURE_FLOW_CONVERSION_OFFSET) * PRESSURE_FLOW_CONVERSION;*/
+    diagnosticParameters.s.flow.setValue(flow);
     diagnosticParameters.s.airwayPressure.setValue(pressure);
     //flowSensor.readSensor();
 
-    diagnosticParameters.s.flow.setValue(flow);
+
 
     // integrate flow for volume
     if ((ventilationState == START_IN)||(ventilationState == IDLE)){
@@ -684,17 +686,23 @@ VentilationState ventilationStateMachine( VentilationState &state){
                     float offset = diagnosticParameters.s.peep.getValue();
                     offset = min(offset, 40);
                     offset = max(offset, 0);
-                    controller.startRamp(slopeTime, level, offset);
+                    controller.startRamp(slopeTime, level, offset,
+                            mode.pidParameters.k_p,
+                                         mode.pidParameters.k_i,
+                                         mode.pidParameters.k_d);
                     Stepper.setMaxSpeed(1000);
                     Stepper.setAcc(3000);
                     break;}
                 case ControlMode::VC:{
-                    float slopeTime = 0.1;//allUserParams[(int)UP::SLOPE_P].getValue();
+                    float slopeTime = 0.01;//allUserParams[(int)UP::SLOPE_P].getValue();
                     float level = allUserParams[(int)UP::FLOW].getValue();
                     float offset = 0;//diagnosticParameters.s.peep.getValue();
                     offset = min(offset, 40);
                     offset = max(offset, 0);
-                    controller.startRamp(slopeTime, level, offset);
+                    controller.startRamp(slopeTime, level, offset,
+                            0.25,//allUserParams[(int)UP::KP].getValue(),
+                            0.03,//allUserParams[(int)UP::KP].getValue(),
+                           0);
                     Stepper.setMaxSpeed(1000);
                     Stepper.setAcc(3000);
                     break;}
@@ -734,10 +742,11 @@ VentilationState ventilationStateMachine( VentilationState &state){
                     break;
 
                 case ControlMode::VC:
-                    speed = (float)controller.calcSpeed(diagnosticParameters.s.flow.getValue());
+                    speed = controller.calcSetPoint()*0.095+(float)controller.calcSpeed(diagnosticParameters.s.flow.getValue());
                     break;
                 case ControlMode::PC:
                     speed = (float)controller.calcSpeed(diagnosticParameters.s.airwayPressure.getValue());
+                    //speed = controller.calcSetPoint();
                     //Serial.print("speed:");Serial.println(speed);
                     //Serial.print("kp:");Serial.println(controller._pid.GetKp());
                     break;
@@ -758,11 +767,12 @@ VentilationState ventilationStateMachine( VentilationState &state){
 
             // start expiration on trigger
             if (controller.expirationTrigger()) {
+                controller.stopControl();
             state = END_IN;}
             break;}
 
         case END_IN:
-            controller.stopControl();
+
             Stepper.hardStop();
             stopwatch.holdingIn.start();
             state = HOLDING_IN;

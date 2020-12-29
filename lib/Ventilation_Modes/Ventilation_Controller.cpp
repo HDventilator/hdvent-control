@@ -39,7 +39,9 @@ bool VentilationController::inspirationTrigger(){
 }
 
 
-void VentilationController::startRamp(float slopeTime, float level, float offset) {
+void VentilationController::startRamp(float slopeTime, float level, float offset, float k_p, float k_i, float k_d) {
+    _pid = PID(&_pidIn, &_pidOut, &_pidSetpoint, k_p, k_i, k_d, P_ON_E, DIRECT);
+
     _pid.SetMode(1);
     _pid.SetOutputLimits(0,1000);
     _slope = (level-offset)/slopeTime;

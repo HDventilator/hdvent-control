@@ -64,7 +64,7 @@ enum VentilationState {START_IN=0, MOVING_IN=1, HOLDING_IN=2, START_EX=3, MOVING
 
 
 float const PRESSURE_FLOW_CONVERSION = -771.49; // ml*s^-1 / mbar
-float const PRESSURE_FLOW_CONVERSION_OFFSET = 0.053;
+float const PRESSURE_FLOW_CONVERSION_OFFSET = 0.042;
 /* **********************
  * Function declarations
  * **********************

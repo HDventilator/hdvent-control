@@ -23,7 +23,7 @@ public:
     bool inspirationTrigger();
     double calcSpeed();
     float calcSetPoint();
-    void startRamp(float slopeTime, float level, float offset);
+    void startRamp(float slopeTime, float level, float offset, float k_p, float k_i, float k_d);
     Subset<User_Parameter, UP> userParams;
     VentilationMode _mode;
     float calcSetPointTrapezoid();

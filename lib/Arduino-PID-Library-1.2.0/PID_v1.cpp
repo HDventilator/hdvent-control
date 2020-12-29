@@ -188,8 +188,8 @@ void PID::SetMode(int Mode)
  ******************************************************************************/
 void PID::Initialize()
 {
-   outputSum = *myOutput;
-   lastInput = *myInput;
+   outputSum = 0;//*myOutput;
+   lastInput = 0;//*myInput;
    if(outputSum > outMax) outputSum = outMax;
    else if(outputSum < outMin) outputSum = outMin;
 }
