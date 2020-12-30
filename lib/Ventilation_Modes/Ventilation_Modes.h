@@ -40,7 +40,7 @@ struct Triggers{
 };
 
 enum struct ControlMode { PC=0, VC=1, OL=2 };
-enum struct VentiModes {PC_CMV, OL_CMV, VC_CMV};
+enum struct VentiModes {PC_CMV, OL_CMV, VC_CMV, N_VENTI_MODES};
 
 struct PID_parameters_t {
     float k_p;
