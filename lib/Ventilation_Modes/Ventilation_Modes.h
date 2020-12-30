@@ -110,17 +110,16 @@ public:
     int getSelectedIndex(){
         return _selectedIndex;
     }
-    void setActive(int i){
+    void setActive(VentiModes i){
         _activeIndex = i;
     }
-    void setSelected(int i){
+    void setSelected(VentiModes i){
         _selectedIndex = i;
     }
     void save(){
         _activeIndex=_selectedIndex;
     }
-
-
+    
     VentilationMode params[N];
 private:
     int _activeIndex=(int)VentiModes::VC_CMV;
