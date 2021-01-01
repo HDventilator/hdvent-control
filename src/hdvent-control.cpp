@@ -262,7 +262,7 @@ void safeToEEPROM(){
 
 void enumerateEEPROM(){
     int index=0;
-    for (int i=0; i<(int)UP::LAST_PARAM_LABEL; i++){
+    for (int i=0; i<(int)UP::LAST_LABEL; i++){
         allUserParams[i].setEeAddress(index);
         index += sizeof(float);
         //Serial.print(index);

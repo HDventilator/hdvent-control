@@ -24,7 +24,7 @@ enum struct UP {
     ANGLE,
     KP,
     KI,
-    LAST_PARAM_LABEL=14
+    LAST_LABEL=14
 };
 
 typedef bool (*trigger_func_t)();
@@ -40,7 +40,7 @@ struct Triggers{
 };
 
 enum struct ControlMode { PC=0, VC=1, OL=2 };
-enum struct VentiModes {PC_CMV, OL_CMV, VC_CMV, N_VENTI_MODES};
+enum struct VentiModes {PC_CMV, OL_CMV, VC_CMV, LAST_LABEL};
 
 struct PID_parameters_t {
     float k_p;
