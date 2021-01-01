@@ -23,7 +23,6 @@
 #include <Motor_Settings.h>
 #include <Optical_Sensor.h>
 #include <Stepper_Monitor.h>
-#include <User_Input.h>
 #include <Wire.h>
 #include <Serial_Protocol.h>
 #include <Aggregated_Parameter.h>

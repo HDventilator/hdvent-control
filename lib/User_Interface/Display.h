@@ -21,7 +21,7 @@ class Display {
 public:
     Display(LiquidCrystal &lcd
             , Parameter_Container<UP_n, UP_t> &allUserParameters,
-            VentiModeContainer<N_VENTI_MODES>  &allVentiModes, diagnosticParameters_t *diagnosticParameters);
+            VentiModeContainer<VM_n, VM_t>  &allVentiModes, diagnosticParameters_t *diagnosticParameters);
 
     enum editState_t {EDIT_PARAMETER, EDIT_ALARM, ENTER_NAVIGATE, NAVIGATE,EDIT_VENTI_MODE};
     enum menuState_t {UNSAVED_SETTINGS, VIEW};
@@ -52,7 +52,7 @@ public:
 
 private:
     VentiModes _modeIndex;
-    VentiModeContainer<VM_n> & _allVentiModes;
+    VentiModeContainer<VM_n, VM_t> & _allVentiModes;
     uint8_t  _header;
     uint8_t _nRows;
     uint8_t _topRowIndex;
