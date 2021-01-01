@@ -87,14 +87,14 @@ public:
 
 };
 
-template<uint8_t N>
+template<uint8_t N, typename VM_t>
 class VentiModeContainer {
 public:
     VentiModeContainer(VentilationMode *params) : nActive(N), params(params) {}
     VentiModeContainer() {
     }
-    VentilationMode & operator[](VentiModes idx)       { return params[idx]; }
-    const VentilationMode& operator[](VentiModes idx)      const  { return params[idx]; }
+    VentilationMode & operator[](VM_t idx)       { return params[idx]; }
+    const VentilationMode& operator[](VM_t idx)      const  { return params[idx]; }
 
 
     int nActive{};
@@ -110,10 +110,10 @@ public:
     int getSelectedIndex(){
         return _selectedIndex;
     }
-    void setActive(VentiModes i){
+    void setActive(VM_t i){
         _activeIndex = i;
     }
-    void setSelected(VentiModes i){
+    void setSelected(VM_t i){
         _selectedIndex = i;
     }
     void save(){
@@ -122,8 +122,8 @@ public:
     
     VentilationMode params[N];
 private:
-    int _activeIndex=(int)VentiModes::VC_CMV;
-    int _selectedIndex=(int)VentiModes::VC_CMV;
+    int _activeIndex;
+    int _selectedIndex;
 
 
 };

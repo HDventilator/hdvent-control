@@ -8,7 +8,7 @@
 #include <User_Parameter.h>
 #include <Ventilation_Modes.h>
 
-template<uint8_t N>
+template<uint8_t N, typename T>
 class Parameter_Container {
 public:
     Parameter_Container(User_Parameter *params) : nActive(N), params(params), _activeIndexes(nullptr) {}
@@ -17,14 +17,15 @@ public:
 
     }
 
-    User_Parameter & operator[](UP idx)       { return params[idx]; }
-    const User_Parameter& operator[](UP idx)      const  { return params[idx]; }
+    User_Parameter & operator[](T idx)       { return params[idx]; }
+    const User_Parameter& operator[](T idx)      const  { return params[idx]; }
 
     void update(int activeIndexes[], int n){
         _activeIndexes = activeIndexes;
         nActive = n;
     };
-    void update(UP* activeIndexes, int n){
+
+    void update(T* activeIndexes, int n){
         _activeIndexes = reinterpret_cast<int*>(activeIndexes);
         nActive = n;
     };
@@ -37,7 +38,6 @@ public:
     User_Parameter params[N];
 
 private:
-
     int* _activeIndexes;
 
 };

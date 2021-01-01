@@ -8,16 +8,19 @@
 #include <LiquidCrystal.h>
 #include <User_Parameter.h>
 #include <Ventilation_Modes.h>
-#include "User_Input.h"
 #include <TimedToggler.h>
 #include <Parameter_Container.h>
+#include <Stopwatch.h>
 
 const uint8_t N_USER_PARAMETERS=14;
 const uint8_t N_VENTI_MODES=3;
 const uint8_t nDiagnosticParameters=7;
+
+template <int UP_n, typename UP_t, int VM_n, typename VM_t>
 class Display {
 public:
-    Display(LiquidCrystal &lcd, Parameter_Container<N_USER_PARAMETERS> &allUserParameters,
+    Display(LiquidCrystal &lcd
+            , Parameter_Container<UP_n, UP_t> &allUserParameters,
             VentiModeContainer<N_VENTI_MODES>  &allVentiModes, diagnosticParameters_t *diagnosticParameters);
 
     enum editState_t {EDIT_PARAMETER, EDIT_ALARM, ENTER_NAVIGATE, NAVIGATE,EDIT_VENTI_MODE};
@@ -43,13 +46,13 @@ public:
     uint8_t nActiveDiagnosticParameters;
 
     void printScrollIndicator();
-    Parameter_Container<N_USER_PARAMETERS> & _allUserParams;
+    Parameter_Container<UP_n, UP_t> & _allUserParams;
 
     menuState_t getMenuState() const;
 
 private:
     VentiModes _modeIndex;
-    VentiModeContainer<N_VENTI_MODES> & _allVentiModes;
+    VentiModeContainer<VM_n> & _allVentiModes;
     uint8_t  _header;
     uint8_t _nRows;
     uint8_t _topRowIndex;

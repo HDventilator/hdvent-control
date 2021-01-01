@@ -123,8 +123,8 @@ unsigned int stepsInterval = 300;
 
 // user-set parameters
 //User_Parameter allUserParams[(int) UP::LAST_PARAM_LABEL];
-Parameter_Container<(int) UP::LAST_PARAM_LABEL> allUserParams;
-VentiModeContainer<(int) VentiModes::N_VENTI_MODES> allVentiModes;
+Parameter_Container<(int) UP::LAST_PARAM_LABEL, UP> allUserParams;
+VentiModeContainer<(int) VentiModes::N_VENTI_MODES, VentiModes> allVentiModes;
 
 
 diagnosticParameters_t diagnosticParameters =
