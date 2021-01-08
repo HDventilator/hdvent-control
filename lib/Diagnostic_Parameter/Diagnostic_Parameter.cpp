@@ -5,17 +5,68 @@
 #include "Diagnostic_Parameter.h"
 #include <CRC32.h>
 
-
-
-Diagnostic_Parameter::Diagnostic_Parameter(float initialValue, float minAlarm, float maxAlarm, char *identifier):
-_identifier(identifier),
-lcdString(identifier)
-{
+Diagnostic_Parameter::Diagnostic_Parameter(float initialValue, float minAlarm, float maxAlarm, char *identifier, char string[]){
     _loAlarm = minAlarm;
     _hiAlarm = maxAlarm;
     _value = initialValue;
+    _identifier = identifier;
+    lcdString = string;
+}
+
+Diagnostic_Parameter::Diagnostic_Parameter(float initialValue, float minAlarm, float maxAlarm, char *identifier){
+    _loAlarm = minAlarm;
+    _hiAlarm = maxAlarm;
+    _value = initialValue;
+    _identifier = identifier;
+    lcdString = "none";
+}
+
+
+Diagnostic_Parameter::Diagnostic_Parameter(char *identifier, char *string,
+                                           Diagnostic_Parameter::AlarmSetting hiAlarmSet,
+                                           Diagnostic_Parameter::AlarmSetting loAlarmSet, float minAlarm,
+                                           float maxAlarm) {
+    _hiAlarmSet=INACTIVE;//_hiAlarmSet;
+    _loAlarmSet=INACTIVE;//_loAlarmSet;
+    lcdString=string;
+    _identifier=identifier;
+    _increment=(maxAlarm-minAlarm)/40;
+    _value =0;
+}
+
+Diagnostic_Parameter::Diagnostic_Parameter(char *identifier, char *string, float minAlarm, float maxAlarm) {
+    _hiAlarmSet=INACTIVE;//_hiAlarmSet;
+    _loAlarmSet=INACTIVE;//_loAlarmSet;
+    _minAlarm = minAlarm;
+    _maxAlarm = maxAlarm;
+    lcdString=string;
+    _identifier=identifier;
+    _increment=(maxAlarm-minAlarm)/40;
+    _value =0;
+}
+
+Diagnostic_Parameter::Diagnostic_Parameter(char *identifier, char *string) {
+    _hiAlarmSet=DISABLED;//_hiAlarmSet;
+    _loAlarmSet=DISABLED;//_loAlarmSet;
+    lcdString=string;
+    _identifier=identifier;
+    _value =0;
 
 }
+
+/*
+Diagnostic_Parameter::Diagnostic_Parameter(char *identifier, char string[], AlarmSetting _hiAlarmSet, AlarmSetting _loAlarmSet):
+_hiAlarmSet(_hiAlarmSet),
+_loAlarmSet(_loAlarmSet),
+lcdString(string),
+_identifier(identifier)
+{
+    _value =0;
+}
+*/
+
+
+
 
 float Diagnostic_Parameter::getValue() const {
     return _value;
@@ -67,7 +118,7 @@ package_struct_float_t Diagnostic_Parameter::getPackageStruct() {
 }
 
 
-const char * Diagnostic_Parameter::getIdentifier() const {
+char* Diagnostic_Parameter::getIdentifier() const {
     return _identifier;
 }
 

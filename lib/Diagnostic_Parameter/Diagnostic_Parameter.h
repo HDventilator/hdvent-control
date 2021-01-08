@@ -20,11 +20,11 @@ public:
 
     enum Alarm {OK=0, TOO_LOW=1, TOO_HIGH=2};
     enum AlarmSetting {ACTIVE, INACTIVE, DISABLED};
-    //Diagnostic_Parameter(float initialValue, float minAlarm, float maxAlarm, char *identifier, char string[]);
-    //Diagnostic_Parameter(char *identifier, char string[], AlarmSetting hiAlarmSet, AlarmSetting loAlarmSet, float minAlarm, float maxAlarm);
+    Diagnostic_Parameter(float initialValue, float minAlarm, float maxAlarm, char *identifier, char string[]);
+    Diagnostic_Parameter(char *identifier, char string[], AlarmSetting hiAlarmSet, AlarmSetting loAlarmSet, float minAlarm, float maxAlarm);
     Diagnostic_Parameter(float initialValue, float minAlarm, float maxAlarm, char *identifier);
-    //Diagnostic_Parameter(char *identifier, char string[],  float minAlarm, float maxAlarm);
-    //Diagnostic_Parameter(char *identifier, char string[]);
+    Diagnostic_Parameter(char *identifier, char string[],  float minAlarm, float maxAlarm);
+    Diagnostic_Parameter(char *identifier, char string[]);
     void checkAlarm();
 
 
@@ -49,7 +49,7 @@ public:
     float getLoAlarm() const;
 
     Alarm getState();
-    const char* lcdString;
+    char* lcdString;
 
     package_struct_float_t getPackageStruct();
     package_struct_float_t preparePackage(const char *prefix, float value);
@@ -64,7 +64,7 @@ public:
 
     AlarmSetting getHiAlarmSet() const;
     AlarmSetting getLoAlarmSet() const;
-    const char * getIdentifier() const;
+    char *getIdentifier() const;
 
     Alarm getPersistentState() const;
 
@@ -87,7 +87,7 @@ private:
     AlarmSetting _hiAlarmSet=DISABLED;
     float _hiAlarm;
     float _loAlarm;
-    const char* _identifier;
+    char* _identifier;
 
 
 };
