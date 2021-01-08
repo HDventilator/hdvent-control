@@ -13,13 +13,16 @@ Diagnostic_Parameter::Diagnostic_Parameter(float initialValue, float minAlarm, f
     lcdString = string;
 }
 
-Diagnostic_Parameter::Diagnostic_Parameter(float initialValue, float minAlarm, float maxAlarm, char *identifier){
-    _loAlarm = minAlarm;
-    _hiAlarm = maxAlarm;
-    _value = initialValue;
-    _identifier = identifier;
-    lcdString = "none";
-}
+Diagnostic_Parameter::Diagnostic_Parameter(float initialValue, float minAlarm, float maxAlarm, char *identifier)
+        :
+        _loAlarm(minAlarm),
+        _hiAlarm(maxAlarm),
+        lcdString("none"),
+        _identifier(identifier),
+        _value(initialValue)
+        {
+
+        }
 
 
 Diagnostic_Parameter::Diagnostic_Parameter(char *identifier, char *string,
@@ -34,13 +37,19 @@ Diagnostic_Parameter::Diagnostic_Parameter(char *identifier, char *string,
     _value =0;
 }
 
-Diagnostic_Parameter::Diagnostic_Parameter(char *identifier, char *string, float minAlarm, float maxAlarm) {
+Diagnostic_Parameter::Diagnostic_Parameter(char *identifier, char *string, float minAlarm, float maxAlarm)
+:
+_loAlarm(minAlarm),
+_hiAlarm(maxAlarm),
+_identifier(identifier),
+_value(0),
+lcdString("none")
+{
     _hiAlarmSet=INACTIVE;//_hiAlarmSet;
     _loAlarmSet=INACTIVE;//_loAlarmSet;
     _minAlarm = minAlarm;
     _maxAlarm = maxAlarm;
-    lcdString=string;
-    _identifier=identifier;
+
     _increment=(maxAlarm-minAlarm)/40;
     _value =0;
 }
@@ -118,7 +127,7 @@ package_struct_float_t Diagnostic_Parameter::getPackageStruct() {
 }
 
 
-char* Diagnostic_Parameter::getIdentifier() const {
+const char * Diagnostic_Parameter::getIdentifier() const {
     return _identifier;
 }
 

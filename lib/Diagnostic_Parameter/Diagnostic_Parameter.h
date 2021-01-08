@@ -49,7 +49,7 @@ public:
     float getLoAlarm() const;
 
     Alarm getState();
-    char* lcdString;
+    const char* lcdString;
 
     package_struct_float_t getPackageStruct();
     package_struct_float_t preparePackage(const char *prefix, float value);
@@ -64,7 +64,7 @@ public:
 
     AlarmSetting getHiAlarmSet() const;
     AlarmSetting getLoAlarmSet() const;
-    char *getIdentifier() const;
+    const char * getIdentifier() const;
 
     Alarm getPersistentState() const;
 
@@ -85,9 +85,10 @@ private:
     AlarmSetting _loAlarmSet=DISABLED;
     float _value;
     AlarmSetting _hiAlarmSet=DISABLED;
-    float _hiAlarm;
     float _loAlarm;
-    char* _identifier;
+    float _hiAlarm;
+
+    const char* _identifier;
 
 
 };
