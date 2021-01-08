@@ -109,14 +109,14 @@ Parameter_Container<(int) UP::LAST_LABEL, UP> allUserParams;
 VentiModeContainer<(int) VentiModes::LAST_LABEL, VentiModes> allVentiModes;
 
 
-diagnosticParameters_t diagnosticParameters =
-        { Diagnostic_Parameter("tvol","Tvol",  0,800),
+diagnosticParameters_t diagnosticParameters = {
+        Diagnostic_Parameter("tvol","Tvol",  0,800),
         Diagnostic_Parameter("peep", "PEEP", 0,30),
-       Diagnostic_Parameter("cvol","Cvol"),
+        Diagnostic_Parameter("cvol","Cvol"),
         Diagnostic_Parameter("flow","Flow"),
-         Diagnostic_Parameter("pins","Pins", 0, 60),
-                Diagnostic_Parameter("plat","Plat", 0, 60),
-                Diagnostic_Parameter("mvol", "mVol")
+        Diagnostic_Parameter("pins","Pins", 0, 60),
+        Diagnostic_Parameter("plat","Plat", 0, 60),
+        Diagnostic_Parameter("mvol", "mVol")
         };
 Stopwatch motorTestTimer;
 
