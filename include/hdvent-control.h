@@ -151,18 +151,15 @@ void writeDiagnosticAlarms();
 VentilationMode mode= VC_CMV ;
 VentilationState ventilationState = STARTUP;
 
-
 unsigned long cycleTimeMus =0;
 bool isHome=false;
 bool runVentilation=true;
+
 void ledService();
-bool DO_SERIAL_DEBUG = true;
+
 void readFromEEPROM();
 void enumerateEEPROM();
 
-Sensor::state_t stepperPositionState = Sensor::OK;
-Sensor::state_t anglePositionState = Sensor::OK;
-PID pressureControlPID();
 bool alarmIsTriggered=false;
 VentilationController controller(VC_CMV, diagnosticParameters.s.airwayPressure, diagnosticParameters.s.flow,
                                  allUserParams.params);
