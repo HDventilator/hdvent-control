@@ -1,0 +1,8 @@
+//
+// Created by david on 08.01.21.
+//
+
+#ifndef HDVENT_CONTROL_DEBUG_SETTINGS_H
+#define HDVENT_CONTROL_DEBUG_SETTINGS_H
+
+#endif //HDVENT_CONTROL_DEBUG_SETTINGS_H

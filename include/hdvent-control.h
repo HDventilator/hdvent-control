@@ -36,6 +36,7 @@
 #include <Parameter_Container.h>
 #include <Clinical_Settings.h>
 #include <Sensor_Settings.h>
+#include <Debug_Settings.h>
 
 extern "C" {
 #include "utility/twi.h"  // from Wire library, so we can do bus scanning
@@ -56,7 +57,6 @@ enum VentilationState {START_IN=0, MOVING_IN=1, HOLDING_IN=2, START_EX=3, MOVING
  * **********************
  */
 void checkAlarms();
-int old_speed=0;
 void safeToEEPROM();
 byte spi_test();
 void ConfigureStepperDriver();
@@ -156,7 +156,7 @@ unsigned long cycleTimeMus =0;
 bool isHome=false;
 bool runVentilation=true;
 void ledService();
-bool debuggingOn = true;
+bool DO_SERIAL_DEBUG = true;
 void readFromEEPROM();
 void enumerateEEPROM();
 
@@ -179,6 +179,7 @@ Pushbutton enableVentilation(PIN_SD_VENTI);
 
 TimedToggler greenLEDBlink(500);
 TimedToggler orangeLEDBlink(300);
+
 Display<(int)UP::LAST_LABEL, UP, (int)VentiModes::LAST_LABEL, VentiModes>
         display(lcd, allUserParams, allVentiModes, &diagnosticParameters);
 
