@@ -102,10 +102,6 @@ Angle_Sensor angleSensor(PIN_RPS_OUT, STEPS_FS_FULL_TURN*STEP_DIVIDER, 360, 1024
 Optical_Sensor opticalHomeSensor(PIN_OPTICAL_SWITCH_HOME);
 Stepper_Monitor stepperMonitor(&Stepper, STEP_DIVIDER * 5, DIR_IN);
 
-float timeEx=1;
-float timeIn=1;
-float speedIn = 50; // steps/s
-unsigned int stepsInterval = 300;
 
 // user-set parameters
 //User_Parameter allUserParams[(int) UP::LAST_LABEL];
@@ -150,17 +146,13 @@ struct stopwatches_t{
 
 StopwatchMus mainLoopMus;
 
-float integratedPosition=0;
 void writeDiagnosticAlarms();
-
-float pathRatio=1;
 
 VentilationMode mode= VC_CMV ;
 VentilationState ventilationState = STARTUP;
 
-float oldPressure;
+
 unsigned long cycleTimeMus =0;
-bool saveUserParams = false;
 bool isHome=false;
 bool runVentilation=true;
 void ledService();
@@ -170,10 +162,8 @@ void enumerateEEPROM();
 
 Sensor::state_t stepperPositionState = Sensor::OK;
 Sensor::state_t anglePositionState = Sensor::OK;
-float motorSpeed;
 PID pressureControlPID();
 bool alarmIsTriggered=false;
-bool motorDir;
 VentilationController controller(VC_CMV, diagnosticParameters.s.airwayPressure, diagnosticParameters.s.flow,
                                  allUserParams.params);
 LiquidCrystal lcd(PIN_LCD_RS, PIN_LCD_RW, PIN_LCD_EN, PIN_LCD_D4, PIN_LCD_D5, PIN_LCD_D6, PIN_LCD_D7);
