@@ -34,4 +34,10 @@ int const STEP_DIVIDER = 128;
 unsigned int const STEPS_FULL_TURN = 200;
 unsigned int const STEPS_FULL_RANGE = 55;
 
+int const STEPS_EX_HOMING = 80; // steps to move out when trying to find home
+int const STEPS_IN_HOMING = 80; // steps to move in when trying to find home
+
+int const STEPS_FS_FULL_TURN = 200; // how many full steps for one full turn of the motor
+
+
 #endif //HDVENT_CONTROL_MOTOR_SETTINGS_H

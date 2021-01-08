@@ -34,36 +34,23 @@
 #include <StopwatchMus.h>
 #include <EEPROM.h>
 #include <Parameter_Container.h>
+#include <Clinical_Settings.h>
+#include <Sensor_Settings.h>
+
 extern "C" {
 #include "utility/twi.h"  // from Wire library, so we can do bus scanning
 }
 
 
-/* ***********************
- * Constant definitions
- * ***********************
- */
-
 powerSTEP Stepper(0, nCS_PIN, nSTBY_nRESET_PIN);;  // Nr, CS, Reset => 0 , D16/A2 (PA4), D4 (PB5) for IHM02A1 board
 
-// Clinical settings
-int const PRESSURE_MAX = 0; // mm H20
-float const TIME_HOLD_PLATEAU = 0.2; // seconds, hold time after inspiratory phase
-float const TEMPERATURE_INFLUX_THRESHOLD = 20;// °C, start heating when influx temperature falls below this value
 
-int const STEPS_EX_HOMING = 80; // steps to move out when trying to find home
-int const STEPS_IN_HOMING = 80; // steps to move in when trying to find home
-
-int const STEPS_FS_FULL_TURN = 200; // how many full steps for one full turn of the motor
 
 float calculateSpeed(int acc, int dec, float t, int steps);
 // state flags
 enum VentilationState {START_IN=0, MOVING_IN=1, HOLDING_IN=2, START_EX=3, MOVING_EX=4, HOLDING_EX=5, STARTUP=6,
         END_IN=7, END_EX=8, HOMING_EX=9, IDLE=10, START_HOMING=11};
 
-
-float const PRESSURE_FLOW_CONVERSION = -771.49; // ml*s^-1 / mbar
-float const PRESSURE_FLOW_CONVERSION_OFFSET = 0.042;
 /* **********************
  * Function declarations
  * **********************
@@ -191,7 +178,7 @@ VentilationController controller(VC_CMV, diagnosticParameters.s.airwayPressure, 
                                  allUserParams.params);
 LiquidCrystal lcd(PIN_LCD_RS, PIN_LCD_RW, PIN_LCD_EN, PIN_LCD_D4, PIN_LCD_D5, PIN_LCD_D6, PIN_LCD_D7);
 PacketSerial cobsSerial;
-uint8_t potiPins[4] = {PIN_POTI_AD, PIN_POTI_IE, PIN_POTI_TV, PIN_POTI_RR};
+
 Encoder encoder(PIN_ENCO_A, PIN_ENCO_B);
 
 Pushbutton confirmButton(PIN_EDIT_MODE);
@@ -202,7 +189,8 @@ Pushbutton enableVentilation(PIN_SD_VENTI);
 
 TimedToggler greenLEDBlink(500);
 TimedToggler orangeLEDBlink(300);
-Display display(lcd, allUserParams, allVentiModes, &diagnosticParameters);
+Display<(int)UP::LAST_LABEL, UP, (int)VentiModes::LAST_LABEL, VentiModes>
+        display(lcd, allUserParams, allVentiModes, &diagnosticParameters);
 
 Buzzer buzzer(PIN_ALARM_ENABLE, 500, 1000);
 
