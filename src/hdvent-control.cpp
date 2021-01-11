@@ -263,7 +263,7 @@ void safeToEEPROM(){
 void enumerateEEPROM(){
     int index=0;
     for (int i=0; i<(int)UP::LAST_LABEL; i++){
-        allUserParams[i].setEeAddress(index);
+        allUserParams[static_cast<UP>(i)].setEeAddress(index);
         index += sizeof(float);
         //Serial.print(index);
     }
@@ -303,9 +303,10 @@ void debugMotor(){
             //delay((float)(200.0*1000) / 80 - delayTime);
             Serial.println(d);
             machineDiagnostics.absolutePosition.setValue(d);
-            serialWritePackage(&cobsSerial, machineDiagnostics.absolutePosition.getPackageStruct());
+            cobsSerial.write(machineDiagnostics.absolutePosition);
         }
     }
+
     Stepper.hardStop();
     if (!isHome){
         Serial.println("not Home");
@@ -341,13 +342,13 @@ void checkAlarms() {
 }
 
 void writeDiagnosticParameters(){
-    serialWritePackage(&cobsSerial, diagnosticParameters.s.flow.getPackageStruct());
-    serialWritePackage(&cobsSerial, diagnosticParameters.s.airwayPressure.getPackageStruct());
-    serialWritePackage(&cobsSerial, diagnosticParameters.s.plateauPressure.getPackageStruct());
-    serialWritePackage(&cobsSerial, diagnosticParameters.s.volume.getPackageStruct());
-    serialWritePackage(&cobsSerial, diagnosticParameters.s.tidalVolume.getPackageStruct());
-    serialWritePackage(&cobsSerial, diagnosticParameters.s.peep.getPackageStruct());
-    serialWritePackage(&cobsSerial, diagnosticParameters.s.minuteVolume.getPackageStruct());
+    cobsSerial.write(diagnosticParameters.s.flow);
+    cobsSerial.write(diagnosticParameters.s.airwayPressure);
+    cobsSerial.write(diagnosticParameters.s.plateauPressure);
+    cobsSerial.write(diagnosticParameters.s.volume);
+    cobsSerial.write(diagnosticParameters.s.tidalVolume);
+    cobsSerial.write(diagnosticParameters.s.peep);
+    cobsSerial.write(diagnosticParameters.s.minuteVolume);
 }
 
 void writeDiagnosticAlarms() {
@@ -368,25 +369,25 @@ void writeDiagnosticAlarms() {
 void runMachineDiagnostics(){
     // program cycle time
    machineDiagnostics.cycle_time.setValue(cycleTimeMus);
-    serialWritePackage(&cobsSerial, machineDiagnostics.cycle_time.getPackageStruct());
+    cobsSerial.write(machineDiagnostics.cycle_time);
 
     // ventilation state
     /*
     machineDiagnostics.ventilationState.setValue((int)ventilationState);
-    serialWritePackage(&cobsSerial, machineDiagnostics.ventilationState.getPackageStruct());
+    cobsSerial.write(machineDiagnostics.ventilationState);
 
     machineDiagnostics.stepperPosition.setValue(stepperMonitor.getData().relativePosition);
-   serialWritePackage(&cobsSerial, machineDiagnostics.stepperPosition.getPackageStruct());
+   cobsSerial.write(machineDiagnostics.stepperPosition);
 
     machineDiagnostics.rotationSensor.setValue(angleSensor.getData().relativePosition);
-    serialWritePackage(&cobsSerial, machineDiagnostics.rotationSensor.getPackageStruct());
+    cobsSerial.write(machineDiagnostics.rotationSensor);
 
     machineDiagnostics.absolutePosition.setValue(Stepper.getParam(ABS_POS));
-    serialWritePackage(&cobsSerial, machineDiagnostics.absolutePosition.getPackageStruct());
+    cobsSerial.write(machineDiagnostics.absolutePosition);
 
 */
-    serialWritePackage(&cobsSerial, machineDiagnostics.calculatedSpeed.getPackageStruct());
-    serialWritePackage(&cobsSerial, machineDiagnostics.setpointPID.getPackageStruct());
+    cobsSerial.write(machineDiagnostics.calculatedSpeed);
+    cobsSerial.write(machineDiagnostics.setpointPID);
 
 }
 
@@ -512,9 +513,7 @@ void writeUserInput(){
     if (true){
         for ( int i=0;  i<(mode.nParams); i++)
         {
-            serialWritePackage(&cobsSerial, controller.userParams[i].getValuePackage());
-            serialWritePackage(&cobsSerial, controller.userParams[i].getMinPackage());
-            serialWritePackage(&cobsSerial, controller.userParams[i].getMaxPackage());
+            cobsSerial.write(controller.userParams[i]);
         }
     }
 }

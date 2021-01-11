@@ -166,7 +166,8 @@ bool alarmIsTriggered=false;
 VentilationController controller(VC_CMV, diagnosticParameters.s.airwayPressure, diagnosticParameters.s.flow,
                                  allUserParams.params);
 LiquidCrystal lcd(PIN_LCD_RS, PIN_LCD_RW, PIN_LCD_EN, PIN_LCD_D4, PIN_LCD_D5, PIN_LCD_D6, PIN_LCD_D7);
-PacketSerial cobsSerial;
+
+PacketSerialID<IDENTIFIER_LENGTH-IDENTIFIER_PREFIX_LENGTH, IDENTIFIER_PREFIX_LENGTH, PACKAGE_SIZE> cobsSerial;
 
 Encoder encoder(PIN_ENCO_A, PIN_ENCO_B);
 

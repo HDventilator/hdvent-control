@@ -27,14 +27,20 @@ public:
         send(tmp, packageSize);
     }
 
-    void write(Diagnostic_Parameter param){
+    void write(Diagnostic_Parameter & param){
         write(DIAGNOSTIC_PARAMETER_ID_PREFIX, param.getIdentifier(), param.getValue());
     }
 
-    void write(User_Parameter param){
+    void write(User_Parameter & param){
         write(USER_PARAMETER_VALUE_ID_PREFIX, param.lcdString, param.getValue());
         write(USER_PARAMETER_MIN_ID_PREFIX, param.lcdString, param.getMin());
         write(USER_PARAMETER_MAX_ID_PREFIX, param.lcdString, param.getMax());
+    }
+
+    void write(User_Parameter *param){
+        write(USER_PARAMETER_VALUE_ID_PREFIX, param->lcdString, param->getValue());
+        write(USER_PARAMETER_MIN_ID_PREFIX, param->lcdString, param->getMin());
+        write(USER_PARAMETER_MAX_ID_PREFIX, param->lcdString, param->getMax());
     }
 
 private:
