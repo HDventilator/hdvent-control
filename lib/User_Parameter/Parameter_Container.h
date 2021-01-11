@@ -17,8 +17,8 @@ public:
 
     }
 
-    User_Parameter & operator[](T idx)       { return params[idx]; }
-    const User_Parameter& operator[](T idx)      const  { return params[idx]; }
+    User_Parameter & operator[](T idx)       { return params[static_cast<int>(idx)]; }
+    const User_Parameter& operator[](T idx)      const  { return params[static_cast<int>(idx)]; }
 
     void update(int activeIndexes[], int n){
         _activeIndexes = activeIndexes;

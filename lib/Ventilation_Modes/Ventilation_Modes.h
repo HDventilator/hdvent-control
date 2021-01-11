@@ -93,8 +93,8 @@ public:
     VentiModeContainer(VentilationMode *params) : nActive(N), params(params) {}
     VentiModeContainer() {
     }
-    VentilationMode & operator[](VM_t idx)       { return params[idx]; }
-    const VentilationMode& operator[](VM_t idx)      const  { return params[idx]; }
+    VentilationMode & operator[](VM_t idx)       { return params[static_cast<int>(idx)]; }
+    const VentilationMode& operator[](VM_t idx)      const  { return params[static_cast<int>(idx)]; }
 
 
     int nActive{};

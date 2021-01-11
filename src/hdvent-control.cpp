@@ -721,9 +721,7 @@ VentilationState ventilationStateMachine( VentilationState &state){
 
             }
 
-
             state = MOVING_IN;
-            integratedPosition = 0;
             stopwatch.movingIn.start();
             break;
         }
