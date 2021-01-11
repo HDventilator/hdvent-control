@@ -5,7 +5,6 @@
 #ifndef HDVENT_CONTROL_DISPLAY_H
 #define HDVENT_CONTROL_DISPLAY_H
 
-
 #include <Arduino.h>
 #include <LiquidCrystal.h>
 #include <Ventilation_Modes.h>
@@ -14,8 +13,6 @@
 #include <Stopwatch.h>
 #include <Parameter_Container.h>
 
-const uint8_t N_USER_PARAMETERS=14;
-const uint8_t N_VENTI_MODES=3;
 const uint8_t nDiagnosticParameters=7;
 
 byte SYMBOL_SCROLL_DOWN[8] = {
@@ -147,7 +144,7 @@ public:
             case EDIT_VENTI_MODE: {
                 uint8_t i = _allVentiModes.getSelectedIndex();
                 i = i + delta;
-                i = i%N_VENTI_MODES;
+                i = i%VM_n;
                 _allVentiModes.setSelected(i);
                 _lcd.setCursor(0,0);
                 _lcd.print(_allVentiModes.getSelectedMode().lcdString);

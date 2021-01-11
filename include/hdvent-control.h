@@ -44,10 +44,7 @@ extern "C" {
 #include "utility/twi.h"  // from Wire library, so we can do bus scanning
 }
 
-
 powerSTEP Stepper(0, nCS_PIN, nSTBY_nRESET_PIN);;  // Nr, CS, Reset => 0 , D16/A2 (PA4), D4 (PB5) for IHM02A1 board
-
-
 
 float calculateSpeed(int acc, int dec, float t, int steps);
 // state flags
@@ -105,8 +102,6 @@ Optical_Sensor opticalHomeSensor(PIN_OPTICAL_SWITCH_HOME);
 Stepper_Monitor stepperMonitor(&Stepper, STEP_DIVIDER * 5, DIR_IN);
 
 
-// user-set parameters
-//User_Parameter allUserParams[(int) UP::LAST];
 Parameter_Container<(int) UP::LAST, UP> allUserParams;
 VentiModeContainer<(int) VentiModes::LAST_LABEL, VentiModes> allVentiModes;
 
@@ -120,7 +115,7 @@ diagnosticParameters_t diagnosticParameters =
                 Diagnostic_Parameter("plat","Plat", 0, 60),
                 Diagnostic_Parameter("mvol", "mVol")
         };
-Stopwatch motorTestTimer;
+
 
 Aggregated_Parameter minuteVolume(60);
 
