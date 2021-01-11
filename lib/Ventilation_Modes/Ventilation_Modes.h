@@ -111,10 +111,10 @@ public:
         return _selectedIndex;
     }
     void setActive(VM_t i){
-        _activeIndex = i;
+        _activeIndex = static_cast<int>(i);
     }
     void setSelected(VM_t i){
-        _selectedIndex = i;
+        _selectedIndex = static_cast<int>(i);
     }
     void save(){
         _activeIndex=_selectedIndex;
