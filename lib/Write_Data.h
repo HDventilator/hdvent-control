@@ -9,6 +9,7 @@
 #include <Serial_Protocol.h>
 #include <Diagnostic_Parameter.h>
 #include <User_Parameter.h>
+#include <CRC32.h>
 
 template <int idLength, int prefixLength, int packageSize>
 class PacketSerialID : public PacketSerial {
@@ -22,7 +23,6 @@ public:
         memcpy(tmp, &package, packageSize);
         // or this:
         //const char* tmp = reinterpret_cast<char*>(&package);
-
         // Write data to serial port
         send(tmp, packageSize);
     }
@@ -38,15 +38,6 @@ public:
     }
 
 private:
-    static package_struct_float_t constructFloatPackage(const char* identifier, float value){
-        package_struct_float_t dataPackage{};
-        for (int i=0; i<idLength; i++){
-        dataPackage.identifier[i]=identifier[i];
-        }
-        dataPackage.value = value;
-        return dataPackage;
-    }
-
     static package_struct_float_t constructFloatPackage(const char* prefix, const char* identifier, float value){
         package_struct_float_t dataPackage{};
         int index = 0;
@@ -59,25 +50,11 @@ private:
             index++;
         }
         dataPackage.value = value;
-        return dataPackage;
-    }
-};
-
-void writeCOBSFloat(){
-    package_struct_float_t Diagnostic_Parameter::preparePackage(const char *prefix, float value) {
-        package_struct_float_t dataPackage{};
-        dataPackage.identifier[0]=prefix[0];
-        dataPackage.identifier[1]=prefix[1];
-        //memcpy(&dataPackage.identifier+2,_identifier,4);
-        dataPackage.identifier[2]=_identifier[0];
-        dataPackage.identifier[3]=_identifier[1];
-        dataPackage.identifier[4]=_identifier[2];
-        dataPackage.identifier[5]=_identifier[3];
-        dataPackage.value = value;
         CRC32 crc;
         crc.update((uint8_t*) &dataPackage, IDENTIFIER_LENGTH+4);
         dataPackage.checksum = crc.finalize();
         return dataPackage;
     }
-}
+};
+
 #endif //HDVENT_CONTROL_WRITE_DATA_H
