@@ -46,4 +46,5 @@ void serialWritePackage(PacketSerial *packetSerial, T package) {
     packetSerial->send(tmp, PACKAGE_SIZE);
 }
 
+
 #endif //MON_ARDUINO_SERIAL_SERIAL_PROTOCOL_H

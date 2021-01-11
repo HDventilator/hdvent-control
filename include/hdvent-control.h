@@ -37,6 +37,8 @@
 #include <Clinical_Settings.h>
 #include <Sensor_Settings.h>
 #include <Debug_Settings.h>
+#include <Write_Data.h>
+
 
 extern "C" {
 #include "utility/twi.h"  // from Wire library, so we can do bus scanning

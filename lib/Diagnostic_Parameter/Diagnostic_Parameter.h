@@ -22,7 +22,7 @@ public:
     enum AlarmSetting {ACTIVE, INACTIVE, DISABLED};
     Diagnostic_Parameter(float initialValue, float minAlarm, float maxAlarm, char *identifier, char string[]);
     Diagnostic_Parameter(char *identifier, char string[], AlarmSetting hiAlarmSet, AlarmSetting loAlarmSet, float minAlarm, float maxAlarm);
-    Diagnostic_Parameter(float initialValue, float minAlarm, float maxAlarm, char *identifier);
+    Diagnostic_Parameter(float initialValue, float minAlarm, float maxAlarm, const char *identifier);
     Diagnostic_Parameter(char *identifier, char string[],  float minAlarm, float maxAlarm);
     Diagnostic_Parameter(char *identifier, char string[]);
     void checkAlarm();
