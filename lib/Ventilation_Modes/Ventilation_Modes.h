@@ -10,8 +10,8 @@
 
 
 enum struct UP {
-    BLANK,
-    INSPIRATORY_PRESSURE,
+    FIRST,
+    INSPIRATORY_PRESSURE=FIRST,
     TIDAL_VOLUME,
     COMPRESSED_VOLUME_RATIO,
     RESPIRATORY_RATE,
@@ -24,7 +24,7 @@ enum struct UP {
     ANGLE,
     KP,
     KI,
-    LAST_LABEL=14
+    LAST=KI
 };
 
 typedef bool (*trigger_func_t)();

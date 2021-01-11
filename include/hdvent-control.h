@@ -106,8 +106,8 @@ Stepper_Monitor stepperMonitor(&Stepper, STEP_DIVIDER * 5, DIR_IN);
 
 
 // user-set parameters
-//User_Parameter allUserParams[(int) UP::LAST_LABEL];
-Parameter_Container<(int) UP::LAST_LABEL, UP> allUserParams;
+//User_Parameter allUserParams[(int) UP::LAST];
+Parameter_Container<(int) UP::LAST, UP> allUserParams;
 VentiModeContainer<(int) VentiModes::LAST_LABEL, VentiModes> allVentiModes;
 
 
@@ -180,7 +180,7 @@ Pushbutton enableVentilation(PIN_SD_VENTI);
 TimedToggler greenLEDBlink(500);
 TimedToggler orangeLEDBlink(300);
 
-Display<(int)UP::LAST_LABEL, UP, (int)VentiModes::LAST_LABEL, VentiModes>
+Display<(int)UP::LAST, UP, (int)VentiModes::LAST_LABEL, VentiModes>
         display(lcd, allUserParams, allVentiModes, &diagnosticParameters);
 
 Buzzer buzzer(PIN_ALARM_ENABLE, 500, 1000);
