@@ -116,6 +116,12 @@ public:
     void setSelected(VM_t i){
         _selectedIndex = static_cast<int>(i);
     }
+    void setActive(int i){
+        _activeIndex = i;
+    }
+    void setSelected(int i){
+        _selectedIndex = i;
+    }
     void save(){
         _activeIndex=_selectedIndex;
     }
