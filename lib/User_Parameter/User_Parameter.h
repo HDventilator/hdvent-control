@@ -23,11 +23,6 @@ public:
     char* lcdString;
     float getDialValue();
     void saveValue();
-    package_struct_float_t getValuePackage();
-    package_struct_float_t getMinPackage();
-    package_struct_float_t getMaxPackage();
-    package_struct_float_t getDialValuePackage();
-
     float getValueEEPROM(int &index);
     void setDialValue(float dialValue);
     void resetDialValue();
@@ -45,7 +40,6 @@ public:
     int getEeAddress() const;
 
     void setEeAddress(int eeAddress);
-
 
 private:
     int eeAddress;
